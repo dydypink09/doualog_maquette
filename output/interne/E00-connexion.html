@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Connexion — DOUALOG Control Tower</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<script src="../assets/icons.js"></script>
+</head>
+<body>
+<!-- E00 · Connexion · US-45 — maquette : le bouton mène au tableau de bord sans contrôle -->
+<main class="c-auth">
+
+  <form class="c-auth__card" action="E01-tableau-de-bord.html" method="get">
+    <div>
+      <img class="c-auth__logo" src="../assets/img/logo.png" alt="DOUALOG — Douane &amp; Logistique">
+      <h1>Connexion</h1>
+      <p class="c-auth__lead">DOUALOG Control Tower — suivi des dossiers de transit et de dédouanement</p>
+    </div>
+
+    <p class="c-auth__note">
+      <svg class="c-icon" aria-hidden="true"><use href="#i-lock"></use></svg>
+      <span><b>Accès réservé à l'équipe DOUALOG.</b><br>Chaque membre se connecte avec son compte personnel&nbsp;; les écrans affichés dépendent de son profil.</span>
+    </p>
+
+    <!-- Champs sans attribut name : rien n'est transmis dans l'URL -->
+    <div class="c-field">
+      <label class="c-field__label" for="email">Adresse email</label>
+      <input class="c-input" id="email" type="email" autocomplete="username" value="a.ndiaye@doualog.sn" required>
+    </div>
+    <div class="c-field">
+      <label class="c-field__label" for="mdp">Mot de passe</label>
+      <input class="c-input" id="mdp" type="password" autocomplete="current-password" value="maquette-demo" required>
+    </div>
+    <div class="c-auth__row">
+      <label class="c-check"><input type="checkbox" checked> Rester connecté</label>
+      <!-- À VALIDER : procédure de réinitialisation du mot de passe non décrite dans les specs (lien inactif) -->
+      <a href="#" aria-disabled="true" onclick="return false">Mot de passe oublié&nbsp;?</a>
+    </div>
+
+    <button class="c-btn c-btn--primary" type="submit">Se connecter</button>
+  </form>
+
+  <p class="c-auth__foot">
+    Vous êtes client ou transporteur&nbsp;? Aucun compte n'est nécessaire&nbsp;: suivez votre dossier avec le lien reçu par email,
+    ou sur la <a href="../externe/X03-suivi-public.html">page de suivi</a> avec votre N° de dossier DLG.
+  </p>
+
+</main>
+</body>
+</html>

@@ -7,15 +7,17 @@ Ces questions viennent des documents du projet : ils ne disent pas tout. Pour ch
 ## 1. Informations de base
 
 **1.1 Dans quel pays travaille DOUALOG, et avec quel port et quel aéroport ?**
-La maquette affiche pour l'instant Cotonou (Bénin), à titre provisoire.
+**Réglé :** Sénégal, Port autonome de Dakar, aéroport AIBD.
+
+**1.1 bis — Sur vos documents, quel numéro d'identification de l'entreprise cliente utilisez-vous ?**
+Le cahier des charges parle de « N° IFU ». Au Sénégal, on parle plutôt du NINEA. La maquette garde le libellé « N° IFU » avec un numéro au format NINEA.
 Réponse : ……………………………………
 
 **1.2 En quelle monnaie sont faites les factures ?**
-La maquette affiche « FCFA ».
-Réponse : ……………………………………
+**Réglé :** FCFA (XOF).
 
 **1.3 Quel taux de TVA appliquez-vous sur vos prestations ?**
-La maquette calcule avec 18 %.
+La maquette calcule avec 18 % (taux normal au Sénégal).
 Réponse : ……………………………………
 
 **1.4 Qu'est-ce que vous facturez à un client sur un dossier ?**
@@ -40,6 +42,33 @@ Réponse : ……………………………………
 
 **2.1 Qui choisit la personne responsable d'un dossier, et à quel moment ?**
 La maquette suppose que le responsable est le déclarant du dossier, et que c'est le Manager qui l'attribue à l'arrivée du dossier.
+Réponse : ……………………………………
+
+**2.2 Qui voit quoi dans l'outil ?**
+Tout le monde voit le menu complet de votre image ; ce qu'un profil ne peut pas ouvrir apparaît en gris. La maquette propose :
+- Déclarant douane : Tableau de bord, Dossiers, Notifications
+- Opérateur transit et Service transport : en plus, Transport
+- Service facturation : en plus, Facturation
+- Manager : tout, y compris Rapports
+- Direction : tout, mais en lecture seule (sans rien pouvoir modifier)
+
+Tout le monde voit la liste complète des dossiers. Faut-il au contraire qu'un déclarant ne voie que ses propres dossiers ?
+Réponse : ……………………………………
+
+**2.3 Dans la liste des dossiers, qu'est-ce qui doit apparaître en premier ?**
+La maquette classe les dossiers du plus urgent au moins urgent : d'abord ceux où la douane attend une information, puis ceux en contrôle, puis ceux en cours de dédouanement, puis ceux à facturer, et les dossiers terminés en dernier.
+Réponse : ……………………………………
+
+**2.4 À quoi sert le bouton « Nouveau dossier » de votre image ?**
+D'après le cahier des charges, chaque dossier est créé automatiquement quand un email avec pièces jointes arrive sur la boîte DOUALOG. Faut-il aussi pouvoir créer un dossier à la main (par exemple pour un client qui passe au bureau) ? Pour l'instant, le bouton affiche un simple message.
+Réponse : ……………………………………
+
+**2.5 Où met-on la Facturation dans le menu ?**
+Votre image ne montre pas d'entrée « Facturation ». La maquette l'ajoute juste après « Transport ». Est-ce le bon endroit ?
+Réponse : ……………………………………
+
+**2.6 Que comptent exactement les 8 indicateurs en haut du tableau de bord ?**
+La maquette compte les dossiers qui sont à cette étape aujourd'hui (par exemple « BAE obtenus » = dossiers dont le BAE est obtenu mais pas encore le BAS). Préférez-vous un total sur une période (par exemple le mois en cours) ?
 Réponse : ……………………………………
 
 ---
@@ -83,6 +112,10 @@ Réponse : ……………………………………
 
 **4.4 Qu'est-ce qui déclenche l'alerte « Modification de déclaration en attente » ?**
 Elle est citée dans le cahier des charges, mais sans explication.
+Réponse : ……………………………………
+
+**4.5 Peut-on enregistrer le BAE si la douane n'a encore rien dit sur un éventuel contrôle ?**
+La maquette autorise le bouton « BAE obtenu » dès que la déclaration est anticipée, sauf si un contrôle est en cours ou si une information est demandée au client.
 Réponse : ……………………………………
 
 ---

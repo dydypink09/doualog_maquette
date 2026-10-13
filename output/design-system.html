@@ -10,6 +10,7 @@
 <script src="assets/data.js"></script>
 <style>
   /* Mise en page propre à cette page de référence (aucun composant ici) */
+  body { background: var(--bg-surface); }
   .ds { max-width: 1240px; margin: 0 auto; padding: var(--sp-8) var(--sp-6) var(--sp-12); }
   .ds-head { display: flex; align-items: center; gap: var(--sp-4); padding-bottom: var(--sp-4); border-bottom: 2px solid var(--border-ink); }
   .ds-head img { width: 120px; }
@@ -37,12 +38,12 @@
   .ds-space { display: flex; align-items: center; gap: var(--sp-3); font-size: var(--fs-sm); padding: var(--sp-1) 0; }
   .ds-space i { display: block; height: 12px; background: var(--action-primary); }
   .ds-two { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
-  .ds-shell { height: 260px; overflow: hidden; border: var(--border-w) solid var(--border-ink); border-radius: var(--radius-md); }
+  .ds-shell { height: 300px; overflow: hidden; border: var(--border-w) solid var(--border-ink); border-radius: var(--radius-md); }
   .ds-shell .c-app { min-height: 0; height: 100%; }
   .ds-shell .c-topbar, .ds-shell .c-sidebar { position: static; height: auto; }
   .ds-note { font-size: var(--fs-sm); color: var(--text-secondary); margin-top: var(--sp-2); }
   .ds-panel-demo { position: relative; height: 380px; overflow: hidden; border: var(--border-w) solid var(--border); border-radius: var(--radius-md); background: var(--bg-app); }
-  .ds-panel-demo .c-panel { position: absolute; left: 0; height: 88%; }
+  .ds-panel-demo .c-panel { position: absolute; left: 0; top: 0; }
   @media (max-width: 760px) { .ds-two { grid-template-columns: 1fr; } }
 </style>
 </head>
@@ -53,35 +54,36 @@
     <img src="assets/img/logo.png" alt="DOUALOG — Douane & Logistique">
     <div>
       <h1>Design system — Control Tower</h1>
-      <p>Référence visuelle des maquettes V1 · Charte MIV-DLG-2026-A · tokens.css, components.css, icons.js, data.js</p>
+      <p>Référence visuelle des maquettes V1 · d'après references/vision-client.jpeg, puis la charte graphique · tokens.css, components.css, icons.js, data.js, shell.js</p>
     </div>
   </header>
   <nav class="ds-toc" aria-label="Sommaire">
     <a href="#couleurs">Couleurs</a><a href="#typo">Typographie</a><a href="#espaces">Espacements</a><a href="#icones">Icônes</a>
-    <a href="#statuts">Statuts</a><a href="#boutons">Boutons</a><a href="#champs">Champs</a><a href="#shell">Shell</a>
+    <a href="#statuts">Statuts</a><a href="#boutons">Boutons</a><a href="#champs">Champs</a><a href="#shell">Shell</a><a href="#indicateurs">Indicateurs</a>
     <a href="#tableau">Tableau</a><a href="#onglets">Onglets</a><a href="#workflow">Workflow</a><a href="#bandeau">Bandeau</a>
-    <a href="#panneau">Panneau &amp; modale</a><a href="#timeline">Timeline</a><a href="#documents">Documents</a>
-    <a href="#alertes">Alertes</a><a href="#vide">État vide</a><a href="#kpi">KPI</a><a href="#depot">Dépôt</a>
+    <a href="#panneau">Panneau &amp; modale</a><a href="#blocs">Blocs du dossier</a><a href="#timeline">Timeline</a><a href="#documents">Documents</a>
+    <a href="#alertes">Alertes</a><a href="#vide">État vide</a><a href="#kpi">KPI</a><a href="#depot">Dépôt</a><a href="#connexion">Connexion</a>
   </nav>
 
   <!-- ══ COULEURS ══ -->
   <section class="ds-sec" id="couleurs">
     <h2>Couleurs</h2>
-    <p class="ds-intro">Uniquement les couleurs de la charte. L'or est réservé à l'action principale, à l'élément actif et au focus ; jamais en fond de grande zone.</p>
+    <p class="ds-intro">Source n°1 : l'image du client. Bleu nuit pour le header, le menu et le fond de travail ; cartes blanches posées dessus ; orange pour les boutons d'action, les éléments actifs et la ligne sous le header ; bloc bleu plein pour l'entrée active du menu. Les teintes de statut restent celles de la charte.</p>
     <p class="u-label ds-cap">Identité &amp; surfaces</p>
     <div class="ds-grid" id="sw-base"></div>
     <p class="u-label ds-cap" style="margin-top: var(--sp-6)">Six teintes de statut — paires fond / texte (contraste ≥ 4,5:1)</p>
     <div class="ds-grid" id="sw-tones"></div>
-    <p class="ds-note">Le texte vert des badges est assombri (<code>#23683A</code>) pour atteindre le contraste AA — valeur déduite, à valider.</p>
+    <p class="ds-note">Le texte vert des badges est assombri (<code>#23683A</code>) pour atteindre le contraste AA. Texte blanc sur orange (comme l'image) : contraste 2,8:1, sous le seuil AA — à valider.</p>
   </section>
 
   <!-- ══ TYPOGRAPHIE ══ -->
   <section class="ds-sec" id="typo">
-    <h2>Typographie — Sora</h2>
-    <p class="ds-intro">Une seule police. Hiérarchie par le poids et la taille. Chiffres tabulaires pour les références, dates et montants.</p>
+    <h2>Typographie — Inter</h2>
+    <p class="ds-intro">Inter partout, une seule police. Comme sur l'image : titres de blocs et en-têtes de colonnes en majuscules, semi-gras, petite taille, légèrement espacés ; chiffres des indicateurs grands et gras ; logo seul à gauche du header, sans titre centré.</p>
     <div class="ds-box ds-box--flush">
       <table class="ds-scale" style="width:100%;border-collapse:collapse">
-        <tr><td class="u-label">Titre KPI · 30 / 700</td><td style="font-size:var(--fs-3xl);font-weight:var(--fw-bold);color:var(--text-heading)" class="u-num">17</td></tr>
+        <tr><td class="u-label">Chiffre indicateur · 26 / 700</td><td style="font-size:var(--fs-3xl);font-weight:var(--fw-bold);color:var(--text-heading)" class="u-num">17</td></tr>
+        <tr><td class="u-label">Titre de bloc · 12 / 600 majuscules</td><td><span class="c-block-title">Liste des dossiers</span></td></tr>
         <tr><td class="u-label">Titre de page · 22 / 700</td><td><h1>Tableau de bord</h1></td></tr>
         <tr><td class="u-label">Sous-titre · 17 / 600</td><td><h2>Contrôle douane</h2></td></tr>
         <tr><td class="u-label">Corps formulaire · 14 / 400</td><td style="font-size:var(--fs-base)">Vérification du poids et du marquage des sacs : conforme au manifeste.</td></tr>
@@ -99,9 +101,9 @@
     <div class="ds-two">
       <div class="ds-box" id="spaces"></div>
       <div class="ds-box">
-        <p>Rayon <b>6 px</b> pour boutons, champs, cartes. Badges en <b>pilule</b>.</p>
+        <p>Rayon <b>6 px</b> pour boutons et champs, <b>8 px</b> pour les cartes et tuiles. Badges en <b>pilule</b>.</p>
         <p style="margin-top:var(--sp-2)"><b>Aucune ombre portée</b> : la séparation se fait par la bordure fine et l'espacement.</p>
-        <p style="margin-top:var(--sp-2)">Hauteurs : champ / bouton 36 px (32 px en petit) · ligne de tableau 40 px · topbar 56 px + trait or 2 px.</p>
+        <p style="margin-top:var(--sp-2)">Hauteurs : champ / bouton 36 px (30 px en petit) · ligne de tableau 36 px · header 64 px + ligne orange 1 px · menu 200 px.</p>
       </div>
     </div>
   </section>
@@ -137,7 +139,7 @@
   <!-- ══ BOUTONS ══ -->
   <section class="ds-sec" id="boutons">
     <h2>Boutons</h2>
-    <p class="ds-intro">Un seul bouton primaire (or) par zone. Les autres actions : secondaire (contour encre), discret ou danger.</p>
+    <p class="ds-intro">Un seul bouton primaire (orange) par zone. Les autres actions : secondaire (fond blanc, contour gris fin), discret ou danger.</p>
     <div class="ds-box u-stack">
       <div class="u-row">
         <button class="c-btn c-btn--primary"><svg class="c-icon" aria-hidden="true"><use href="#i-check"></use></svg>BAS obtenu</button>
@@ -176,8 +178,8 @@
         <div class="c-field"><label class="c-field__label" for="f6">Navire</label><input class="c-input" id="f6" value="MSC Ilaria" disabled></div>
         <div class="c-field is-wide"><label class="c-field__label" for="f7">Commentaire</label><textarea class="c-textarea" id="f7">Vérification du poids et du marquage des sacs : conforme au manifeste.</textarea></div>
         <div class="c-field"><span class="c-field__label">Transporteurs</span>
-          <label class="c-check"><input type="checkbox" checked> Trans-Express Logistique</label>
-          <label class="c-check"><input type="checkbox"> Atlantic Fret</label></div>
+          <label class="c-check"><input type="checkbox" checked> Téranga Fret Express</label>
+          <label class="c-check"><input type="checkbox"> Atlantique Fret Sénégal</label></div>
         <div class="c-field"><span class="c-field__label">Résultat</span>
           <label class="c-check"><input type="radio" name="r" checked> Conforme</label>
           <label class="c-check"><input type="radio" name="r"> Info manquante</label></div>
@@ -190,39 +192,56 @@
   <!-- ══ SHELL ══ -->
   <section class="ds-sec" id="shell">
     <h2>Shell applicatif</h2>
-    <p class="ds-intro">Topbar encre + trait or, monogramme sur pastille blanche (pas de logo blanc), recherche globale, sélecteur de rôle, cloche. Menu latéral ardoise, élément actif en or.</p>
+    <p class="ds-intro">Header bleu nuit en 3 zones, sobre : logo avec « Control Tower » en sous-titre (le nom DOUALOG n'apparaît qu'une fois) · recherche large alignée sur la zone de travail · notifications, emails, utilisateur, fine ligne orange dessous. Pas de logo blanc : monogramme sur pastille et nom en texte (DOUA blanc, LOG orange). Menu bleu nuit dans l'ordre de l'image, séparé de la zone de travail par un reflet clair et une ombre (demande du client), entrée active en bloc bleu plein, entrées hors V1 ou hors droits du profil grisées, Déconnexion en bas. Rendu par <code>shell.js</code>.</p>
     <div class="ds-shell">
       <div class="c-app">
         <header class="c-topbar">
           <a class="c-brand" href="#"><span class="c-brand__mark"><img src="assets/img/logo-monogramme.png" alt=""></span>
-            <span><span class="c-brand__name">DOUALOG</span><span class="c-brand__sub">Control Tower</span></span></a>
-          <div class="c-topbar__search c-input-icon"><svg class="c-icon" aria-hidden="true"><use href="#i-search"></use></svg><input class="c-input" placeholder="Rechercher un N° DLG, un BL, un client"></div>
+            <span><span class="c-brand__name">DOUA<em>LOG</em></span><span class="c-brand__sub">Control Tower</span></span></a>
+          <div class="c-topbar__search c-input-icon"><svg class="c-icon" aria-hidden="true"><use href="#i-search"></use></svg><input class="c-input" placeholder="Rechercher un dossier, un BL, un conteneur, un client…"></div>
           <div class="c-topbar__right">
-            <label class="c-role"><span class="c-role__label">Vue</span>
-              <select class="c-select" id="role-select"></select></label>
-            <a class="c-btn c-btn--icon c-btn--ghost c-topbar__bell" href="#" aria-label="Notifications"><svg class="c-icon c-icon--lg" aria-hidden="true"><use href="#i-bell"></use></svg><span class="c-count c-count--alert" id="bell-count"></span></a>
-            <span class="c-user"><span class="c-user__initials">RA</span>Rachida Adjovi</span>
+            <a class="c-btn c-btn--icon c-btn--ghost c-topbar__icon" href="#" aria-label="Notifications"><svg class="c-icon c-icon--lg" aria-hidden="true"><use href="#i-bell"></use></svg><span class="c-count c-count--accent" id="bell-count"></span></a>
+            <a class="c-btn c-btn--icon c-btn--ghost c-topbar__icon" href="#" aria-label="Emails"><svg class="c-icon c-icon--lg" aria-hidden="true"><use href="#i-mail"></use></svg><span class="c-count c-count--accent" id="mail-count"></span></a>
+            <div class="c-user"><span class="c-user__initials">AN</span><span><span class="c-user__name">Awa Ndiaye</span><select class="c-user__role" id="role-select" aria-label="Profil"></select></span></div>
           </div>
         </header>
-        <nav class="c-sidebar" aria-label="Navigation principale">
+        <nav class="c-sidebar" aria-label="Navigation (exemple)">
           <ul class="c-nav">
-            <li><a class="c-nav__item is-active" href="#"><svg class="c-icon" aria-hidden="true"><use href="#i-dossiers"></use></svg>Dossiers<span class="c-count" id="nav-count-db"></span></a></li>
-            <li><a class="c-nav__item" href="#"><svg class="c-icon" aria-hidden="true"><use href="#i-inbox"></use></svg>Salle d'attente<span class="c-count" id="nav-count-sa"></span></a></li>
-            <li><a class="c-nav__item" href="#"><svg class="c-icon" aria-hidden="true"><use href="#i-transport"></use></svg>Transporteurs</a></li>
-            <li><a class="c-nav__item" href="#"><svg class="c-icon" aria-hidden="true"><use href="#i-facture"></use></svg>Facturation</a></li>
+            <li><a class="c-nav__item is-active" href="#"><svg class="c-icon" aria-hidden="true"><use href="#i-dashboard"></use></svg>Tableau de bord</a></li>
+            <li><a class="c-nav__item" href="#"><svg class="c-icon" aria-hidden="true"><use href="#i-dossiers"></use></svg>Dossiers</a></li>
+            <li><span class="c-nav__item is-disabled" aria-disabled="true"><svg class="c-icon" aria-hidden="true"><use href="#i-mandat"></use></svg>Mandats</span></li>
+            <li><a class="c-nav__item" href="#"><svg class="c-icon" aria-hidden="true"><use href="#i-bell"></use></svg>Notifications<span class="c-count" id="nav-count-notif"></span></a></li>
           </ul>
         </nav>
-        <main class="c-main">
-          <div class="c-page-head"><div class="c-page-head__title"><h1>Dossiers</h1><span class="c-page-head__meta">17 dossiers · 3 en salle d'attente</span></div></div>
-        </main>
+        <main class="c-main"><p class="u-muted">Zone de travail bleu nuit — cartes blanches posées dessus.</p></main>
+      </div>
+    </div>
+  </section>
+
+  <!-- Utilitaires de marge ajoutés à l'étape 3 : .u-mt-3, .u-mb-4, .u-self-start (aucun style en ligne dans les écrans) -->
+  <!-- ══ BANDEAU D'INDICATEURS ══ -->
+  <section class="ds-sec" id="indicateurs">
+    <h2>Bandeau d'indicateurs (tableau de bord)</h2>
+    <p class="ds-intro">Un seul bandeau sombre découpé par des filets fins, au-dessus de la liste. Chaque indicateur, à la demande du client : icône à gauche, grand chiffre à droite, libellé en petites majuscules sous le chiffre. Icône de la hauteur du bloc chiffre + libellé, de couleur, une teinte par indicateur comme sur l'image (<code>--blue / --violet / --magenta / --green / --orange / --red</code>), sur carré légèrement teinté. Sur écran étroit (1366 px), le bandeau passe sur 2 lignes de 4 (requête de conteneur <code>stats</code>). Si un indicateur reste trop étroit, le libellé passe en version abrégée (<code>.is-long</code> / <code>.is-short</code>, requête de conteneur). Un clic filtre la liste ; l'indicateur actif porte un trait orange en bas. <code>.c-stats</code>, <code>.c-stats__group</code>, <code>.c-stat</code>, <code>__in</code>, <code>__icon</code>, <code>__value</code>, <code>__label</code>.</p>
+    <div class="ds-box" style="background:var(--bg-app)">
+      <div class="c-stats">
+        <div class="c-stats__group">
+          <button class="c-stat c-stat--blue"><span class="c-stat__in"><span class="c-stat__icon"><svg class="c-icon" aria-hidden="true"><use href="#i-dossiers"></use></svg></span><span class="c-stat__value">16</span><span class="c-stat__label"><span class="is-long">Dossiers actifs</span></span></span></button>
+          <button class="c-stat c-stat--violet"><span class="c-stat__in"><span class="c-stat__icon"><svg class="c-icon" aria-hidden="true"><use href="#i-clock"></use></svg></span><span class="c-stat__value">2</span><span class="c-stat__label"><span class="is-long">Déclarations anticipées</span><span class="is-short">Décl. anticipées</span></span></span></button>
+          <button class="c-stat c-stat--magenta is-active"><span class="c-stat__in"><span class="c-stat__icon"><svg class="c-icon" aria-hidden="true"><use href="#i-controle"></use></svg></span><span class="c-stat__value">3</span><span class="c-stat__label"><span class="is-long">Contrôles en cours</span></span></span></button>
+          <button class="c-stat c-stat--orange"><span class="c-stat__in"><span class="c-stat__icon"><svg class="c-icon" aria-hidden="true"><use href="#i-package"></use></svg></span><span class="c-stat__value">1</span><span class="c-stat__label"><span class="is-long">BAS obtenus</span></span></span></button>
+          <button class="c-stat c-stat--red"><span class="c-stat__in"><span class="c-stat__icon"><svg class="c-icon" aria-hidden="true"><use href="#i-transport"></use></svg></span><span class="c-stat__value">5</span><span class="c-stat__label"><span class="is-long">Transport en cours</span></span></span></button>
+        </div>
+        <button class="c-btn c-btn--primary"><svg class="c-icon" aria-hidden="true"><use href="#i-plus"></use></svg>Nouveau dossier</button>
       </div>
     </div>
   </section>
 
   <!-- ══ TABLEAU ══ -->
   <section class="ds-sec" id="tableau">
-    <h2>Barre d'outils, filtres rapides et tableau</h2>
-    <p class="ds-intro">Tableau pleine largeur, lignes alternées, en-têtes triables. Exceptions marquées par un filet à gauche (rouge : bloquant, rouille : vigilance), ligne sélectionnée surlignée. Survol des dates « Stockée » et « Anticipé » : détail en infobulle.</p>
+    <h2>Carte de liste, filtres rapides et tableau</h2>
+    <p class="ds-intro">Dans l'application, la liste est une carte blanche <code>.c-list</code> : titre en majuscules, onglets, actions Filtres / Exporter à droite, puis barre de filtres, et le tableau dans son propre cadre bordé, en retrait des bords de la carte. Colonne Contrôle en texte coloré + date (<code>.c-ctrl</code>), comme l'image : <span class="c-ctrl c-ctrl--warning"><span class="c-ctrl__type">Physique · en cours</span><span class="c-ctrl__date">16/10/2026</span></span> · <span class="c-ctrl c-ctrl--success"><span class="c-ctrl__type">Aucun contrôle</span></span>.<br>Tableau pleine largeur, en-têtes en majuscules sur bande grise, lignes alternées, en-têtes triables. Exceptions marquées par un filet à gauche (rouge : bloquant, rouille : vigilance), ligne sélectionnée surlignée. Survol des dates « Stockée » et « Anticipé » : détail en infobulle.<br>
+      <code>.c-table--sticky</code> : tableau plus large que l'écran, 1re colonne (N° dossier) et dernière (actions) collantes pendant le défilement horizontal. <code>.c-tip--below</code> : bulle sous l'élément, pour les premières lignes d'un tableau défilant.</p>
     <div class="c-toolbar">
       <div class="c-input-icon c-toolbar__search"><svg class="c-icon" aria-hidden="true"><use href="#i-search"></use></svg><input class="c-input" placeholder="Rechercher"></div>
       <span class="c-toolbar__sep"></span>
@@ -233,7 +252,7 @@
       <div class="c-toolbar__end"><button class="c-btn c-btn--sm"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-filter"></use></svg>Filtres</button></div>
     </div>
     <div class="c-table-wrap">
-      <table class="c-table">
+      <table class="c-table c-table--sticky">
         <thead><tr>
           <th><button class="c-th-sort is-sorted">N° dossier <svg class="c-icon" aria-hidden="true"><use href="#i-sort"></use></svg></button></th>
           <th>Type</th><th>Client</th><th>Statut</th><th>Stockée</th><th>Anticipé</th><th>Contrôle</th><th>Transport</th><th class="is-center">Alertes</th><th></th>
@@ -266,21 +285,21 @@
   <!-- ══ WORKFLOW ══ -->
   <section class="ds-sec" id="workflow">
     <h2>Workflow horizontal</h2>
-    <p class="ds-intro">9 étapes du CDC §6.2. Le trait dégrade de la couleur de l'étape passée vers la suivante ; les étapes à venir restent en trait gris plat. États : terminé (vert), anticipé (violet), en cours (or), contrôle en cours (rouille), bloquant (rouge), sans objet (gris « – »), à venir (cercle vide).</p>
+    <p class="ds-intro">9 étapes du CDC §6.2. Le trait dégrade de la couleur de l'étape passée vers la suivante ; les étapes à venir restent en trait gris plat. États : terminé (vert), anticipé (violet), en cours (orange), contrôle en cours (rouille), bloquant (rouge), sans objet (gris « – »), à venir (cercle vide).</p>
     <div class="ds-box u-stack" id="wf-demos"></div>
   </section>
 
   <!-- ══ BANDEAU ══ -->
   <section class="ds-sec" id="bandeau">
     <h2>Bandeau dossier</h2>
-    <p class="ds-intro">Fond encre, statut en badge, les 12 informations clés du CDC §6.1 et les actions rapides. Le workflow s'affiche dessous.</p>
+    <p class="ds-intro">Comme l'image : icône ronde, « DOSSIER DLG-… » en majuscules, badge de statut, puis les informations clés du CDC §6.1 en ligne (« Client : … »). À droite : Envoyer un email, Créer OT (inactif sans BAE ou si l'OT existe), Exporter PDF, menu « … » (<code>.c-menu</code> : historique, fermer) et chevron pour fermer. <code>.c-banner</code>, <code>__icon</code>, <code>__main</code>, <code>__top</code>, <code>__ref</code>, <code>__meta</code>, <code>__actions</code>.</p>
     <div class="ds-box ds-box--flush" id="banner-demo"></div>
   </section>
 
   <!-- ══ PANNEAU & MODALE ══ -->
   <section class="ds-sec" id="panneau">
     <h2>Panneau bas de page, panneau latéral, modale</h2>
-    <p class="ds-intro">Le dossier s'ouvre dans un panneau en bas de page, la liste reste visible au-dessus. Panneau latéral pour éditer une fiche (annuaire). Modale réservée aux confirmations et saisies courtes.</p>
+    <p class="ds-intro">Le dossier monte du bas et occupe toute la hauteur sous le header (fond gris clair, blocs blancs) ; à la fermeture on retrouve la liste à la ligne du dossier. Entrée ample et douce, blocs en cascade ; sortie plus rapide (<code>--dur-enter</code>, <code>--dur-exit</code>, <code>--ease-out</code>, <code>--ease-in</code>). Pas d'onglets : tous les blocs sont visibles en grille. Panneau latéral pour l'historique, la messagerie complète ou une fiche annuaire. Modale réservée aux confirmations (BAE, BAS) et saisies courtes (nouveau message).</p>
     <div class="u-row" style="margin-bottom:var(--sp-3)">
       <button class="c-btn" data-toggle="panel-demo">Ouvrir / fermer le panneau</button>
       <button class="c-btn" data-toggle="drawer-demo">Ouvrir le panneau latéral</button>
@@ -288,14 +307,13 @@
     </div>
     <div class="ds-panel-demo">
       <div class="c-panel is-open" id="panel-demo">
-        <div class="c-panel__tools">
-          <button class="c-btn c-btn--icon c-btn--sm c-btn--on-dark" aria-label="Agrandir"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-maximize"></use></svg></button>
-          <button class="c-btn c-btn--icon c-btn--sm c-btn--on-dark" aria-label="Fermer" data-toggle="panel-demo"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></button>
-        </div>
-        <div class="c-banner"><div class="c-banner__top"><span class="c-banner__ref">DLG-2026-0412</span><span id="panel-badge"></span><span class="c-banner__client">Agro-Industrie du Littoral</span></div></div>
+        <div id="panel-banner"></div>
         <div class="c-panel__body">
-          <div class="c-tabs"><button class="c-tabs__tab is-active">Informations générales</button><button class="c-tabs__tab">Douane</button><button class="c-tabs__tab">Documents</button></div>
-          <div class="c-tabs__panel"><p class="u-muted">Contenu de l'onglet.</p></div>
+          <div class="c-dgrid c-dgrid--row2">
+            <section class="c-card"><div class="c-card__head"><h3>Transport</h3></div><div class="c-card__body"><p class="u-muted">Bloc du dossier.</p></div></section>
+            <section class="c-card"><div class="c-card__head"><h3>Suivi transport</h3></div><div class="c-card__body"><p class="u-muted">Bloc du dossier.</p></div></section>
+            <section class="c-card"><div class="c-card__head"><h3>Notifications</h3></div><div class="c-card__body"><p class="u-muted">Bloc du dossier.</p></div></section>
+          </div>
         </div>
       </div>
     </div>
@@ -304,9 +322,9 @@
       <div class="c-drawer__head"><h3>Modifier le transporteur</h3>
         <button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" aria-label="Fermer" data-toggle="drawer-demo"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></button></div>
       <div class="c-drawer__body u-stack">
-        <div class="c-field"><label class="c-field__label" for="d1">Raison sociale <span class="is-required">*</span></label><input class="c-input" id="d1" value="Trans-Express Logistique"></div>
-        <div class="c-field"><label class="c-field__label" for="d2">Contact</label><input class="c-input" id="d2" value="Éric Dossa"></div>
-        <div class="c-field"><label class="c-field__label" for="d3">Email <span class="is-required">*</span></label><input class="c-input" id="d3" value="exploitation@transexpress-logistique.com"></div>
+        <div class="c-field"><label class="c-field__label" for="d1">Raison sociale <span class="is-required">*</span></label><input class="c-input" id="d1" value="Téranga Fret Express"></div>
+        <div class="c-field"><label class="c-field__label" for="d2">Contact</label><input class="c-input" id="d2" value="Alassane Ndour"></div>
+        <div class="c-field"><label class="c-field__label" for="d3">Email <span class="is-required">*</span></label><input class="c-input" id="d3" value="exploitation@teranga-fret.sn"></div>
       </div>
       <div class="c-drawer__foot"><button class="c-btn c-btn--ghost" data-toggle="drawer-demo">Annuler</button><button class="c-btn c-btn--primary">Enregistrer</button></div>
     </aside>
@@ -321,6 +339,28 @@
           <div class="c-field"><label class="c-field__label" for="m2">Date du BAS</label><input class="c-input" id="m2" type="date" value="2026-10-12"><span class="c-field__help">Date du jour par défaut, modifiable.</span></div>
         </div>
         <div class="c-modal__foot"><button class="c-btn c-btn--ghost" data-close="modal-demo">Annuler</button><button class="c-btn c-btn--primary" data-close="modal-demo">Valider le BAS</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ BLOCS DU DOSSIER ══ -->
+  <section class="ds-sec" id="blocs">
+    <h2>Blocs du dossier (grille, sans onglets)</h2>
+    <p class="ds-intro">Comme l'image : ligne 1 = Informations générales · Documents · Déclaration / Contrôle · BAE · BAS · Messagerie ; ligne 2 = Transport · Suivi transport · Notifications. BAE et BAS s'empilent dans une colonne (<code>.c-dgrid__stack</code>), côte à côte sur grand écran. <code>.c-dgrid--row1 / --row2</code>. Dans les blocs : paires libellé / valeur en lignes (<code>.c-kv--rows</code>), documents compacts (<code>.c-doclist--compact</code>), messages et notifications (<code>.c-msglist</code>, <code>.c-msg--info / success / warning / danger / special</code>, <code>.is-unread</code>).</p>
+    <div class="ds-box" style="background:var(--bg-muted)">
+      <div class="c-dgrid" style="grid-template-columns:1fr 1fr 1.3fr">
+        <section class="c-card"><div class="c-card__head"><h3>BAE</h3></div><div class="c-card__body">
+          <dl class="c-kv c-kv--rows"><div><dt>N° BAE</dt><dd>2026-BAE-048213</dd></div><div><dt>Date BAE</dt><dd>09/10/2026</dd></div><div><dt>Statut</dt><dd><span class="c-badge c-badge--success">Obtenu</span></dd></div></dl></div></section>
+        <section class="c-card"><div class="c-card__head"><h3>Documents <span class="c-count c-count--alert">1</span></h3></div><div class="c-card__body">
+          <ul class="c-doclist c-doclist--compact">
+            <li class="c-doc c-doc--ok"><span class="c-doc__state"><svg class="c-icon" aria-hidden="true"><use href="#i-check"></use></svg></span><span class="c-doc__name">Facture commerciale</span><span class="c-doc__actions"><button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" aria-label="Télécharger"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-download"></use></svg></button></span></li>
+            <li class="c-doc c-doc--missing"><span class="c-doc__state"><svg class="c-icon" aria-hidden="true"><use href="#i-x"></use></svg></span><span class="c-doc__name">Certificat d'origine — demandé par la douane</span></li>
+          </ul></div></section>
+        <section class="c-card"><div class="c-card__head"><h3>Messagerie dossier</h3><div class="c-card__actions"><button class="c-btn c-btn--sm"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-plus"></use></svg>Nouveau message</button></div></div><div class="c-card__body">
+          <ul class="c-msglist">
+            <li class="c-msg c-msg--success"><span class="c-msg__icon"><svg class="c-icon" aria-hidden="true"><use href="#i-send"></use></svg></span><span class="c-msg__from">dossiers@doualog.sn</span><span class="c-msg__date">16/10/2026 08:20</span><span class="c-msg__text">RE: [DLG-2026-0412] Bon à sortir obtenu</span></li>
+            <li class="c-msg c-msg--info is-unread"><span class="c-msg__icon"><svg class="c-icon" aria-hidden="true"><use href="#i-inbox"></use></svg></span><span class="c-msg__from">m.diouf@agro-sine.sn</span><span class="c-msg__date">16/10/2026 07:58</span><span class="c-msg__text">RE: [DLG-2026-0412] Bon à sortir obtenu</span></li>
+          </ul></div><div class="c-card__foot"><button class="c-btn c-btn--ghost c-btn--sm">Voir tous les messages (9)</button></div></section>
       </div>
     </div>
   </section>
@@ -358,7 +398,7 @@
       <div class="c-alert c-alert--warning"><svg class="c-icon" aria-hidden="true"><use href="#i-clock"></use></svg>
         <div><div class="c-alert__title">Valider le BAS déclenche la facturation</div><div>Le dossier sera basculé en facturation et le Service facturation notifié.</div></div></div>
       <div class="c-alert c-alert--success"><svg class="c-icon" aria-hidden="true"><use href="#i-valide"></use></svg>
-        <div><div class="c-alert__title">Offre acceptée par Trans-Express Logistique</div><div>Le 09/10/2026 à 14:47. L'offre a été clôturée pour Atlantic Fret.</div></div></div>
+        <div><div class="c-alert__title">Offre acceptée par Téranga Fret Express</div><div>Le 09/10/2026 à 14:47. L'offre a été clôturée pour Atlantique Fret Sénégal.</div></div></div>
       <div class="c-alert c-alert--info"><svg class="c-icon" aria-hidden="true"><use href="#i-info"></use></svg>
         <div>Prochaine relance automatique le 18/10/2026 à 08:16. <!-- À VALIDER : fréquence des relances (D11) --></div></div>
     </div>
@@ -370,7 +410,7 @@
     <div class="ds-two">
       <div class="ds-box"><div class="c-empty"><svg class="c-icon" aria-hidden="true"><use href="#i-search"></use></svg>
         <div class="c-empty__title">Aucun dossier ne correspond à ces filtres</div>
-        <div class="c-empty__text">Aucun dossier « Info manquante » pour Koffi Mensah.</div>
+        <div class="c-empty__text">Aucun dossier « Info manquante » pour Mamadou Ba.</div>
         <button class="c-btn c-btn--sm">Effacer les filtres</button></div></div>
       <div class="ds-box"><div class="c-empty"><svg class="c-icon" aria-hidden="true"><use href="#i-inbox"></use></svg>
         <div class="c-empty__title">Salle d'attente vide</div>
@@ -394,6 +434,21 @@
       <input type="file" class="u-sr"></label></div>
   </section>
 
+  <!-- ══ CONNEXION ══ -->
+  <section class="ds-sec" id="connexion">
+    <h2>Connexion</h2>
+    <p class="ds-intro">Écran hors shell (E00). Sur fond bleu nuit : carte blanche à trait orange, logo complet, mention d'accès réservé entre deux filets, un seul bouton primaire pleine largeur. <code>.c-auth</code>, <code>__card</code>, <code>__logo</code>, <code>__lead</code>, <code>__note</code>, <code>__row</code>, <code>__foot</code>.</p>
+    <div class="c-auth" style="min-height:0">
+      <div class="c-auth__card">
+        <div><img class="c-auth__logo" src="assets/img/logo.png" alt=""><h1>Connexion</h1><p class="c-auth__lead">Control Tower — suivi des dossiers de transit et de dédouanement</p></div>
+        <p class="c-auth__note"><svg class="c-icon" aria-hidden="true"><use href="#i-lock"></use></svg><span><b>Accès réservé à l'équipe DOUALOG.</b></span></p>
+        <div class="c-field"><label class="c-field__label" for="ds-mail">Adresse email</label><input class="c-input" id="ds-mail" value="a.ndiaye@doualog.sn"></div>
+        <div class="c-auth__row"><label class="c-check"><input type="checkbox" checked> Rester connecté</label><a href="#">Mot de passe oublié&nbsp;?</a></div>
+        <button class="c-btn c-btn--primary" type="button">Se connecter</button>
+      </div>
+    </div>
+  </section>
+
 </div>
 
 <script>
@@ -404,17 +459,18 @@
 
   /* Couleurs */
   var base = [
-    ['Bleu marine', '--navy-500', '#0C2C5E', 'Titres, liens, structure'],
-    ['Or douane', '--gold-500', '#D6821A', 'Action principale, actif, focus'],
-    ['Encre', '--ink-950', '#070D18', 'Topbar, bandeau dossier'],
-    ['Ardoise', '--slate-900', '#131A26', 'Menu latéral'],
-    ['Ivoire écran', '--neutral-50', '#F1EEE7', 'Fond de la zone de travail'],
-    ['Blanc', '--neutral-0', '#FFFFFF', 'Cartes, panneaux, champs'],
-    ['Ligne alternée', '--neutral-25', '#F7F5F0', 'Lignes paires du tableau'],
-    ['Encre texte', '--neutral-900', '#14110D', 'Texte principal'],
-    ['Gris chaud', '--neutral-600', '#5B564A', 'Texte secondaire'],
-    ['Trait', '--neutral-300', '#B9B0A0', 'Séparateurs, à venir'],
-    ['Bordure', '--neutral-200', '#D9D2C2', 'Bordures fines']
+    ['Bleu nuit', '--night-950', '#0A1628', 'Header, menu latéral, bandeau dossier'],
+    ['Fond de travail', '--night-app', '#091427', 'Zone de travail (hors header et menu)'],
+    ['Bleu nuit bandeau', '--night-850', '#10243F', 'Bandeau d\'indicateurs'],
+    ['Bleu actif', '--blue-600', '#1F5FD6', 'Entrée active du menu'],
+    ['Orange', '--orange-500', '#F97316', 'Boutons d\'action, actif, ligne du header'],
+    ['Orange texte', '--orange-700', '#C2410C', 'Texte orange sur fond clair'],
+    ['Bleu marine', '--navy-500', '#0C2C5E', 'Titres, références'],
+    ['Blanc', '--neutral-0', '#FFFFFF', 'Cartes, liste, champs'],
+    ['Gris en-tête', '--neutral-100', '#F3F4F6', 'En-têtes de tableau'],
+    ['Texte courant', '--neutral-700', '#374151', 'Texte des tableaux'],
+    ['Texte secondaire', '--neutral-600', '#6B7280', 'Libellés, métadonnées'],
+    ['Bordure', '--neutral-200', '#E5E7EB', 'Bordures fines']
   ];
   $('sw-base').innerHTML = base.map(function (c) {
     return '<div class="ds-swatch"><div class="ds-swatch__c" style="background:var(' + c[1] + ')"></div><div class="ds-swatch__i"><b>' + c[0] + '</b><br><code>' + c[2] + ' · ' + c[1] + '</code><br>' + c[3] + '</div></div>';
@@ -448,16 +504,16 @@
   $('role-select').innerHTML = D.roles.map(function (r) { return '<option' + (r.id === 'declarant' ? ' selected' : '') + '>' + r.label + '</option>'; }).join('');
   var nonLues = D.notifications.filter(function (n) { return !n.lue; }).length;
   $('bell-count').textContent = nonLues;
-  $('nav-count-db').textContent = D.tableauDeBord().length;
-  $('nav-count-sa').textContent = D.salleAttente().length;
+  $('mail-count').textContent = D.emailsNonLus.length;
+  $('nav-count-notif').textContent = nonLues;
 
   /* Tableau (extrait du jeu de données) */
   var rows = ['DLG-2026-0412', 'DLG-2026-0415', 'DLG-2026-0416', 'DLG-2026-0420', 'DLG-2026-0423'].map(D.dossier);
   $('table-demo').innerHTML = rows.map(function (d) {
     var cls = d.statut === 'Info manquante' ? 'is-alert' : (d.statut.indexOf('Contrôle') === 0 ? 'is-warning' : '');
     if (d.filRouge) cls = 'is-selected';
-    var stock = d.declStockee ? '<span class="c-tip" tabindex="0">' + F.dateCourte(d.declStockee) + '<span class="c-tip__bubble"><b>Déclaration stockée</b><br>' + F.dateHeure(d.declStockee) + '</span></span>' : '<span class="c-dash">—</span>';
-    var anti = d.declAnticipee ? '<span class="c-tip" tabindex="0">' + F.dateCourte(d.declAnticipee) + '<span class="c-tip__bubble"><b>Anticipée le ' + F.dateHeure(d.declAnticipee) + '</b><br>' + (d.mode === 'Aérien' ? 'ETA vol ' + d.vol : 'ETA navire ' + d.navire) + ' : ' + F.date(d.eta) + '</span></span>' : '<span class="c-dash">—</span>';
+    var stock = d.declStockee ? '<span class="c-tip c-tip--below" tabindex="0">' + F.dateCourte(d.declStockee) + '<span class="c-tip__bubble"><b>Déclaration stockée</b><br>' + F.dateHeure(d.declStockee) + '</span></span>' : '<span class="c-dash">—</span>';
+    var anti = d.declAnticipee ? '<span class="c-tip c-tip--below" tabindex="0">' + F.dateCourte(d.declAnticipee) + '<span class="c-tip__bubble"><b>Anticipée le ' + F.dateHeure(d.declAnticipee) + '</b><br>' + (d.mode === 'Aérien' ? 'ETA vol ' + d.vol : 'ETA navire ' + d.navire) + ' : ' + F.date(d.eta) + '</span></span>' : '<span class="c-dash">—</span>';
     var n = D.alertes(d.id);
     return '<tr class="' + cls + '"><td><a class="c-ref" href="#">' + d.id + '</a></td><td>' + B('type', d.type) + '</td><td>' + D.client(d).nom + '</td><td>' + B('dossier', d.statut) + '</td><td>' + stock + '</td><td>' + anti + '</td><td>' + (d.controle ? B('controle', d.controle.type) : '<span class="c-dash">—</span>') + '</td><td>' + (d.transport ? B('transport', d.transport.statut) : '<span class="c-dash">—</span>') + '</td><td class="is-center">' + (n ? '<span class="c-count c-count--alert">' + n + '</span>' : '<span class="c-dash">—</span>') + '</td><td><button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" aria-label="Ouvrir ' + d.id + '">' + icon('eye', 'c-icon--sm') + '</button></td></tr>';
   }).join('');
@@ -476,16 +532,22 @@
 
   /* Bandeau */
   var d = D.dossier('DLG-2026-0412'), c = D.client(d);
-  var kv = [['Type', B('type', d.type)], ['Mode', d.mode], ['ETA', F.date(d.eta)], ['BL / AWB', d.bl], ['Conteneur', d.conteneur],
-    ['Déclarant', D.responsable(d).nom], ['Incoterm', d.incoterm], ['Poids brut', F.poids(d.poids)], ['Colis', F.nombre(d.colis) + ' ' + d.unite], ['Navire', d.navire]];
-  $('banner-demo').innerHTML = '<div class="c-banner"><div class="c-banner__top"><span class="c-banner__ref">' + d.id + '</span>' + B('dossier', d.statut, 'c-badge--lg') +
-    '<span class="c-banner__client">' + c.nom + '</span><div class="c-banner__actions">' +
+  var meta = [['Client', c.nom], ['Mode', d.mode], ['ETA', F.date(d.eta)], ['BL', d.bl], ['Conteneur', d.conteneur],
+    ['Déclarant', D.responsable(d).nom], ['Incoterm', d.incoterm], ['Poids brut', F.poids(d.poids)], ['Colis', F.nombre(d.colis) + ' ' + d.unite]];
+  var banniere = '<div class="c-banner"><span class="c-banner__icon">' + icon('rapport') + '</span>' +
+    '<div class="c-banner__main"><div class="c-banner__top"><span class="c-banner__ref">Dossier ' + d.id + '</span>' + B('dossier', d.statut) + '</div>' +
+    '<div class="c-banner__meta">' + meta.map(function (m) { return '<span>' + m[0] + ' : <b>' + m[1] + '</b></span>'; }).join('') + '</div></div>' +
+    '<div class="c-banner__actions">' +
     '<button class="c-btn c-btn--sm c-btn--on-dark">' + icon('mail', 'c-icon--sm') + 'Envoyer un email</button>' +
     '<button class="c-btn c-btn--sm c-btn--on-dark">' + icon('transport', 'c-icon--sm') + 'Créer OT</button>' +
-    '<button class="c-btn c-btn--sm c-btn--on-dark">' + icon('pdf', 'c-icon--sm') + 'Exporter PDF</button></div></div>' +
-    '<div class="c-banner__grid">' + kv.map(function (x) { return '<div><div class="c-banner__k">' + x[0] + '</div><div class="c-banner__v">' + x[1] + '</div></div>'; }).join('') + '</div>' +
-    '<div style="margin-top:var(--sp-4)">' + wf(d, true) + '</div></div>';
-  $('panel-badge').innerHTML = B('dossier', d.statut);
+    '<button class="c-btn c-btn--sm c-btn--on-dark">' + icon('pdf', 'c-icon--sm') + 'Exporter PDF</button>' +
+    '<div class="c-menu-wrap"><button class="c-btn c-btn--icon c-btn--sm c-btn--on-dark" aria-label="Plus d\'actions" data-toggle-menu>' + icon('more', 'c-icon--sm') + '</button>' +
+    '<div class="c-menu" id="ds-menu" hidden><button class="c-menu__item">' + icon('clock', 'c-icon--sm') + 'Historique du dossier</button>' +
+    '<button class="c-menu__item">' + icon('x', 'c-icon--sm') + 'Fermer le dossier</button></div></div>' +
+    '<button class="c-btn c-btn--icon c-btn--sm c-btn--on-dark" aria-label="Fermer">' + icon('chevron-down', 'c-icon--sm') + '</button></div></div>';
+  $('banner-demo').innerHTML = banniere;
+  $('panel-banner').innerHTML = banniere;
+  document.addEventListener('click', function (e) { if (e.target.closest('[data-toggle-menu]')) $('ds-menu').hidden = !$('ds-menu').hidden; });
 
   /* Timeline */
   var ico = { creation: 'dossiers', statut: 'valide', email: 'mail', lien: 'link', transport: 'transport', assignation: 'user' };
