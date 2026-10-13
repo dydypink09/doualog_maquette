@@ -1,0 +1,239 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mon dossier — DOUALOG</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<script src="../assets/icons.js"></script>
+<script src="../assets/data.js"></script>
+</head>
+<body>
+<!-- X04 · Lien personnel client, rattaché à UN seul dossier · US-39, 41, 42, 44 (P6) — sans compte, mobile-first.
+     ?id=DLG-… (par défaut le fil rouge DLG-2026-0412) · &action=depot|mandat : ouvre la section · &etat=expire|desactive : lien inutilisable.
+     Actions attendues en premier, suivi daté, documents à télécharger, dépôt de documents, instructions douanières, mandat.
+     D6 : code de confirmation envoyé par email pour le dépôt de documents ET la signature du mandat.
+     US-43 (formulaire infos société) n'est pas fait. -->
+<!-- À VALIDER : D6 (code pour dépôt et mandat) · signature du mandat = dépôt du modèle signé (QUESTIONS-ONCLE §3.4) · durée du lien (30 jours)
+     · champs des instructions douanières (régime, position tarifaire, observations) -->
+<div class="c-ext">
+  <header class="c-ext__top">
+    <div class="c-ext__top-in">
+      <span class="c-brand"><span class="c-brand__mark"><img src="../assets/img/logo-monogramme.png" alt=""></span>
+        <span><span class="c-brand__name">DOUA<em>LOG</em></span><span class="c-brand__sub">Douane &amp; Logistique</span></span></span>
+      <span class="c-ext__ctx">Votre dossier<b id="ctx"></b></span>
+    </div>
+  </header>
+
+  <main class="c-ext__main" id="contenu"></main>
+
+  <footer class="c-ext__foot" id="pied"></footer>
+</div>
+
+<!-- Code de confirmation (D6) -->
+<div class="c-overlay" id="modale-code" hidden>
+  <div class="c-modal" role="dialog" aria-modal="true" aria-labelledby="code-titre">
+    <div class="c-modal__head"><h3 id="code-titre">Confirmez avec le code reçu par email</h3>
+      <button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" type="button" data-a="code-annuler" aria-label="Fermer"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></button></div>
+    <div class="c-modal__body">
+      <p id="code-intro"></p>
+      <div class="c-field" id="champ-code">
+        <label class="c-field__label" for="code">Code à 6 chiffres</label>
+        <input class="c-input c-code" id="code" inputmode="numeric" autocomplete="one-time-code" maxlength="6" placeholder="••••••">
+      </div>
+      <p class="c-field__help" id="code-aide"></p>
+      <button class="c-btn c-btn--ghost c-btn--sm u-self-start" type="button" data-a="code-renvoyer"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-refresh"></use></svg>Renvoyer le code</button>
+    </div>
+    <div class="c-modal__foot"><button class="c-btn c-btn--ghost" type="button" data-a="code-annuler">Annuler</button><button class="c-btn c-btn--primary" type="button" data-a="code-valider">Confirmer</button></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var D = window.DOUALOG, F = D.fmt, esc = D.esc;
+  function $(id) { return document.getElementById(id); }
+  function icon(n, cls) { return '<svg class="c-icon' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#i-' + n + '"></use></svg>'; }
+  var p = new URLSearchParams(location.search);
+  var d = D.dossier(p.get('id') || 'DLG-2026-0412') || D.dossier('DLG-2026-0412'), c = D.client(d);
+  var etatLien = p.get('etat');   // expire | desactive
+  var CODE_DEMO = '482913';       // en vrai : code aléatoire envoyé par email, valable 10 minutes
+  var enAttente = null, message = null;
+  var expire = d.lienClient ? d.lienClient.expire : new Date(new Date(d.reception).getTime() + D.config.dureeLienClientJours * 864e5).toISOString().slice(0, 10);
+  var interlocuteur = D.responsable(d);
+
+  function emailMasque() { var e = c.email.split('@'); return e[0].charAt(0) + '•••@' + e[1]; }
+  function carte(id, titre, corps, extra) { return '<section class="c-card" id="' + id + '"' + (extra || '') + '><div class="c-card__head"><h2 class="c-block-title">' + titre + '</h2></div><div class="c-card__body u-stack">' + corps + '</div></section>'; }
+
+  /* ── Lien inutilisable ─────────────────────────────────── */
+  function lienInutilisable() {
+    var expireTxt = etatLien === 'expire';
+    $('contenu').innerHTML = '<div><h1>' + (expireTxt ? 'Ce lien a expiré' : 'Ce lien n\'est plus actif') + '</h1><p class="c-ext__lead">' +
+      (expireTxt ? 'Votre lien personnel pour le dossier ' + d.id + ' était valable jusqu\'au ' + F.date(expire) + '.'
+                 : 'DOUALOG a désactivé ce lien personnel. Si vous pensez qu\'il s\'agit d\'une erreur, contactez-nous.') + '</p></div>' +
+      '<div class="c-alert c-alert--info">' + icon('info') + '<div><div class="c-alert__title">Pour suivre votre dossier</div>' +
+      '<div>Utilisez la page de suivi avec votre N° de dossier et votre référence de transport, ou demandez un nouveau lien en répondant à l\'un de nos emails.</div></div></div>' +
+      '<a class="c-btn c-btn--primary c-btn--block" href="X03-suivi-public.html">' + icon('search') + 'Aller à la page de suivi</a>';
+  }
+
+  /* ── Sections ──────────────────────────────────────────── */
+  function sectionActions(actions) {
+    if (!actions.length) return carte('actions', 'Actions attendues', '<div class="c-alert c-alert--success">' + icon('valide') +
+      '<div><div class="c-alert__title">Aucune action n\'est attendue de votre part</div><div>Nous vous tenons informé par email à chaque étape importante.</div></div></div>');
+    return carte('actions', 'Actions attendues', '<ul class="c-doclist">' + actions.map(function (a) {
+      var cible = a.type === 'mandat' ? 'mandat' : a.type === 'instructions' ? 'instructions' : 'depot';
+      return '<li class="c-doc c-doc--missing"><span class="c-doc__state">' + icon('alert') + '</span><div><div class="c-doc__name">' + esc(a.titre) + '</div>' +
+        (a.detail ? '<div class="c-doc__meta">La douane demande : ' + esc(a.detail) + '</div>' : '') + '</div>' +
+        '<div class="c-doc__actions"><a class="c-btn c-btn--sm" href="#' + cible + '" data-cle="' + a.cle + '" data-aller="' + cible + '">Faire</a></div></li>';
+    }).join('') + '</ul>');
+  }
+  function sectionSuivi() {
+    var ICO = { 'fait': 'check', 'en-cours': 'clock', 'a-venir': 'clock', 'sans-objet': 'x' };
+    var CLS = { 'fait': 'c-timeline__item--success', 'en-cours': 'c-timeline__item--current', 'a-venir': 'c-timeline__item--todo', 'sans-objet': 'c-timeline__item--todo' };
+    return carte('suivi', 'Suivi de votre dossier', '<ol class="c-timeline">' + D.etapesPubliques(d).map(function (e) {
+      return '<li class="c-timeline__item ' + CLS[e.etat] + '"><span class="c-timeline__icon">' + icon(ICO[e.etat]) + '</span><div><div class="c-timeline__text">' + e.label + '</div>' +
+        '<div class="c-timeline__time">' + (e.date ? F.date(e.date) : e.etat === 'en-cours' ? 'En cours' : e.etat === 'sans-objet' ? 'Sans objet' : 'À venir') + (e.note ? ' · ' + e.note : '') + '</div></div></li>';
+    }).join('') + '</ol>');
+  }
+  function sectionDocuments() {
+    var docs = Object.keys(D.documents).filter(function (k) { return d.docs[k]; }).map(function (k) { return [D.documents[k].libelle, 'Transmis par vos soins']; });
+    if (d.bae) docs.push(['Bon à enlever n° ' + d.bae.num, 'Délivré par la douane le ' + F.date(d.bae.date)]);
+    if (d.bas) docs.push(['Bon à sortir n° ' + d.bas.num, 'Délivré par la douane le ' + F.date(d.bas.date)]);
+    var f = D.facture(d);
+    if (f && f.emise) docs.push(['Facture ' + f.num + ' — ' + F.montant(f.ttc), 'À régler avant le ' + F.date(f.echeance) + (f.statut === 'Réglé' ? ' · réglée' : '')]);
+    var ot = d.transport && d.transport.ot ? D.ots[d.transport.ot] : null;
+    (ot && ot.documents || []).forEach(function (x) { docs.push([D.documentsTransport[x.type].libelle, 'Déposé par le transporteur le ' + F.date(x.date)]); });
+    return carte('documents', 'Documents du dossier', '<ul class="c-doclist">' + docs.map(function (x) {
+      return '<li class="c-doc c-doc--ok"><span class="c-doc__state">' + icon('document') + '</span><div><div class="c-doc__name">' + esc(x[0]) + '</div><div class="c-doc__meta">' + esc(x[1]) + '</div></div>' +
+        '<div class="c-doc__actions"><button class="c-btn c-btn--icon c-btn--sm" type="button" data-a="telecharger" aria-label="Télécharger ' + esc(x[0]) + '">' + icon('download', 'c-icon--sm') + '</button></div></li>';
+    }).join('') + '</ul>');
+  }
+  function sectionDepot(actions) {
+    var aDeposer = actions.filter(function (a) { return a.type === 'depot'; });
+    var options = aDeposer.map(function (a) { return '<option value="' + a.cle + '">' + D.documents[a.cle].libelle + '</option>'; }).join('') + '<option value="autre">Autre document</option>';
+    return carte('depot', 'Déposer un document',
+      '<div class="c-field"><label class="c-field__label" for="depot-type">Document</label><select class="c-select" id="depot-type">' + options + '</select></div>' +
+      '<label class="c-dropzone">' + icon('upload') + '<span class="c-dropzone__title">Choisir un fichier ou prendre une photo</span><span>PDF, JPG ou PNG, 10 Mo maximum</span>' +
+        '<input type="file" class="u-sr" id="depot-fichier" accept="image/*,application/pdf"></label>' +
+      '<p class="c-field__help" id="depot-nom">Aucun fichier choisi.</p>' +
+      '<button class="c-btn c-btn--primary c-btn--block" type="button" data-a="deposer">' + icon('upload') + 'Envoyer le document</button>' +
+      '<p class="c-field__help">Un code de confirmation vous sera envoyé par email pour valider l\'envoi.</p>');
+  }
+  function sectionInstructions(actions) {
+    var attendu = actions.some(function (a) { return a.type === 'instructions'; });
+    if (!attendu) return carte('instructions', 'Instructions douanières', '<p>Vos instructions douanières ont bien été reçues' +
+      (d.docs.instruction ? ' avec votre envoi du ' + F.date(d.reception) : '') + '. Pour les modifier, répondez à l\'un de nos emails.</p>');
+    return carte('instructions', 'Instructions douanières',
+      '<p class="c-ext__lead">Indiquez-nous comment déclarer votre marchandise. Ces informations remplacent le document « instruction douane ».</p>' +
+      '<div class="c-field"><label class="c-field__label" for="i-regime">Régime douanier <span class="is-required">*</span></label><select class="c-select" id="i-regime">' +
+        (d.type === 'Export' ? '<option>Exportation définitive</option><option>Réexportation</option>' : '<option>Mise à la consommation</option><option>Admission temporaire</option><option>Transit</option>') + '</select></div>' +
+      '<div class="c-field"><label class="c-field__label" for="i-position">Position tarifaire (si vous la connaissez)</label><input class="c-input u-num" id="i-position" inputmode="numeric" placeholder="0801.31.00.00"></div>' +
+      '<div class="c-field"><label class="c-field__label" for="i-obs">Observations</label><textarea class="c-textarea" id="i-obs" placeholder="Exonération, certificat particulier, contrainte de date…"></textarea></div>' +
+      '<button class="c-btn c-btn--primary c-btn--block" type="button" data-a="instructions">' + icon('send') + 'Envoyer mes instructions</button>');
+  }
+  function sectionMandat() {
+    if (d.docs.mandat) return carte('mandat', 'Mandat de représentation', '<p>DOUALOG dispose d\'un mandat valide pour ' + esc(c.nom) +
+      (c.mandat && c.mandat.jusquau ? ', jusqu\'au ' + F.date(c.mandat.jusquau) : '') + '. Aucune action n\'est nécessaire.</p>');
+    return carte('mandat', 'Mandat de représentation',
+      '<p class="c-ext__lead">Pour vous représenter auprès de la douane, nous avons besoin d\'un mandat signé par une personne habilitée de ' + esc(c.nom) + '.</p>' +
+      '<ol class="c-timeline">' +
+        '<li class="c-timeline__item c-timeline__item--current"><span class="c-timeline__icon">' + icon('download') + '</span><div><div class="c-timeline__text">Téléchargez le modèle pré-rempli</div>' +
+          '<div class="c-timeline__time"><button class="c-btn c-btn--sm" type="button" data-a="telecharger">' + icon('pdf', 'c-icon--sm') + 'Modèle de mandat (PDF)</button></div></div></li>' +
+        '<li class="c-timeline__item c-timeline__item--current"><span class="c-timeline__icon">' + icon('edit') + '</span><div><div class="c-timeline__text">Faites-le signer et apposez le cachet de la société</div></div></li>' +
+        '<li class="c-timeline__item c-timeline__item--current"><span class="c-timeline__icon">' + icon('upload') + '</span><div><div class="c-timeline__text">Déposez le mandat signé ci-dessous</div></div></li>' +
+      '</ol>' +
+      '<label class="c-dropzone">' + icon('upload') + '<span class="c-dropzone__title">Mandat signé</span><span>PDF, JPG ou PNG, 10 Mo maximum</span><input type="file" class="u-sr" id="mandat-fichier" accept="image/*,application/pdf"></label>' +
+      '<button class="c-btn c-btn--primary c-btn--block" type="button" data-a="mandat">' + icon('check') + 'Signer et envoyer le mandat</button>' +
+      '<p class="c-field__help">Un code de confirmation vous sera envoyé par email pour valider la signature.</p>');
+  }
+
+  function rendre() {
+    $('ctx').textContent = d.id;
+    if (etatLien) { lienInutilisable(); return; }
+    var s = D.statutPublic(d), actions = D.actionsClient(d);
+    var info = message ? '<div class="c-alert c-alert--' + message[0] + '" role="status">' + icon(message[0] === 'success' ? 'valide' : 'info') + '<div>' + message[1] + '</div></div>' : '';
+    $('contenu').innerHTML =
+      '<div><h1>Dossier ' + d.id + '</h1><p class="c-ext__lead">' + esc(c.nom) + ' · ' + esc(d.marchandise) + '</p>' +
+        '<p class="u-mt-3"><span class="c-badge c-badge--' + s.ton + ' c-badge--lg">' + s.libelle + '</span></p>' +
+        '<p class="c-ext__lead">' + s.texte + '</p>' +
+        '<p class="c-field__help">Lien personnel réservé à ce dossier, valable jusqu\'au ' + F.date(expire) + '. Merci de ne pas le transférer.</p></div>' +
+      info + sectionActions(actions) + sectionSuivi() + sectionDocuments() +
+      (actions.some(function (a) { return a.type === 'depot'; }) || d.statut !== 'Clôturé' ? sectionDepot(actions) : '') +
+      sectionInstructions(actions) + sectionMandat() +
+      carte('contact', 'Votre interlocuteur', '<p><b>' + esc(interlocuteur.nom) + '</b>, déclarant en douane chez DOUALOG<br>' +
+        '<a href="mailto:' + D.config.boiteEmail + '?subject=' + encodeURIComponent('[' + d.id + '] ') + '">' + D.config.boiteEmail + '</a> — citez le numéro ' + d.id + ' dans l\'objet.</p>');
+  }
+
+  /* ── Code de confirmation (D6) ─────────────────────────── */
+  function demanderCode(action, libelle) {
+    enAttente = action;
+    $('code-intro').innerHTML = 'Pour ' + libelle + ', saisissez le code envoyé à <b>' + emailMasque() + '</b> à ' + F.heure(D.config.aujourdhui) + '. Il est valable 10 minutes.';
+    $('code-aide').textContent = 'Démonstration : le code est ' + CODE_DEMO + '.';
+    $('code').value = ''; $('champ-code').classList.remove('is-error');
+    var e = $('champ-code').querySelector('.c-field__error'); if (e) e.remove();
+    $('modale-code').hidden = false; $('code').focus();
+  }
+  function validerCode() {
+    var champ = $('champ-code'), e = champ.querySelector('.c-field__error'); if (e) e.remove();
+    if ($('code').value.replace(/\D/g, '') !== CODE_DEMO) {
+      champ.classList.add('is-error');
+      champ.insertAdjacentHTML('beforeend', '<span class="c-field__error">Code incorrect. Vérifiez l\'email reçu ou demandez un nouveau code.</span>');
+      return;
+    }
+    $('modale-code').hidden = true;
+    enAttente();
+  }
+
+  /* ── Événements ────────────────────────────────────────── */
+  document.addEventListener('change', function (e) {
+    if (e.target.id === 'depot-fichier' && e.target.files[0]) $('depot-nom').textContent = 'Fichier choisi : ' + e.target.files[0].name;
+  });
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-a],[data-aller]'); if (!b) return;
+    if (b.dataset.aller) {
+      e.preventDefault();
+      var sel = $('depot-type'); if (b.dataset.aller === 'depot' && sel && b.dataset.cle) sel.value = b.dataset.cle;
+      $(b.dataset.aller).scrollIntoView({ behavior: 'smooth', block: 'start' });
+      return;
+    }
+    var a = b.dataset.a;
+    if (a === 'telecharger') { message = ['info', 'Téléchargement — dans la maquette, aucun fichier n\'est téléchargé.']; rendre(); window.scrollTo(0, 0); }
+    if (a === 'deposer') {
+      var cle = $('depot-type').value, lib = cle === 'autre' ? 'le document' : '« ' + D.documents[cle].libelle + ' »';
+      demanderCode(function () {
+        if (cle !== 'autre') D.recevoirDocumentClient(d, cle);
+        message = ['success', 'Document reçu : ' + (cle === 'autre' ? 'autre document' : D.documents[cle].libelle) + '. DOUALOG en est informé et vous confirmera la suite par email.'];
+        rendre(); window.scrollTo(0, 0);
+      }, 'envoyer ' + lib);
+    }
+    if (a === 'mandat') {
+      demanderCode(function () {
+        D.recevoirDocumentClient(d, 'mandat');
+        message = ['success', 'Mandat signé reçu. Il servira aussi pour vos prochains dossiers jusqu\'à sa date d\'échéance.'];
+        rendre(); window.scrollTo(0, 0);
+      }, 'signer le mandat de représentation');
+    }
+    if (a === 'instructions') {
+      D.recevoirDocumentClient(d, 'instruction');
+      message = ['success', 'Instructions douanières reçues (régime : ' + $('i-regime').value + '). Merci.'];
+      rendre(); window.scrollTo(0, 0);
+    }
+    if (a === 'code-valider') validerCode();
+    if (a === 'code-annuler') $('modale-code').hidden = true;
+    if (a === 'code-renvoyer') { $('code-intro').innerHTML = 'Un nouveau code a été envoyé à <b>' + emailMasque() + '</b>. Le précédent n\'est plus valable.'; $('code').value = ''; $('code').focus(); }
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') $('modale-code').hidden = true;
+    if (e.key === 'Enter' && e.target.id === 'code') validerCode();
+  });
+
+  $('pied').innerHTML = 'DOUALOG — Douane &amp; Logistique · ' + D.config.ville + ', ' + D.config.pays + '<br>Connecter • Sécuriser • Livrer' +
+    '<br><br><span class="u-muted">Démonstration : <a href="?id=DLG-2026-0412">rien à faire (0412)</a> · <a href="?id=DLG-2026-0416">information demandée (0416)</a> · ' +
+    '<a href="?id=DLG-2026-0427">instructions + mandat (0427)</a> · <a href="?id=DLG-2026-0412&etat=expire">lien expiré</a> · <a href="?id=DLG-2026-0412&etat=desactive">lien désactivé</a></span>';
+  rendre();
+  var action = p.get('action');
+  if (action && $(action === 'mandat' ? 'mandat' : 'depot')) setTimeout(function () { $(action === 'mandat' ? 'mandat' : 'depot').scrollIntoView({ block: 'start' }); }, 50);
+})();
+</script>
+</body>
+</html>

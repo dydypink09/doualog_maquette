@@ -735,6 +735,68 @@
       regle: f.regle || 0, paiements: f.paiements || [], lignes: lignes, ht: t.ht, tva: t.tva, debours: t.debours, ttc: f.montant || t.ttc,
       reste: (f.montant || t.ttc) - (f.regle || 0), dateBAS: d.bas.date };
   }
+  /* ══ Vue client (X03, X04) : statut et étapes en langage client, sans jargon interne ══ */
+  function statutPublic(d) {
+    var t = d.transport ? d.transport.statut : null;
+    if (d.statut === 'Clôturé') return { libelle: 'Dossier terminé', ton: 'neutral', texte: 'Toutes les opérations de ce dossier sont terminées.' };
+    if (enSalleAttente(d)) return { libelle: 'Documents attendus', ton: 'warning', texte: 'Il nous manque des documents pour commencer les formalités de dédouanement.' };
+    if (d.statut === 'Info manquante' && d.docs.certificatOrigine) return { libelle: 'Contrôle de la douane en cours', ton: 'warning', texte: 'Votre réponse a bien été transmise à la douane. Le contrôle se poursuit.' };
+    if (d.statut === 'Info manquante') return { libelle: 'Information attendue', ton: 'danger', texte: 'La douane demande une information complémentaire avant de poursuivre.' };
+    if (d.statut.indexOf('Contrôle') === 0) return { libelle: 'Contrôle de la douane en cours', ton: 'warning', texte: 'La douane vérifie votre marchandise ou vos documents. Aucune action n\'est attendue de votre part.' };
+    if (d.bas) {
+      if (t === 'Livré') return { libelle: 'Marchandise livrée', ton: 'success', texte: 'Votre marchandise a été livrée.' };
+      if (t === 'En route' || t === 'Chargement' || t === 'Camion affecté' || t === 'Confirmé') return { libelle: 'Livraison en cours', ton: 'info', texte: 'Les formalités douanières sont terminées. Le transport vers le lieu de livraison est en cours.' };
+      if (t === 'À confirmer' || t === 'Demande de transport envoyée') return { libelle: 'Livraison en préparation', ton: 'info', texte: 'Les formalités douanières sont terminées. Nous organisons le transport.' };
+      return { libelle: 'Formalités douanières terminées', ton: 'success', texte: 'La marchandise peut être enlevée.' };
+    }
+    if (d.bae) return { libelle: 'Enlèvement autorisé', ton: 'success', texte: 'La douane a autorisé l\'enlèvement de la marchandise. La sortie du port est en préparation.' };
+    if (d.statut === 'Déclaration anticipée') return { libelle: 'Déclaration en douane déposée', ton: 'info', texte: 'Votre déclaration est déposée auprès de la douane.' };
+    if (d.statut === 'Déclaration stockée') return { libelle: 'Déclaration en douane enregistrée', ton: 'info', texte: 'Votre déclaration en douane est en cours de préparation.' };
+    return { libelle: 'Dossier en préparation', ton: 'info', texte: 'Nous préparons les formalités de dédouanement.' };
+  }
+  var LIBELLES_PUBLICS = { 'Réception': 'Dossier reçu', 'Déclaration stockée': 'Déclaration enregistrée', 'Anticipé': 'Déclaration déposée',
+    'Contrôle douane': 'Contrôle de la douane', 'BAE': 'Bon à enlever (BAE)', 'BAS': 'Bon à sortir (BAS)', 'Transport': 'Transport organisé',
+    'Livraison': 'Livraison', 'Clôture': 'Dossier terminé' };
+  /* Étapes publiques : { label, etat (fait | en-cours | a-venir | sans-objet), date (ISO ou null), note } */
+  function etapesPubliques(d) {
+    var ot = d.transport && d.transport.ot ? ots[d.transport.ot] : null;
+    function dateOT(st) { var x = ot ? ot.suivi.filter(function (e) { return e.statut === st; })[0] : null; return x ? x.date : null; }
+    var dates = {
+      'Réception': d.reception, 'Déclaration stockée': d.declStockee, 'Anticipé': d.declAnticipee,
+      'Contrôle douane': d.controle && d.controle.type !== 'Aucun' ? (d.controle.fin || d.controle.date) : null,
+      'BAE': d.bae ? d.bae.date : null, 'BAS': d.bas ? d.bas.date : null, 'Transport': dateOT('Confirmé'),
+      'Livraison': d.livraison, 'Clôture': d.statut === 'Clôturé' && d.facture ? d.facture.dateReglement : null
+    };
+    return workflow(d).map(function (s) {
+      var etat = { done: 'fait', special: 'fait', current: 'en-cours', warning: 'en-cours', danger: 'en-cours', skipped: 'sans-objet', todo: 'a-venir' }[s.etat];
+      var note = '';
+      if (s.label === 'Contrôle douane' && d.controle) note = d.controle.type === 'Aucun' ? 'Pas de contrôle' : (d.controle.resultat === 'Conforme' ? 'Contrôle terminé, conforme' : d.controle.type === 'Physique' ? 'Visite de la marchandise' : 'Vérification des documents');
+      if (s.label === 'Transport' && d.transport && d.transport.statut === 'Pas de livraison') note = 'Sans livraison : enlèvement par vos soins';
+      if (s.label === 'Livraison' && d.transport && etat === 'en-cours') note = d.transport.statut === 'En route' ? 'Camion en route' : 'En préparation';
+      if (s.label === 'Réception' && etat === 'en-cours') note = 'Documents attendus';
+      return { label: LIBELLES_PUBLICS[s.label], etat: etat, date: etat === 'fait' ? dates[s.label] : null, note: note };
+    });
+  }
+  /* Ce que le client doit faire, d'après le dossier (X04, et alerte générique de X03) */
+  function actionsClient(d) {
+    var a = [];
+    documentsManquants(d).forEach(function (k) {
+      if (k === 'mandat') a.push({ type: 'mandat', cle: k, titre: 'Signer le mandat de représentation en douane' });
+      else if (k === 'instruction') a.push({ type: 'instructions', cle: k, titre: 'Nous transmettre vos instructions douanières' });
+      else a.push({ type: 'depot', cle: k, titre: 'Déposer : ' + documents[k].libelle });
+    });
+    if (d.statut === 'Info manquante' && d.controle && !d.docs.certificatOrigine) {
+      a.unshift({ type: 'depot', cle: 'certificatOrigine', titre: 'Répondre à la demande de la douane', detail: d.controle.commentaire });
+    }
+    return a;
+  }
+  /* Réception d'un document envoyé par le client (X04) : si plus rien ne manque, le dossier quitte la salle d'attente */
+  function recevoirDocumentClient(d, cle) {
+    d.docs[cle] = true;
+    if (enSalleAttente(d) && documentsManquants(d).length === 0) d.statut = 'En cours de traitement';
+    sauverDossier(d);
+  }
+
   function reinitialiserDemo() { try { sessionStorage.removeItem(CLE_DEMO); } catch (e) {} }
   /* OT dont le transporteur t est l'attributaire, nombre d'OT et dernier OT (annuaire E05) */
   function otsTransporteur(t) {
@@ -752,7 +814,8 @@
     navigation: navigation, acces: acces, emailsNonLus: emailsNonLus, documentsTransport: documentsTransport,
     sauverDossier: sauverDossier, sauverOT: sauverOT, sauverTransporteur: sauverTransporteur,
     reserverNumeroOT: reserverNumeroOT, reserverNumeroFacture: reserverNumeroFacture, marquerLue: marquerLue, nonLues: nonLues,
-    facture: facture, typesNotification: typesNotification, reinitialiserDemo: reinitialiserDemo, otsTransporteur: otsTransporteur,
+    facture: facture, typesNotification: typesNotification,
+    statutPublic: statutPublic, etapesPubliques: etapesPubliques, actionsClient: actionsClient, recevoirDocumentClient: recevoirDocumentClient, reinitialiserDemo: reinitialiserDemo, otsTransporteur: otsTransporteur,
     fmt: { date: fmtDate, dateCourte: fmtDateCourte, heure: fmtHeure, dateHeure: fmtDateHeure, nombre: fmtNombre, montant: fmtMontant, poids: fmtPoids },
     esc: esc, badge: badge, dossier: dossier, client: client, responsable: responsable, refTransport: refTransport,
     enSalleAttente: enSalleAttente, alertes: alertes, documentsManquants: documentsManquants,

@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Suivre un dossier — DOUALOG</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<script src="../assets/icons.js"></script>
+<script src="../assets/data.js"></script>
+</head>
+<body>
+<!-- X03 · Page de suivi publique · US-40 (P6) — sans compte, mobile-first.
+     Saisie : N° DLG + BL / LTA, ou N° DLG + N° de booking (export, ou BL pas encore connu — D7, À VALIDER).
+     Résultat : statut, étapes datées, alerte générique. Aucun document, montant, nom de personne ni donnée commerciale.
+     Démo : ?dlg=…&ref=… remplit et lance la recherche (exemples en bas de page). -->
+<div class="c-ext">
+  <header class="c-ext__top">
+    <div class="c-ext__top-in">
+      <span class="c-brand"><span class="c-brand__mark"><img src="../assets/img/logo-monogramme.png" alt=""></span>
+        <span><span class="c-brand__name">DOUA<em>LOG</em></span><span class="c-brand__sub">Douane &amp; Logistique</span></span></span>
+      <span class="c-ext__ctx">Suivi de dossier</span>
+    </div>
+  </header>
+
+  <main class="c-ext__main">
+    <div>
+      <h1>Suivre mon dossier</h1>
+      <p class="c-ext__lead">Saisissez le numéro de dossier DOUALOG reçu par email et la référence de votre transport.</p>
+    </div>
+
+    <form class="c-card" id="form" novalidate>
+      <div class="c-card__body u-stack">
+        <div class="c-field" id="champ-dlg">
+          <label class="c-field__label" for="dlg">N° de dossier <span class="is-required">*</span></label>
+          <input class="c-input u-num" id="dlg" autocomplete="off" placeholder="DLG-2026-0000" autocapitalize="characters">
+          <span class="c-field__help">Il figure dans l'objet des emails de DOUALOG.</span>
+        </div>
+        <fieldset class="c-fieldset">
+          <legend class="c-field__label">Référence de transport</legend>
+          <label class="c-check"><input type="radio" name="type-ref" value="bl" checked> N° de BL (maritime) ou de LTA (aérien)</label>
+          <label class="c-check"><input type="radio" name="type-ref" value="booking"> N° de réservation (booking) — export, ou BL pas encore émis</label>
+        </fieldset>
+        <div class="c-field" id="champ-ref">
+          <label class="c-field__label" for="ref" id="ref-label">N° de BL ou de LTA <span class="is-required">*</span></label>
+          <input class="c-input u-num" id="ref" autocomplete="off" autocapitalize="characters">
+        </div>
+        <button class="c-btn c-btn--primary c-btn--block" type="submit"><svg class="c-icon" aria-hidden="true"><use href="#i-search"></use></svg>Suivre mon dossier</button>
+      </div>
+    </form>
+
+    <div id="resultat" aria-live="polite"></div>
+
+    <p class="c-field__help">Vous avez aussi reçu par email un lien personnel : il donne accès aux documents de votre dossier et permet de nous transmettre des pièces.</p>
+  </main>
+
+  <footer class="c-ext__foot" id="pied"></footer>
+</div>
+
+<script>
+(function () {
+  var D = window.DOUALOG, F = D.fmt;
+  function $(id) { return document.getElementById(id); }
+  function icon(n, cls) { return '<svg class="c-icon' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#i-' + n + '"></use></svg>'; }
+  function norm(s) { return String(s || '').toUpperCase().replace(/[\s.-]/g, ''); }
+
+  document.querySelectorAll('[name="type-ref"]').forEach(function (r) {
+    r.addEventListener('change', function () {
+      $('ref-label').innerHTML = (this.value === 'bl' ? 'N° de BL ou de LTA' : 'N° de réservation (booking)') + ' <span class="is-required">*</span>';
+    });
+  });
+
+  function erreur(id, texte) {
+    var c = $(id), e = c.querySelector('.c-field__error');
+    c.classList.toggle('is-error', !!texte);
+    if (e) e.remove();
+    if (texte) c.insertAdjacentHTML('beforeend', '<span class="c-field__error">' + texte + '</span>');
+  }
+
+  function chercher() {
+    var dlg = $('dlg').value.trim().toUpperCase(), ref = norm($('ref').value);
+    var typeRef = document.querySelector('[name="type-ref"]:checked').value;
+    erreur('champ-dlg', /^DLG-\d{4}-\d{4}$/.test(dlg) ? '' : 'Format attendu : DLG-AAAA-NNNN (par exemple DLG-2026-0412).');
+    erreur('champ-ref', ref ? '' : 'Indiquez la référence.');
+    if (!/^DLG-\d{4}-\d{4}$/.test(dlg) || !ref) { $('resultat').innerHTML = ''; return; }
+
+    var d = D.dossier(dlg);
+    var refs = d ? (typeRef === 'bl' ? [d.bl, d.lta] : [d.booking]).filter(Boolean).map(norm) : [];
+    /* Message neutre : ne dit jamais si le N° de dossier existe */
+    if (!d || refs.indexOf(ref) < 0) {
+      $('resultat').innerHTML = '<div class="c-alert c-alert--info">' + icon('info') + '<div><div class="c-alert__title">Aucun dossier ne correspond à ces informations</div>' +
+        '<div>Vérifiez le numéro de dossier et la référence saisie. À l\'export, ou si votre BL n\'est pas encore émis, utilisez le numéro de réservation (booking).</div></div></div>';
+      return;
+    }
+    var s = D.statutPublic(d), etapes = D.etapesPubliques(d);
+    var attendu = D.actionsClient(d).length > 0;
+    var ICO = { 'fait': 'check', 'en-cours': 'clock', 'a-venir': 'clock', 'sans-objet': 'x' };
+    var CLS = { 'fait': 'c-timeline__item--success', 'en-cours': 'c-timeline__item--current', 'a-venir': 'c-timeline__item--todo', 'sans-objet': 'c-timeline__item--todo' };
+    $('resultat').innerHTML =
+      '<section class="c-card"><div class="c-card__head"><h2 class="c-block-title">Dossier ' + d.id + '</h2></div><div class="c-card__body u-stack">' +
+        '<div><span class="c-badge c-badge--' + s.ton + ' c-badge--lg">' + s.libelle + '</span><p class="c-ext__lead">' + s.texte + '</p></div>' +
+        (attendu ? '<div class="c-alert c-alert--warning">' + icon('alert') + '<div><div class="c-alert__title">Un document est attendu de votre part</div>' +
+          '<div>Consultez l\'email reçu de DOUALOG ou votre lien personnel pour le transmettre.</div></div></div>' : '') +
+        (d.statut === 'Clôturé' ? '<div class="c-alert c-alert--success">' + icon('valide') + '<div>Ce dossier est terminé' + (d.facture && d.facture.dateReglement ? ' depuis le ' + F.date(d.facture.dateReglement) : '') + '. Merci de votre confiance.</div></div>' : '') +
+        '<ol class="c-timeline">' + etapes.map(function (e) {
+          return '<li class="c-timeline__item ' + CLS[e.etat] + '"><span class="c-timeline__icon">' + icon(ICO[e.etat]) + '</span><div>' +
+            '<div class="c-timeline__text">' + e.label + '</div>' +
+            '<div class="c-timeline__time">' + (e.date ? F.date(e.date) : e.etat === 'en-cours' ? 'En cours' : e.etat === 'sans-objet' ? 'Sans objet' : 'À venir') + (e.note ? ' · ' + e.note : '') + '</div></div></li>';
+        }).join('') + '</ol>' +
+        '<p class="c-field__help">Informations à jour au ' + F.date(D.config.aujourdhui) + ' à ' + F.heure(D.config.aujourdhui) + '.</p>' +
+      '</div></section>';
+  }
+
+  $('form').addEventListener('submit', function (e) { e.preventDefault(); chercher(); });
+
+  /* Démo : pré-remplissage par l'adresse */
+  var p = new URLSearchParams(location.search);
+  if (p.get('dlg')) {
+    $('dlg').value = p.get('dlg'); $('ref').value = p.get('ref') || '';
+    if (p.get('type') === 'booking') { document.querySelector('[value="booking"]').checked = true; document.querySelector('[value="booking"]').dispatchEvent(new Event('change')); }
+    chercher();
+  }
+
+  $('pied').innerHTML = 'DOUALOG — Douane &amp; Logistique · ' + D.config.ville + ', ' + D.config.pays + ' · <a href="mailto:' + D.config.boiteEmail + '">' + D.config.boiteEmail + '</a>' +
+    '<br>Connecter • Sécuriser • Livrer' +
+    '<br><br><span class="u-muted">Démonstration : <a href="?dlg=DLG-2026-0412&ref=MEDUDK482093">dossier en cours</a> · ' +
+    '<a href="?dlg=DLG-2026-0421&ref=GRI-26-AB4730&type=booking">export (booking)</a> · ' +
+    '<a href="?dlg=DLG-2026-0412&ref=MEDUDK000000">aucune correspondance</a> · ' +
+    '<a href="?dlg=DLG-2026-0398&ref=MEDUDK471530">dossier terminé</a></span>';
+})();
+</script>
+</body>
+</html>

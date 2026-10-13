@@ -93,6 +93,15 @@ Réponse : ……………………………………
 La maquette montre : il télécharge le modèle, puis le renvoie signé avec un code de confirmation.
 Réponse : ……………………………………
 
+**3.5 Quand le client n'a pas envoyé d'instruction douane, que doit-il nous dire ?**
+La maquette lui propose un petit formulaire à la place du document : le régime douanier (mise à la consommation, admission temporaire, transit ; à l'export : exportation définitive, réexportation), la position tarifaire s'il la connaît, et des observations libres.
+Est-ce suffisant, ou faut-il toujours le document signé ?
+Réponse : ……………………………………
+
+**3.6 Que voit le client sur la page de suivi publique ?**
+La maquette affiche seulement l'étape en cours et les dates, sans document, montant ni nom de personne. Si un document est attendu, elle dit simplement « Un document est attendu de votre part ».
+Réponse : ……………………………………
+
 ---
 
 ## 4. La douane

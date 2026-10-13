@@ -72,6 +72,11 @@
       liens.accepter = brouillon ? '#' : base + 'acceptee';
       liens.refuser = brouillon ? '#' : base + 'refusee';
     }
+    /* Email demande d'information (X08) : contrôle douane du dossier */
+    if (d.controle && d.controle.type !== 'Aucun') {
+      v.controleType = d.controle.type.toLowerCase(); v.controleCommentaire = d.controle.commentaire || '';
+      v.demandeDate = dh(d.controle.demandeEnvoyee || d.controle.date || D.config.aujourdhui);
+    }
     /* Email facture (X07) : montants et dates de la facture du dossier */
     var fac = D.facture(d);
     if (fac) {

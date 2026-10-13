@@ -150,6 +150,14 @@ output/
 - **E08** : notifications (types et teintes dans `DOUALOG.typesNotification`), lues gardées dans la mémoire de démo ;
   `DOUALOG_SHELL.majCompteurs()` met à jour la cloche et le menu.
 
+## Pages client (étape 7)
+- **X03** suivi public : N° DLG + BL / LTA, ou N° DLG + booking (D7) ; message neutre si rien ne correspond ; aucun document,
+  montant, nom ni donnée commerciale. Démo : `?dlg=&ref=&type=booking`.
+- **X04** lien personnel (`?id=`, `&action=depot|mandat`, `&etat=expire|desactive`) : actions attendues en premier, suivi daté,
+  documents, dépôt, instructions douanières, mandat ; code à 6 chiffres (D6) pour le dépôt et le mandat (code de démo 482913).
+- Langage client centralisé dans `data.js` : `statutPublic(d)`, `etapesPubliques(d)`, `actionsClient(d)`, `recevoirDocumentClient(d, cle)`.
+- Tous les boutons d'emails pointent vers X03 / X04 avec le bon dossier (vérifié : aucun lien vers une page inexistante).
+
 ## Emails (X01, X02, X07, X08, X09…)
 - HTML d'email réaliste : 600 px, tableaux, **styles en ligne** (couleurs en dur reprises de tokens.css, les messageries
   ne lisent pas les variables CSS), police Inter avec repli Arial. En-tête de messagerie (objet, De, À, date) au-dessus de l'email.

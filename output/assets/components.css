@@ -815,3 +815,11 @@ a.c-kpi:hover { border-color: var(--border-strong); border-top-color: var(--k-c,
 .c-nav__item .c-count[data-zero] { display: none; }
 a.c-stat { text-decoration: none; color: var(--on-dark); }
 .c-table--dense .is-wrap { min-width: 140px; }
+
+/* Frise verticale côté client (X03, X04) : étape en cours et étapes à venir */
+.c-timeline__item--current .c-timeline__icon { color: var(--action-active-text); border-color: var(--action-primary); background: var(--focus-halo); }
+.c-timeline__item--current .c-timeline__text { font-weight: var(--fw-semibold); }
+.c-timeline__item--todo .c-timeline__icon { color: var(--text-muted); border-style: dashed; }
+.c-timeline__item--todo .c-timeline__text { color: var(--text-secondary); }
+/* Saisie d'un code de confirmation à 6 chiffres (D6) */
+.c-input.c-code { height: 56px; font-size: 26px; font-weight: var(--fw-semibold); letter-spacing: .45em; text-align: center; font-variant-numeric: tabular-nums; }
