@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Notifications — DOUALOG Control Tower</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<script src="../assets/icons.js"></script>
+<script src="../assets/data.js"></script>
+<script src="../assets/shell.js"></script>
+</head>
+<body>
+<!-- E08 · Centre de notifications · US-46 (SHOULD) — ouvert depuis la cloche et l'entrée « Notifications ».
+     Les 6 types du CDC §13.1, filtre par type, lues / non lues. Marquer comme lu met à jour la cloche et le menu (mémoire de démo). -->
+<div class="c-app">
+  <header class="c-topbar" id="topbar"></header>
+  <nav class="c-sidebar" id="sidebar" aria-label="Navigation principale"></nav>
+
+  <main class="c-main">
+    <h1 class="u-sr">Notifications</h1>
+
+    <section class="c-list" aria-labelledby="notif-titre">
+      <div class="c-list__head">
+        <h2 class="c-block-title" id="notif-titre">Notifications</h2>
+        <span class="c-list__meta u-num" id="meta"></span>
+        <div class="c-list__actions">
+          <button class="c-btn c-btn--sm" type="button" id="tout-lu"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-check"></use></svg>Tout marquer comme lu</button>
+        </div>
+      </div>
+      <div class="c-toolbar">
+        <div class="u-contents" id="types" role="group" aria-label="Filtrer par type"></div>
+        <div class="c-toolbar__end">
+          <label class="c-check"><input type="checkbox" id="non-lues"> Non lues seulement</label>
+        </div>
+      </div>
+      <div class="c-table-wrap">
+        <table class="c-table">
+          <thead><tr><th>Type</th><th>Dossier</th><th>Message</th><th>Date</th><th class="is-center">Actions</th></tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div class="c-empty" id="empty" hidden>
+          <svg class="c-icon" aria-hidden="true"><use href="#i-bell"></use></svg>
+          <p class="c-empty__title">Aucune notification</p>
+          <p class="c-empty__text" id="empty-texte"></p>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+(function () {
+  var D = window.DOUALOG, F = D.fmt, esc = D.esc;
+  function $(id) { return document.getElementById(id); }
+  function icon(n, cls) { return '<svg class="c-icon' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#i-' + n + '"></use></svg>'; }
+  var TYPES = Object.keys(D.typesNotification);
+  var etat = { type: null, nonLues: false };
+
+  window.DOUALOG_SHELL.init({ actif: 'notifications' });
+
+  function render() {
+    var n = D.nonLues();
+    $('meta').textContent = D.notifications.length + ' notifications · ' + n + ' non lue' + (n > 1 ? 's' : '');
+    $('tout-lu').disabled = !n;
+    $('types').innerHTML = [null].concat(TYPES).map(function (t) {
+      var nb = D.notifications.filter(function (x) { return (!t || x.type === t) && !x.lue; }).length;
+      var on = etat.type === t;
+      return '<button class="c-chip' + (on ? ' is-active' : '') + '" type="button" data-type="' + (t || '') + '" aria-pressed="' + on + '">' + (t || 'Toutes') +
+        (nb ? ' <span class="c-count c-count--alert" title="' + nb + ' non lue(s)">' + nb + '</span>' : '') + '</button>';
+    }).join('');
+    var rows = D.notifications.filter(function (x) { return (!etat.type || x.type === etat.type) && (!etat.nonLues || !x.lue); })
+      .sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+    $('tbody').innerHTML = rows.map(function (x) {
+      var t = D.typesNotification[x.type] || { ton: 'info', icone: 'bell' };
+      return '<tr class="' + (x.lue ? '' : 'is-unread') + '">' +
+        '<td><span class="c-ctrl c-ctrl--' + (t.ton === 'danger' ? 'danger' : t.ton === 'warning' ? 'warning' : t.ton === 'success' ? 'success' : 'neutral') + '">' +
+          '<span class="c-ctrl__type">' + icon(t.icone, 'c-icon--sm') + ' ' + esc(x.type) + '</span></span>' + (x.lue ? '' : ' <span class="c-badge c-badge--info">Non lue</span>') + '</td>' +
+        '<td><a class="c-ref" href="E01-tableau-de-bord.html?id=' + x.dossier + '" data-lire="' + x.id + '">' + x.dossier + '</a></td>' +
+        '<td class="is-wrap">' + esc(x.texte) + '</td>' +
+        '<td class="u-num">' + F.date(x.date) + ' ' + F.heure(x.date) + '</td>' +
+        '<td class="is-center">' + (x.lue ? '<span class="c-dash">—</span>' :
+          '<button class="c-btn c-btn--ghost c-btn--sm" type="button" data-marquer="' + x.id + '">Marquer comme lu</button>') + '</td></tr>';
+    }).join('');
+    $('empty').hidden = rows.length > 0;
+    $('empty-texte').textContent = etat.nonLues ? 'Toutes les notifications de ce type ont été lues.' : 'Aucune notification de ce type.';
+    window.DOUALOG_SHELL.majCompteurs();
+  }
+
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-type],[data-marquer],[data-lire]');
+    if (!t) return;
+    if (t.hasAttribute('data-type')) { etat.type = t.dataset.type || null; render(); }
+    if (t.dataset.marquer) { D.marquerLue(t.dataset.marquer); render(); }
+    if (t.dataset.lire) D.marquerLue(t.dataset.lire);   // ouvrir le dossier la marque comme lue
+  });
+  $('tout-lu').addEventListener('click', function () { D.notifications.forEach(function (x) { if (!x.lue) D.marquerLue(x.id); }); render(); });
+  $('non-lues').addEventListener('change', function () { etat.nonLues = this.checked; render(); });
+  render();
+})();
+</script>
+</body>
+</html>

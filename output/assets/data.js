@@ -17,7 +17,9 @@
     tva: 0.18,                           // taux normal au Sénégal — À VALIDER pour les prestations DOUALOG
     boiteEmail: 'dossiers@doualog.sn',   // À VALIDER — adresse de la boîte surveillée
     dureeLienClientJours: 30,            // À VALIDER (D11)
-    frequenceRelanceJours: 2             // À VALIDER (D11)
+    frequenceRelanceJours: 2,            // À VALIDER (D11)
+    delaiPaiementJours: 30,              // À VALIDER — échéance des factures
+    tvaLibelle: 'TVA 18 %'               // À VALIDER — taux appliqué aux prestations (débours hors TVA)
   };
 
   /* ── Équipe DOUALOG (CDC §02) ─────────────────────────────── */
@@ -139,6 +141,12 @@
     mandat:            { libelle: 'Mandat' },
     certificatOrigine: { libelle: "Certificat d'origine" }
   };
+  /* Documents de transport déposés par le transporteur sur son lien (US-33) */
+  var documentsTransport = {
+    blSigne: { libelle: 'Bon de livraison signé' },
+    cmr:     { libelle: 'Lettre de voiture (CMR)' },
+    photos:  { libelle: 'Photos de la livraison' }
+  };
   var documentsRequis = {
     Import: ['facture', 'packing', 'instruction', 'bl', 'bonLivraison'],
     Export: ['facture', 'packing', 'instruction']
@@ -163,7 +171,8 @@
       controle: { type: 'Aucun' },
       bae: { num: '2026-BAE-046901', date: '2026-09-26' }, bas: { num: '2026-BAS-050118', date: '2026-09-28' },
       transport: { statut: 'Livré', ot: 'OT-2026-0141', transporteur: 't4' }, livraison: '2026-09-30',
-      facture: { num: 'FAC-2026-0187', statut: 'Réglé', montant: 3184650, emise: '2026-10-01', echeance: '2026-10-31', regle: 3184650, dateReglement: '2026-10-12' }
+      facture: { num: 'FAC-2026-0187', statut: 'Réglé', montant: 3184650, emise: '2026-10-01', echeance: '2026-10-31', regle: 3184650, dateReglement: '2026-10-12',
+        paiements: [{ date: '2026-10-12', montant: 3184650, mode: 'Virement bancaire' }] }
     },
     {
       id: 'DLG-2026-0401', type: 'Import', mode: 'Maritime', client: 'c03', statut: 'Facturé',
@@ -175,7 +184,8 @@
       controle: { type: 'Documentaire', notification: '2026-09-29', date: '2026-09-30', fin: '2026-09-30', inspecteur: 'A. Sarr', resultat: 'Conforme', commentaire: 'Concordance facture / déclaration vérifiée.' },
       bae: { num: '2026-BAE-047352', date: '2026-10-02' }, bas: { num: '2026-BAS-050644', date: '2026-10-05' },
       transport: { statut: 'Chargement', ot: 'OT-2026-0150', transporteur: 't3' }, livraison: null,
-      facture: { num: 'FAC-2026-0191', statut: 'Partiellement réglé', montant: 4762315, emise: '2026-10-07', echeance: '2026-11-06', regle: 2000000, dateReglement: '2026-10-14' }
+      facture: { num: 'FAC-2026-0191', statut: 'Partiellement réglé', montant: 4762315, emise: '2026-10-07', echeance: '2026-11-06', regle: 2000000, dateReglement: '2026-10-14',
+        paiements: [{ date: '2026-10-14', montant: 2000000, mode: 'Virement bancaire' }] }
     },
     {
       id: 'DLG-2026-0402', type: 'Export', mode: 'Maritime', client: 'c07', statut: 'Facturé',
@@ -234,7 +244,7 @@
       declStockee: '2026-09-30T11:15', declAnticipee: '2026-10-02T14:50',
       controle: { type: 'Aucun' },
       bae: { num: '2026-BAE-048877', date: '2026-10-14' }, bas: null,
-      transport: { statut: 'Confirmé', ot: 'OT-2026-0160', transporteur: 't1' }, livraison: null,
+      transport: null, livraison: null,   // BAE obtenu le 14/10, ordre de transport à créer (exemple de E04)
       facture: null
     },
     /* ★ Dossier fil rouge de la démo */
@@ -412,6 +422,18 @@
 
   /* ── Grille tarifaire du fil rouge (pré-remplie depuis l'email, US-09) — montants À VALIDER ── */
   var grilles = {
+    'DLG-2026-0398': [ { prestation: 'p01', montant: 35000 }, { prestation: 'p02', montant: 85000 }, { prestation: 'p03', montant: 120000 }, { prestation: 'p05', montant: 46200 },
+                       { prestation: 'p06', montant: 210000 }, { prestation: 'p07', montant: 2214870 }, { prestation: 'p08', montant: 384264 } ],
+    'DLG-2026-0401': [ { prestation: 'p01', montant: 35000 }, { prestation: 'p02', montant: 85000 }, { prestation: 'p03', montant: 160000 }, { prestation: 'p04', montant: 40000 },
+                       { prestation: 'p05', montant: 92800 }, { prestation: 'p06', montant: 320000 }, { prestation: 'p07', montant: 3412940 }, { prestation: 'p08', montant: 484671 } ],
+    'DLG-2026-0402': [ { prestation: 'p01', montant: 35000 }, { prestation: 'p02', montant: 85000 }, { prestation: 'p03', montant: 130000 }, { prestation: 'p06', montant: 185000 },
+                       { prestation: 'p07', montant: 1962310 }, { prestation: 'p08', montant: 442930 } ],
+    'DLG-2026-0403': [ { prestation: 'p01', montant: 35000 }, { prestation: 'p02', montant: 85000 }, { prestation: 'p03', montant: 95000 }, { prestation: 'p06', montant: 90000 },
+                       { prestation: 'p07', montant: 48600 }, { prestation: 'p08', montant: 126400 } ],
+    'DLG-2026-0405': [ { prestation: 'p01', montant: 35000 }, { prestation: 'p02', montant: 85000 }, { prestation: 'p03', montant: 110000 }, { prestation: 'p05', montant: 38500 },
+                       { prestation: 'p07', montant: 1286340 }, { prestation: 'p08', montant: 74900 } ],
+    'DLG-2026-0407': [ { prestation: 'p01', montant: 35000 }, { prestation: 'p02', montant: 85000 }, { prestation: 'p03', montant: 140000 }, { prestation: 'p04', montant: 40000 },
+                       { prestation: 'p05', montant: 87600 }, { prestation: 'p06', montant: 230000 }, { prestation: 'p07', montant: 2905480 }, { prestation: 'p08', montant: 398150 } ],
     'DLG-2026-0412': [
       { prestation: 'p01', montant: 35000 },
       { prestation: 'p02', montant: 85000 },
@@ -424,13 +446,22 @@
     ]
   };
   var prochainNumeroFacture = 'FAC-2026-0196';
+  var prochainNumeroOT = 'OT-2026-0162';
 
+  var typesNotification = {
+    'Contrôle douane programmé ou en cours':  { ton: 'warning', icone: 'controle' },
+    'Documents complémentaires requis':       { ton: 'danger',  icone: 'document' },
+    'Modification de déclaration en attente': { ton: 'info',    icone: 'edit' },
+    'Confirmation transporteur reçue':        { ton: 'success', icone: 'transport' },
+    'BAS obtenu → basculement facturation':   { ton: 'special', icone: 'facture' },
+    'Facture en attente de règlement':        { ton: 'info',    icone: 'clock' }
+  };
   /* ── Notifications internes (CDC §13.1) — la colonne Alertes compte les non lues ── */
   var notifications = [
     { id: 'n01', date: '2026-10-16T09:58', type: 'BAS obtenu → basculement facturation', dossier: 'DLG-2026-0407', lue: false, texte: 'BAS 2026-BAS-052614 saisi par Mamadou Ba. Le dossier passe en facturation.' },
     { id: 'n02', date: '2026-10-16T09:05', type: 'Contrôle douane programmé ou en cours', dossier: 'DLG-2026-0419', lue: false, texte: 'Contrôle physique en cours au terminal — inspecteur P. Mendy.' },
     { id: 'n03', date: '2026-10-15T17:30', type: 'Contrôle douane programmé ou en cours', dossier: 'DLG-2026-0417', lue: false, texte: 'Contrôle documentaire programmé le 16/10/2026.' },
-    { id: 'n04', date: '2026-10-15T16:12', type: 'Confirmation transporteur reçue', dossier: 'DLG-2026-0410', lue: false, texte: "Téranga Fret Express a accepté l'offre OT-2026-0160." },
+    { id: 'n04', date: '2026-10-13T16:12', type: 'Confirmation transporteur reçue', dossier: 'DLG-2026-0407', lue: false, texte: "Atlantique Fret Sénégal a accepté l'offre OT-2026-0158." },
     { id: 'n05', date: '2026-10-15T15:22', type: 'Documents complémentaires requis', dossier: 'DLG-2026-0416', lue: false, texte: "Pas de réponse du client depuis 48 h sur le certificat d'origine. Relance envoyée." },
     { id: 'n06', date: '2026-10-15T10:04', type: 'Documents complémentaires requis', dossier: 'DLG-2026-0427', lue: false, texte: 'Instruction douane manquante et mandat absent. Client informé.' },
     { id: 'n07', date: '2026-10-14T11:05', type: 'Contrôle douane programmé ou en cours', dossier: 'DLG-2026-0415', lue: false, texte: 'Contrôle physique notifié — visite le 16/10/2026 à 14:00.' },
@@ -502,17 +533,18 @@
 
   /* ── Navigation interne et accès par rôle (image client + CDC §02) ───────
      Entrées dans l'ordre de l'image. horsV1 : visibles mais inactives.
-     À VALIDER : « Facturation » (E06, MUST) n'apparaît pas dans l'image — ajoutée après Transport.
+     À VALIDER : « Facturation » (E06, MUST) n'apparaît pas dans l'image — ajoutée entre Documents et Messagerie.
+     Accueil : E07 (Rapports) pour Manager et Direction, E01 pour les autres profils.
      À VALIDER : pas de matrice des droits détaillée (US-45), répartition déduite du tableau §02.
      Direction = mêmes entrées que le Manager, en lecture seule. */
   var navigation = [
     { id: 'tableau',       label: 'Tableau de bord', icone: 'dashboard', href: 'E01-tableau-de-bord.html' },
     { id: 'dossiers',      label: 'Dossiers',        icone: 'dossiers',  href: 'E01-tableau-de-bord.html#liste' },
     { id: 'transport',     label: 'Transport',       icone: 'transport', href: 'E05-annuaire-transporteurs.html' },
-    { id: 'facturation',   label: 'Facturation',     icone: 'facture',   href: 'E06-facturation.html' },
     { id: 'mandats',       label: 'Mandats',         icone: 'mandat',    horsV1: true },
     { id: 'clients',       label: 'Clients',         icone: 'clients',   horsV1: true },
     { id: 'documents',     label: 'Documents',       icone: 'document',  horsV1: true },
+    { id: 'facturation',   label: 'Facturation',     icone: 'facture',   href: 'E06-facturation.html' },
     { id: 'messagerie',    label: 'Messagerie',      icone: 'mail',      horsV1: true },
     { id: 'notifications', label: 'Notifications',   icone: 'bell',      href: 'E08-notifications.html' },
     { id: 'rapports',      label: 'Rapports',        icone: 'rapport',   href: 'E07-dashboard-manager.html' },
@@ -524,8 +556,8 @@
     operateur:   { nav: ['tableau', 'dossiers', 'transport', 'notifications'].concat(horsV1), utilisateur: 'u3' },
     transport:   { nav: ['tableau', 'dossiers', 'transport', 'notifications'].concat(horsV1), utilisateur: 'u4' },
     facturation: { nav: ['tableau', 'dossiers', 'facturation', 'notifications'].concat(horsV1), utilisateur: 'u5' },
-    manager:     { nav: ['tableau', 'dossiers', 'transport', 'facturation', 'notifications', 'rapports'].concat(horsV1), utilisateur: 'u6' },
-    direction:   { nav: ['tableau', 'dossiers', 'transport', 'facturation', 'notifications', 'rapports'].concat(horsV1), utilisateur: 'u7', lectureSeule: true }
+    manager:     { nav: ['tableau', 'dossiers', 'transport', 'facturation', 'notifications', 'rapports'].concat(horsV1), utilisateur: 'u6', accueil: 'E07-dashboard-manager.html' },
+    direction:   { nav: ['tableau', 'dossiers', 'transport', 'facturation', 'notifications', 'rapports'].concat(horsV1), utilisateur: 'u7', lectureSeule: true, accueil: 'E07-dashboard-manager.html' }
   };
 
   /* Emails entrants pas encore lus dans la boîte DOUALOG (compteur « messages » du header) */
@@ -656,13 +688,71 @@
     return steps;
   }
 
+  /* ══════════════════════════════════════════════════════════════
+     Mémoire de démo : les actions faites pendant la présentation (OT créé, offre acceptée, camion,
+     statut transport, documents, BAE, BAS…) sont gardées le temps de l'onglet (sessionStorage),
+     pour suivre un parcours d'une page à l'autre. Fermer l'onglet ou reinitialiserDemo() remet l'état initial.
+     ══════════════════════════════════════════════════════════════ */
+  var CLE_DEMO = 'doualog-demo';
+  function lireDemo() { try { return JSON.parse(sessionStorage.getItem(CLE_DEMO)) || {}; } catch (e) { return {}; } }
+  function ecrireDemo(famille, id, valeur) {
+    var p = lireDemo(); p[famille] = p[famille] || {}; p[famille][id] = valeur;
+    try { sessionStorage.setItem(CLE_DEMO, JSON.stringify(p)); } catch (e) {}
+  }
+  (function appliquerDemo() {
+    var p = lireDemo(), k;
+    for (k in (p.dossiers || {})) { var d = dossier(k); if (d) for (var c in p.dossiers[k]) d[c] = p.dossiers[k][c]; }
+    for (k in (p.ots || {})) ots[k] = p.ots[k];
+    for (k in (p.transporteurs || {})) transporteurs[k] = p.transporteurs[k];
+    if (p.compteurs) { if (p.compteurs.ot) prochainNumeroOT = p.compteurs.ot; if (p.compteurs.fac) prochainNumeroFacture = p.compteurs.fac; }
+    if (p.notifications) notifications.forEach(function (n) { if (p.notifications[n.id]) n.lue = true; });
+  })();
+  var CHAMPS_SAUVES = ['statut', 'docs', 'bae', 'bas', 'facture', 'transport', 'livraison', 'salleAttente'];
+  function sauverDossier(d) { var o = {}; CHAMPS_SAUVES.forEach(function (c) { o[c] = d[c]; }); ecrireDemo('dossiers', d.id, o); }
+  function sauverOT(id) { ecrireDemo('ots', id, ots[id]); }
+  function sauverTransporteur(id) { ecrireDemo('transporteurs', id, transporteurs[id]); }
+  /* Réserve le prochain N° d'OT (séquentiel) */
+  function reserverNumeroOT() {
+    var n = prochainNumeroOT;
+    prochainNumeroOT = 'OT-2026-' + String(parseInt(n.slice(-4), 10) + 1).padStart(4, '0');
+    ecrireDemo('compteurs', 'ot', prochainNumeroOT);
+    return n;
+  }
+  function reserverNumeroFacture() {
+    var n = prochainNumeroFacture;
+    prochainNumeroFacture = 'FAC-2026-' + String(parseInt(n.slice(-4), 10) + 1).padStart(4, '0');
+    ecrireDemo('compteurs', 'fac', prochainNumeroFacture);
+    return n;
+  }
+  function marquerLue(id) { notifications.forEach(function (n) { if (n.id === id) n.lue = true; }); ecrireDemo('notifications', id, true); }
+  function nonLues() { return notifications.filter(function (n) { return !n.lue; }).length; }
+  /* Facture d'un dossier (CDC §10) : dès le BAS, le dossier est « En facturation » tant que la facture n'est pas émise */
+  function facture(d) {
+    if (!d.bas) return null;
+    var f = d.facture || { num: null, statut: 'En facturation' };
+    var lignes = grilles[d.id] || [], t = totaux(lignes);
+    return { num: f.num, statut: f.statut, generee: f.generee || null, emise: f.emise || null, echeance: f.echeance || null,
+      regle: f.regle || 0, paiements: f.paiements || [], lignes: lignes, ht: t.ht, tva: t.tva, debours: t.debours, ttc: f.montant || t.ttc,
+      reste: (f.montant || t.ttc) - (f.regle || 0), dateBAS: d.bas.date };
+  }
+  function reinitialiserDemo() { try { sessionStorage.removeItem(CLE_DEMO); } catch (e) {} }
+  /* OT dont le transporteur t est l'attributaire, nombre d'OT et dernier OT (annuaire E05) */
+  function otsTransporteur(t) {
+    return dossiers.filter(function (d) { return d.transport && d.transport.transporteur === t && d.transport.ot; })
+      .map(function (d) { return { ot: d.transport.ot, dossier: d.id, date: ots[d.transport.ot] ? ots[d.transport.ot].cree : null }; })
+      .sort(function (a, b) { return a.ot < b.ot ? 1 : -1; });
+  }
+
   window.DOUALOG = {
     config: config, roles: roles, equipe: equipe, clients: clients, transporteurs: transporteurs,
     compagnies: compagnies, prestations: prestations, statuts: statuts, ordreTransport: ordreTransport,
     documents: documents, documentsRequis: documentsRequis,
     dossiers: dossiers, ots: ots, grilles: grilles, prochainNumeroFacture: prochainNumeroFacture,
     notifications: notifications, messages: messages, historique: historique,
-    navigation: navigation, acces: acces, emailsNonLus: emailsNonLus,
+    navigation: navigation, acces: acces, emailsNonLus: emailsNonLus, documentsTransport: documentsTransport,
+    sauverDossier: sauverDossier, sauverOT: sauverOT, sauverTransporteur: sauverTransporteur,
+    reserverNumeroOT: reserverNumeroOT, reserverNumeroFacture: reserverNumeroFacture, marquerLue: marquerLue, nonLues: nonLues,
+    facture: facture, typesNotification: typesNotification, reinitialiserDemo: reinitialiserDemo, otsTransporteur: otsTransporteur,
     fmt: { date: fmtDate, dateCourte: fmtDateCourte, heure: fmtHeure, dateHeure: fmtDateHeure, nombre: fmtNombre, montant: fmtMontant, poids: fmtPoids },
     esc: esc, badge: badge, dossier: dossier, client: client, responsable: responsable, refTransport: refTransport,
     enSalleAttente: enSalleAttente, alertes: alertes, documentsManquants: documentsManquants,

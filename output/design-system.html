@@ -62,7 +62,7 @@
     <a href="#statuts">Statuts</a><a href="#boutons">Boutons</a><a href="#champs">Champs</a><a href="#shell">Shell</a><a href="#indicateurs">Indicateurs</a>
     <a href="#tableau">Tableau</a><a href="#onglets">Onglets</a><a href="#workflow">Workflow</a><a href="#bandeau">Bandeau</a>
     <a href="#panneau">Panneau &amp; modale</a><a href="#blocs">Blocs du dossier</a><a href="#timeline">Timeline</a><a href="#documents">Documents</a>
-    <a href="#alertes">Alertes</a><a href="#vide">État vide</a><a href="#kpi">KPI</a><a href="#depot">Dépôt</a><a href="#connexion">Connexion</a>
+    <a href="#alertes">Alertes</a><a href="#vide">État vide</a><a href="#kpi">KPI</a><a href="#depot">Dépôt</a><a href="#connexion">Connexion</a><a href="#externe">Pages externes</a><a href="#facture">Facture</a>
   </nav>
 
   <!-- ══ COULEURS ══ -->
@@ -432,6 +432,41 @@
     <div class="ds-box"><label class="c-dropzone"><svg class="c-icon" aria-hidden="true"><use href="#i-upload"></use></svg>
       <span class="c-dropzone__title">Déposer le certificat d'origine</span><span>Glissez le fichier ici ou cliquez pour le choisir · PDF, JPG ou PNG, 10 Mo maximum</span>
       <input type="file" class="u-sr"></label></div>
+  </section>
+
+  <!-- ══ PAGES EXTERNES ══ -->
+  <section class="ds-sec" id="externe">
+    <h2>Pages externes (client, transporteur)</h2>
+    <p class="ds-intro">Registre simple, mobile-first, sans navigation applicative : bandeau bleu nuit avec logo et contexte (N° OT ou DLG), contenu sur 640 px maximum, cartes blanches, un seul bouton principal pleine largeur (<code>.c-btn--block</code>), cibles tactiles de 44 px, frise qui se resserre sur mobile. <code>.c-ext</code>, <code>__top</code>, <code>__top-in</code>, <code>__ctx</code>, <code>__main</code>, <code>__lead</code>, <code>__foot</code>. Écrans internes : <code>.c-fieldset</code> (groupe de choix sans cadre), <code>.c-dgrid--split</code> (deux colonnes égales), <code>.c-email-preview</code> (aperçu d'un email dans E04).</p>
+    <div class="ds-box ds-box--flush">
+      <div class="c-ext" style="min-height:0">
+        <header class="c-ext__top"><div class="c-ext__top-in">
+          <span class="c-brand"><span class="c-brand__mark"><img src="assets/img/logo-monogramme.png" alt=""></span><span><span class="c-brand__name">DOUA<em>LOG</em></span><span class="c-brand__sub">Douane &amp; Logistique</span></span></span>
+          <span class="c-ext__ctx">Offre de transport<b>OT-2026-0161</b></span></div></header>
+        <main class="c-ext__main">
+          <div><h1>Offre acceptée</h1><p class="c-ext__lead">Merci Oumar Sall. L'ordre de transport <b>OT-2026-0161</b> est attribué à <b>Routes du Sahel Transport</b>.</p></div>
+          <a class="c-btn c-btn--primary c-btn--block" href="#">Ouvrir mon lien transporteur</a>
+        </main>
+        <footer class="c-ext__foot">Service transport DOUALOG · dossiers@doualog.sn</footer>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ FACTURE ══ -->
+  <section class="ds-sec" id="facture">
+    <h2>Facture (aperçu du document) et compléments</h2>
+    <p class="ds-intro">Aperçu dans un panneau latéral large (<code>.c-drawer--wide</code>) : en-tête DOUALOG avec trait orange, « FACTURE » et numéro séquentiel, client et références en deux colonnes, prestations puis débours (hors TVA), totaux alignés à droite, mentions de paiement. Filigrane « BROUILLON » tant que la facture n'est pas générée (<code>.c-invoice.is-brouillon</code>). <code>.c-invoice</code>, <code>__head</code>, <code>__logo</code>, <code>__emetteur</code>, <code>__title</code>, <code>__num</code>, <code>__dates</code>, <code>__parties</code>, <code>__bloc-titre</code>, <code>__lignes</code>, <code>__totaux</code>, <code>__mentions</code>.<br>
+    Compléments de l'étape 6 : <code>.c-stats__group--5</code> (10 indicateurs sur 2 lignes, E07), <code>.c-table .is-wrap</code> (cellule sur plusieurs lignes), <code>.c-table tr.is-unread</code> (notification non lue, E08).</p>
+    <div class="ds-box" style="background:var(--bg-muted)">
+      <div class="c-invoice is-brouillon">
+        <div class="c-invoice__head"><div><img class="c-invoice__logo" src="assets/img/logo.png" alt=""><div class="c-invoice__emetteur"><b>DOUALOG — Douane &amp; Logistique</b><br>Dakar, Sénégal · dossiers@doualog.sn</div></div>
+          <div><div class="c-invoice__title">Facture</div><div class="c-invoice__num">N° attribué à la génération</div><div class="c-invoice__dates">Échéance : à 30 jours</div></div></div>
+        <table class="c-invoice__lignes"><thead><tr><th>Désignation</th><th class="is-num">Montant (FCFA)</th></tr></thead><tbody>
+          <tr class="is-groupe"><td colspan="2">Prestations DOUALOG</td></tr><tr><td>Honoraires de transit</td><td class="is-num">145 000 FCFA</td></tr>
+          <tr class="is-groupe"><td colspan="2">Débours — refacturés à l'identique, hors TVA</td></tr><tr><td>Débours — droits et taxes de douane</td><td class="is-num">1 846 213 FCFA</td></tr></tbody></table>
+        <dl class="c-invoice__totaux"><dt>Total prestations HT</dt><dd>145 000 FCFA</dd><dt>TVA 18 %</dt><dd>26 100 FCFA</dd><dt class="is-total">Total TTC</dt><dd class="is-total">2 017 313 FCFA</dd></dl>
+      </div>
+    </div>
   </section>
 
   <!-- ══ CONNEXION ══ -->

@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lien transporteur — DOUALOG</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<script src="../assets/icons.js"></script>
+<script src="../assets/data.js"></script>
+</head>
+<body>
+<!-- X06 · Lien personnel du transporteur, rattaché à UN seul ordre de transport · US-32, 33 (P4) — sans compte.
+     ?ot=OT-… (par défaut OT-2026-0156, dossier fil rouge DLG-2026-0412, En route).
+     Camion et chauffeur · statut dans l'ordre Chargement → En route → Livré (D2) · dépôt bon de livraison signé, CMR, photos.
+     Les mises à jour sont gardées pour la démo (mémoire de démo) et visibles dans le dossier (E02, blocs Transport et Suivi transport). -->
+<!-- À VALIDER : la confirmation de livraison exige le bon de livraison signé · code de confirmation non demandé au transporteur (D6 : client seulement) -->
+<div class="c-ext">
+  <header class="c-ext__top">
+    <div class="c-ext__top-in">
+      <span class="c-brand"><span class="c-brand__mark"><img src="../assets/img/logo-monogramme.png" alt=""></span>
+        <span><span class="c-brand__name">DOUA<em>LOG</em></span><span class="c-brand__sub">Douane &amp; Logistique</span></span></span>
+      <span class="c-ext__ctx">Lien transporteur<b id="ctx-ot"></b></span>
+    </div>
+  </header>
+
+  <main class="c-ext__main" id="contenu"></main>
+
+  <footer class="c-ext__foot" id="pied"></footer>
+</div>
+
+<script>
+(function () {
+  var D = window.DOUALOG, F = D.fmt, esc = D.esc;
+  function $(id) { return document.getElementById(id); }
+  function icon(n, cls) { return '<svg class="c-icon' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#i-' + n + '"></use></svg>'; }
+  var p = new URLSearchParams(location.search);
+  var otId = p.get('ot') || 'OT-2026-0156', ot = D.ots[otId], d = D.dossier(ot.dossier);
+  var t = (d.transport && d.transport.transporteur) || p.get('t'), tr = D.transporteurs[t];
+  var contact = D.equipe.u4, message = null, editionCamion = false;
+
+  /* Ordre des statuts côté transporteur (D2 : Chargement avant En route) */
+  var ETAPES = [['Confirmé', 'Accepté'], ['Camion affecté', 'Camion affecté'], ['Chargement', 'Chargement'], ['En route', 'En route'], ['Livré', 'Livré']];
+  var SUIVANT = { 'Camion affecté': ['Chargement', 'Chargement en cours'], 'Chargement': ['En route', 'Camion en route'], 'En route': ['Livré', 'Confirmer la livraison'] };
+
+  function statut() { return d.transport ? d.transport.statut : null; }
+  function dateStatut(s) { var x = (ot.suivi || []).filter(function (e) { return e.statut === s; })[0]; return x ? x.date : (s === 'Livré' && d.livraison ? d.livraison : null); }
+  function depot(k) { return (ot.documents || []).filter(function (x) { return x.type === k; })[0]; }
+  function sauver() { D.sauverOT(otId); D.sauverDossier(d); }
+
+  function carteStatut() {
+    var s = statut(), idx = ETAPES.map(function (e) { return e[0]; }).indexOf(s);
+    var frise = '<ol class="c-wf" aria-label="Statut du transport">' + ETAPES.map(function (e, i) {
+      var etat = i < idx || s === 'Livré' ? 'done' : i === idx ? 'current' : 'todo';
+      var dt = dateStatut(e[0]);
+      return '<li class="c-wf__step c-wf__step--' + etat + '"><span class="c-wf__node"></span><span class="c-wf__label">' + e[1] + '</span><span class="c-wf__date">' + (dt ? F.dateCourte(dt) : '') + '</span></li>';
+    }).join('') + '</ol>';
+    var action = '', aide = '';
+    if (s === 'Confirmé') aide = 'Indiquez d\'abord le camion et le chauffeur ci-dessous.';
+    else if (SUIVANT[s]) {
+      var bloque = SUIVANT[s][0] === 'Livré' && !depot('blSigne');
+      action = '<button class="c-btn c-btn--primary c-btn--block" type="button" data-a="statut"' + (bloque ? ' disabled' : '') + '>' + icon(SUIVANT[s][0] === 'Livré' ? 'check' : 'arrow-right') + SUIVANT[s][1] + '</button>';
+      if (bloque) aide = 'Déposez le bon de livraison signé pour confirmer la livraison.';
+    }
+    return '<section class="c-card"><div class="c-card__head"><h3>Statut du transport</h3>' + D.badge('transport', s) + '</div><div class="c-card__body u-stack">' +
+      frise + action + (aide ? '<p class="c-field__help">' + aide + '</p>' : '') + '</div></section>';
+  }
+
+  function carteCamion() {
+    var c = ot.camion;
+    var corps;
+    if (c && !editionCamion) {
+      corps = '<dl class="c-kv c-kv--rows"><div><dt>Immatriculation</dt><dd>' + esc(c.immatriculation) + '</dd></div><div><dt>Chauffeur</dt><dd>' + esc(c.chauffeur) + '</dd></div>' +
+        '<div><dt>Téléphone</dt><dd>' + esc(c.tel) + '</dd></div></dl>';
+      return '<section class="c-card"><div class="c-card__head"><h3>Camion et chauffeur</h3>' +
+        (statut() !== 'Livré' ? '<div class="c-card__actions"><button class="c-btn c-btn--ghost c-btn--sm" type="button" data-a="modifier-camion">' + icon('edit', 'c-icon--sm') + 'Modifier</button></div>' : '') +
+        '</div><div class="c-card__body">' + corps + '</div></section>';
+    }
+    corps = '<div class="c-field"><label class="c-field__label" for="c-immat">Immatriculation du camion <span class="is-required">*</span></label><input class="c-input" id="c-immat" placeholder="DK-0000-AA" value="' + (c ? esc(c.immatriculation) : '') + '"></div>' +
+      '<div class="c-field"><label class="c-field__label" for="c-chauffeur">Nom du chauffeur <span class="is-required">*</span></label><input class="c-input" id="c-chauffeur" autocomplete="name" value="' + (c ? esc(c.chauffeur) : '') + '"></div>' +
+      '<div class="c-field"><label class="c-field__label" for="c-tel">Téléphone du chauffeur <span class="is-required">*</span></label><input class="c-input" id="c-tel" type="tel" inputmode="tel" placeholder="+221 7x xxx xx xx" value="' + (c ? esc(c.tel) : '') + '"></div>' +
+      '<button class="c-btn c-btn--block" type="button" data-a="camion">' + icon('check') + 'Enregistrer le camion</button>';
+    return '<section class="c-card"><div class="c-card__head"><h3>Camion et chauffeur</h3></div><div class="c-card__body u-stack">' + corps + '</div></section>';
+  }
+
+  function carteDocuments() {
+    var liste = '<ul class="c-doclist">' + Object.keys(D.documentsTransport).map(function (k) {
+      var x = depot(k);
+      return '<li class="c-doc ' + (x ? 'c-doc--ok' : 'c-doc--optional') + '"><span class="c-doc__state">' + icon(x ? 'check' : 'clock') + '</span>' +
+        '<div><div class="c-doc__name">' + D.documentsTransport[k].libelle + '</div><div class="c-doc__meta">' + (x ? esc(x.nom) + ' · ' + F.date(x.date) + ' à ' + F.heure(x.date) : 'À déposer à la livraison') + '</div></div></li>';
+    }).join('') + '</ul>';
+    var restants = Object.keys(D.documentsTransport).filter(function (k) { return !depot(k) || k === 'photos'; });
+    var form = statut() === 'Livré' || !restants.length ? '' :   // lien fermé après la livraison
+      '<div class="c-field"><label class="c-field__label" for="d-type">Document</label><select class="c-select" id="d-type">' +
+        restants.map(function (k) { return '<option value="' + k + '">' + D.documentsTransport[k].libelle + '</option>'; }).join('') + '</select></div>' +
+      '<label class="c-dropzone">' + icon('camera') + '<span class="c-dropzone__title">Prendre une photo ou choisir un fichier</span><span>PDF, JPG ou PNG, 10 Mo maximum</span>' +
+        '<input type="file" class="u-sr" id="d-fichier" accept="image/*,application/pdf" capture="environment"></label>' +
+      '<button class="c-btn c-btn--block" type="button" data-a="deposer">' + icon('upload') + 'Déposer le document</button>';
+    return '<section class="c-card"><div class="c-card__head"><h3>Documents de livraison</h3></div><div class="c-card__body u-stack">' + liste + form + '</div></section>';
+  }
+
+  function carteRecap() {
+    return '<section class="c-card"><div class="c-card__head"><h3>Ordre de transport</h3></div><div class="c-card__body"><dl class="c-kv c-kv--rows">' +
+      [['Dossier', d.id], ['Marchandise', esc(ot.marchandise)], ['Poids brut', F.poids(ot.poids)], ['Colis', F.nombre(ot.colis) + ' ' + esc(ot.unite)],
+       ['Conteneur', d.conteneur ? d.conteneur + (d.typeConteneur ? ' (' + d.typeConteneur + ')' : '') : '—'],
+       ['Chargement', esc(ot.chargement)], ['Livraison', esc(ot.livraisonAdresse)],
+       ['Prise en charge', F.date(ot.priseEnCharge) + ' à ' + F.heure(ot.priseEnCharge)], ['Instructions', esc(ot.instructions || 'Aucune')]]
+        .map(function (r) { return '<div><dt>' + r[0] + '</dt><dd>' + r[1] + '</dd></div>'; }).join('') + '</dl></div></section>';
+  }
+
+  function rendre() {
+    $('ctx-ot').textContent = otId;
+    var s = statut();
+    if (!ot.lien || (!ot.lien.actif && s !== 'Livré')) {
+      $('contenu').innerHTML = '<div><h1>Ce lien n\'est plus actif</h1><p class="c-ext__lead">L\'accès à l\'ordre de transport ' + otId + ' a été désactivé par DOUALOG. ' +
+        'Pour toute question, contactez le service transport.</p></div>';
+      return;
+    }
+    var entete = '<div><h1>Ordre de transport ' + otId + '</h1><p class="c-ext__lead">' + esc(tr.nom) + ' · pour le compte de DOUALOG · dossier ' + d.id + '</p></div>';
+    var alerte = s === 'Livré'
+      ? '<div class="c-alert c-alert--success">' + icon('valide') + '<div><div class="c-alert__title">Livraison confirmée le ' + F.date(d.livraison || dateStatut('Livré')) + '</div><div>Merci. Ce lien est maintenant fermé : vous pouvez seulement consulter cet ordre de transport.</div></div></div>'
+      : '<div class="c-alert c-alert--info">' + icon('link') + '<div>Lien personnel réservé à cet ordre de transport, actif jusqu\'à la confirmation de la livraison. Merci de ne pas le transférer.</div></div>';
+    var info = message ? '<div class="c-alert c-alert--' + message[0] + '" role="status">' + icon(message[0] === 'success' ? 'valide' : 'info') + '<div>' + message[1] + '</div></div>' : '';
+    $('contenu').innerHTML = entete + info + alerte + carteStatut() + carteCamion() + carteDocuments() + carteRecap();
+  }
+
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-a]'); if (!b) return;
+    var now = D.config.aujourdhui, a = b.dataset.a;
+    if (a === 'modifier-camion') { editionCamion = true; rendre(); return; }
+    if (a === 'camion') {
+      var champs = ['c-immat', 'c-chauffeur', 'c-tel'], ok = true;
+      champs.forEach(function (k) { var vide = !$(k).value.trim(); $(k).closest('.c-field').classList.toggle('is-error', vide); if (vide) ok = false; });
+      if (!ok) return;
+      ot.camion = { immatriculation: $('c-immat').value.trim().toUpperCase(), chauffeur: $('c-chauffeur').value.trim(), tel: $('c-tel').value.trim() };
+      if (statut() === 'Confirmé') { d.transport.statut = 'Camion affecté'; ot.suivi.push({ statut: 'Camion affecté', date: now }); }
+      editionCamion = false; message = ['success', 'Camion enregistré. DOUALOG en est informé.'];
+    }
+    if (a === 'statut') {
+      var suivant = SUIVANT[statut()][0];
+      d.transport.statut = suivant; ot.suivi.push({ statut: suivant, date: now });
+      if (suivant === 'Livré') { d.livraison = now.slice(0, 10); ot.lien.actif = false; message = ['success', 'Livraison confirmée. Merci !']; }
+      else message = ['success', 'Statut mis à jour : ' + suivant + '. DOUALOG et le client en sont informés.'];
+    }
+    if (a === 'deposer') {
+      var k = $('d-type').value, f = $('d-fichier').files[0];
+      var nom = f ? f.name : (k === 'blSigne' ? 'Bon_livraison_signe_' : k === 'cmr' ? 'CMR_' : 'Photo_livraison_') + otId + (k === 'cmr' ? '.pdf' : '.jpg');
+      ot.documents = ot.documents || [];
+      ot.documents.push({ type: k, nom: nom, date: now });
+      message = ['success', D.documentsTransport[k].libelle + ' déposé : ' + esc(nom) + '.'];
+    }
+    sauver(); rendre();
+  });
+
+  $('pied').innerHTML = 'Service transport DOUALOG — ' + esc(contact.nom) + ' · <a href="mailto:' + D.config.boiteEmail + '?subject=' + encodeURIComponent('[' + otId + '] ') + '">' + D.config.boiteEmail + '</a><br>' +
+    D.config.ville + ', ' + D.config.pays + ' · Connecter • Sécuriser • Livrer';
+  rendre();
+})();
+</script>
+</body>
+</html>

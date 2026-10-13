@@ -744,3 +744,74 @@ a.c-kpi:hover { border-color: var(--border-strong); border-top-color: var(--k-c,
 
 /* Bloc mis en évidence à l'ouverture (ex. Documents d'un dossier en salle d'attente, puisqu'il n'y a pas d'onglets) */
 .c-card.is-focus { border-color: var(--action-primary); box-shadow: 0 0 0 3px var(--focus-halo); }
+
+/* ── Pages externes (client, transporteur) : registre simple, mobile-first, sans navigation applicative ── */
+.c-ext { min-height: 100vh; display: flex; flex-direction: column; background: var(--bg-muted); font-size: var(--fs-base); }
+.c-ext__top { background: var(--bg-chrome); border-bottom: var(--topbar-line) solid var(--action-primary); }
+.c-ext__top-in { max-width: var(--external-max); margin: 0 auto; padding: var(--sp-3) var(--sp-4); display: flex; align-items: center; gap: var(--sp-3); }
+.c-ext__ctx { margin-left: auto; text-align: right; font-size: var(--fs-xs); color: var(--on-dark-muted); line-height: 1.3; }
+.c-ext__ctx b { display: block; font-size: var(--fs-sm); color: var(--neutral-0); font-variant-numeric: tabular-nums; }
+.c-ext__main { flex: 1; width: 100%; max-width: var(--external-max); margin: 0 auto; padding: var(--sp-6) var(--sp-4) var(--sp-8); display: flex; flex-direction: column; gap: var(--sp-4); }
+.c-ext__lead { margin-top: var(--sp-2); color: var(--text-secondary); line-height: var(--lh-relaxed); }
+.c-ext__foot { padding: var(--sp-6) var(--sp-4); text-align: center; font-size: var(--fs-xs); color: var(--text-secondary); line-height: var(--lh-relaxed); }
+.c-ext .c-card__body { font-size: var(--fs-base); }
+.c-ext .c-btn { min-height: 44px; }   /* cible tactile */
+.c-ext .c-btn--sm { min-height: var(--control-h-sm); }
+/* Bouton pleine largeur (pages externes, formulaires sur mobile) */
+.c-btn--block { width: 100%; }
+
+/* Groupe de choix sans cadre (radios, cases) */
+.c-fieldset { border: 0; padding: 0; margin: 0; min-width: 0; display: flex; flex-direction: column; gap: var(--sp-2); }
+/* Deux colonnes égales (choix + aperçu) */
+.c-dgrid--split { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@container dossier (max-width: 760px) { .c-dgrid--split { grid-template-columns: minmax(0, 1fr); } }
+/* Aperçu d'un email dans un écran interne */
+.c-email-preview { width: 100%; height: 560px; border: var(--border-w) solid var(--border); border-radius: var(--radius-md); background: var(--bg-muted); }
+/* Frise sur mobile (pages externes) : les étapes se resserrent au lieu de déborder */
+.c-ext .c-wf__step { min-width: 0; }
+.c-ext .c-wf__label { font-size: var(--fs-xs); overflow-wrap: anywhere; }
+
+/* Panneau latéral large (aperçu d'un document : facture) */
+.c-drawer--wide { width: 780px; }
+
+/* ── Facture (aperçu du document PDF) ─────────────────────────── */
+.c-invoice {
+  position: relative; overflow: hidden; padding: var(--sp-8); font-size: var(--fs-sm); color: var(--text-primary);
+  background: var(--bg-surface); border: var(--border-w) solid var(--border); border-radius: var(--radius-md);
+}
+.c-invoice.is-brouillon::before {   /* filigrane tant que la facture n'est pas générée */
+  content: 'BROUILLON'; position: absolute; top: 42%; left: 50%; transform: translate(-50%, -50%) rotate(-24deg);
+  font-size: 84px; font-weight: var(--fw-bold); letter-spacing: .1em; color: var(--text-muted); opacity: .22; pointer-events: none;
+}
+.c-invoice__head { display: flex; justify-content: space-between; gap: var(--sp-6); padding-bottom: var(--sp-4); border-bottom: 2px solid var(--action-primary); }
+.c-invoice__logo { width: 132px; margin-bottom: var(--sp-2); }
+.c-invoice__emetteur { font-size: var(--fs-xs); color: var(--text-secondary); line-height: var(--lh-normal); }
+.c-invoice__title { font-size: var(--fs-2xl); font-weight: var(--fw-bold); letter-spacing: .08em; text-transform: uppercase; color: var(--text-heading); text-align: right; }
+.c-invoice__num { font-size: var(--fs-base); font-weight: var(--fw-semibold); color: var(--text-strong); text-align: right; font-variant-numeric: tabular-nums; }
+.c-invoice__dates { margin-top: var(--sp-2); font-size: var(--fs-xs); color: var(--text-secondary); text-align: right; line-height: var(--lh-normal); }
+.c-invoice__parties { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-6); margin: var(--sp-6) 0; }
+.c-invoice__bloc-titre { margin-bottom: var(--sp-1); font-size: var(--fs-2xs); font-weight: var(--fw-semibold); letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--text-secondary); }
+.c-invoice__lignes { width: 100%; border-collapse: collapse; font-variant-numeric: tabular-nums; }
+.c-invoice__lignes th { padding: var(--sp-2) 0; text-align: left; font-size: var(--fs-2xs); font-weight: var(--fw-semibold); letter-spacing: var(--ls-label); text-transform: uppercase; color: var(--text-secondary); border-bottom: var(--border-w) solid var(--border-strong); }
+.c-invoice__lignes td { padding: 7px 0; border-bottom: var(--border-w) solid var(--border); }
+.c-invoice__lignes .is-groupe td { padding-top: var(--sp-4); font-size: var(--fs-xs); font-weight: var(--fw-semibold); color: var(--text-heading); border-bottom: 0; }
+.c-invoice__lignes .is-num { text-align: right; white-space: nowrap; }
+.c-invoice__totaux { width: 320px; max-width: 100%; margin: var(--sp-4) 0 0 auto; display: grid; grid-template-columns: 1fr auto; gap: 6px var(--sp-4); font-variant-numeric: tabular-nums; }
+.c-invoice__totaux dt { color: var(--text-secondary); }
+.c-invoice__totaux dd { margin: 0; text-align: right; }
+.c-invoice__totaux .is-total { padding-top: var(--sp-2); border-top: 2px solid var(--text-heading); font-size: var(--fs-base); font-weight: var(--fw-bold); color: var(--text-heading); }
+.c-invoice__mentions { margin-top: var(--sp-6); padding-top: var(--sp-3); border-top: var(--border-w) solid var(--border); font-size: var(--fs-xs); color: var(--text-secondary); line-height: var(--lh-relaxed); }
+
+/* Bandeau de 10 indicateurs (dashboard Manager E07) : 2 lignes de 5 */
+.c-stats__group--5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+.c-stats__group--5 .c-stat { border-left: var(--border-w) solid var(--night-line); border-top: 0; }
+.c-stats__group--5 .c-stat:nth-child(5n + 1) { border-left: 0; }
+.c-stats__group--5 .c-stat:nth-child(n + 6) { border-top: var(--border-w) solid var(--night-line); }
+/* Cellule de tableau autorisant le retour à la ligne (message d'une notification) */
+.c-table .is-wrap { white-space: normal; min-width: 280px; line-height: var(--lh-normal); padding-top: var(--sp-2); padding-bottom: var(--sp-2); }
+.c-table tr.is-unread td { font-weight: var(--fw-semibold); color: var(--text-strong); }
+/* Correctifs : le document ne se tasse pas dans le panneau ; compteur vide du menu sans encombrement */
+.c-invoice { flex-shrink: 0; }
+.c-nav__item .c-count[data-zero] { display: none; }
+a.c-stat { text-decoration: none; color: var(--on-dark); }
+.c-table--dense .is-wrap { min-width: 140px; }

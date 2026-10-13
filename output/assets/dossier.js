@@ -211,21 +211,43 @@
   }
 
   /* ── Transport (US-28 à 33) ───────────────────────────────── */
+  var REPONSE = { 'Acceptée': 'success', 'Refusée': 'danger', 'Offre clôturée': 'neutral' };
   function transport(d) {
     var t = d.transport, ot = t && t.ot ? D.ots[t.ot] : null;
     if (!t) {
       var txt = d.bae ? 'Aucun ordre de transport pour ce dossier.' : 'L\'ordre de transport pourra être créé après le BAE.';
       return carte('Transport', '<p class="u-muted">' + txt + '</p>', '',
-        d.bae ? '<a class="c-btn c-btn--sm" href="E04-creation-ot.html?id=' + d.id + '">' + icon('plus', 'c-icon--sm') + 'Créer OT</a>' : '');
+        d.bae ? '<a class="c-btn c-btn--primary c-btn--sm" href="E04-creation-ot.html?id=' + d.id + '">' + icon('plus', 'c-icon--sm') + 'Créer OT</a>' : '');
     }
     if (t.statut === 'Pas de livraison') return carte('Transport', kv([['Statut', B('transport', t.statut)]]) + '<p class="u-muted u-mt-3">Pas de livraison demandée : la marchandise est enlevée par le client.</p>');
     var rows = [['Ordre de transport', '<span class="c-ref">' + t.ot + '</span>'], ['Statut', B('transport', t.statut)]];
-    if (t.transporteur) rows.push(['Transporteur', D.transporteurs[t.transporteur].nom]);
-    if (t.transporteurs) rows.push(['Sollicités', t.transporteurs.map(function (x) { return D.transporteurs[x].nom; }).join(', ') + ' · en attente de réponse']);
-    if (ot && ot.camion) rows.push(['Camion', ot.camion.immatriculation], ['Chauffeur', ot.camion.chauffeur + ' · ' + ot.camion.tel]);
-    if (ot) rows.push(['Prise en charge', dh(ot.priseEnCharge)], ['Livraison à', esc(ot.livraisonAdresse)]);
+    if (t.transporteur) rows.push(['Transporteur', esc(D.transporteurs[t.transporteur].nom)]);
+    if (ot && ot.camion) rows.push(['Camion', ot.camion.immatriculation], ['Chauffeur', esc(ot.camion.chauffeur) + ' · ' + ot.camion.tel]);
+    if (ot) rows.push(['Prise en charge', dh(ot.priseEnCharge)], ['Chargement', esc(ot.chargement)], ['Livraison à', esc(ot.livraisonAdresse)]);
     if (d.livraison) rows.push(['Livré le', F.date(d.livraison)]);
-    return carte('Transport', kv(rows));
+    if (ot && ot.lien) rows.push(['Lien transporteur', ot.lien.actif
+      ? '<span class="c-badge c-badge--success">Actif</span> <span class="c-field__help">jusqu\'à la confirmation de livraison</span>'
+      : '<span class="c-badge c-badge--neutral">Désactivé</span>']);
+    var corps = kv(rows);
+
+    /* Transporteurs sollicités et leur réponse (US-29, 31 ; C7 : la 1re acceptation clôt l'offre pour les autres) */
+    if (ot && ot.offres) {
+      corps += '<p class="c-field__label u-mt-3">Transporteurs sollicités</p><ul class="c-doclist c-doclist--compact">' + ot.offres.map(function (o) {
+        var rep = o.reponse || 'En attente';
+        return '<li class="c-doc c-doc--optional"><span class="c-doc__state">' + icon('transport') + '</span>' +
+          '<span><span class="c-doc__name">' + esc(D.transporteurs[o.transporteur].nom) + '</span><br><span class="c-field__help">' +
+          (o.date ? 'Réponse le ' + dh(o.date) : 'Offre envoyée le ' + dh(o.envoi)) + '</span></span>' +
+          '<span class="c-doc__actions"><span class="c-badge c-badge--' + (REPONSE[rep] || 'warning') + '">' + rep + '</span></span></li>';
+      }).join('') + '</ul>';
+    }
+    var pied = '';
+    var toutesRefusees = ot && ot.offres && ot.offres.length && ot.offres.every(function (o) { return o.reponse === 'Refusée'; });
+    if (toutesRefusees) pied += '<button class="c-btn c-btn--sm" type="button" data-d="solliciter">' + icon('send', 'c-icon--sm') + 'Solliciter un autre transporteur</button>';   // D5 : inerte
+    if (ot && ot.lien && ot.lien.actif) {
+      pied += '<a class="c-btn c-btn--ghost c-btn--sm" href="../externe/X06-lien-transporteur.html?ot=' + t.ot + '">' + icon('external', 'c-icon--sm') + 'Voir le lien</a>' +
+        '<button class="c-btn c-btn--danger c-btn--sm" type="button" data-d="lien-off">' + icon('lock', 'c-icon--sm') + 'Désactiver le lien</button>';
+    }
+    return carte('Transport', corps, '', pied);
   }
   var FRISE = [['Demande de transport envoyée', 'OT envoyé'], ['Confirmé', 'Accepté'], ['Camion affecté', 'Camion affecté'], ['Chargement', 'Chargement'], ['En route', 'En route'], ['Livré', 'Livraison']];
   function suiviTransport(d) {
@@ -250,16 +272,26 @@
       var date = dates[f[0]] ? F.dateCourte(dates[f[0]]) : (etat === 'current' ? (aConfirmer ? 'En attente' : 'En cours') : (etat === 'todo' ? 'À venir' : ''));
       return '<li class="c-wf__step c-wf__step--' + etat + '"><span class="c-wf__node"></span><span class="c-wf__label">' + f[1] + '</span><span class="c-wf__date">' + date + '</span></li>';
     });
-    return carte('Suivi transport', '<ol class="c-wf" aria-label="Suivi du transport">' + etapes.join('') + '</ol>');
+    /* Documents de transport déposés par le transporteur sur son lien (US-33) */
+    var docs = '';
+    if (ot && t.transporteur) {
+      docs = '<p class="c-field__label u-mt-3">Documents de transport</p><ul class="c-doclist c-doclist--compact">' + Object.keys(D.documentsTransport).map(function (k) {
+        var depot = (ot.documents || []).filter(function (x) { return x.type === k; })[0];
+        return '<li class="c-doc ' + (depot ? 'c-doc--ok' : 'c-doc--optional') + '"><span class="c-doc__state">' + icon(depot ? 'check' : 'clock') + '</span>' +
+          '<span><span class="c-doc__name">' + D.documentsTransport[k].libelle + '</span><br><span class="c-field__help">' +
+          (depot ? esc(depot.nom) + ' · déposé le ' + dh(depot.date) : 'Attendu du transporteur à la livraison') + '</span></span>' +
+          (depot ? '<span class="c-doc__actions"><button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" type="button" aria-label="Télécharger">' + icon('download', 'c-icon--sm') + '</button></span>' : '') + '</li>';
+      }).join('') + '</ul>';
+    }
+    return carte('Suivi transport', '<ol class="c-wf" aria-label="Suivi du transport">' + etapes.join('') + '</ol>' + docs);
   }
 
   /* ── Notifications du dossier (US-46) ─────────────────────── */
-  var NOTIF = { 'BAS obtenu → basculement facturation': 'special', 'Contrôle douane programmé ou en cours': 'warning', 'Confirmation transporteur reçue': 'success',
-    'Documents complémentaires requis': 'danger', 'Modification de déclaration en attente': 'info', 'Facture en attente de règlement': 'info' };
+
   function notifications(d) {
     var n = D.notifications.filter(function (x) { return x.dossier === d.id; }).sort(function (a, b) { return a.date < b.date ? 1 : -1; });
     var corps = n.length ? '<ul class="c-msglist c-msglist--wrap">' + n.slice(0, 4).map(function (x) {
-      return '<li class="c-msg c-msg--' + (NOTIF[x.type] || 'info') + (x.lue ? '' : ' is-unread') + '"><span class="c-msg__icon">' + icon('bell') + '</span>' +
+      return '<li class="c-msg c-msg--' + ((D.typesNotification[x.type] || {}).ton || 'info') + (x.lue ? '' : ' is-unread') + '"><span class="c-msg__icon">' + icon('bell') + '</span>' +
         '<span class="c-msg__from">' + esc(x.type) + '</span><span class="c-msg__date">' + dh(x.date) + '</span><span class="c-msg__text">' + esc(x.texte) + '</span></li>';
     }).join('') + '</ul>' : '<p class="u-muted">Aucune notification pour ce dossier.</p>';
     return carte('Notifications', corps, '<a class="c-btn c-btn--ghost c-btn--sm" href="E08-notifications.html">Voir toutes</a>');
@@ -336,8 +368,10 @@
     var complet = D.enSalleAttente(d) && D.documentsManquants(d).length === 0;
     if (complet) {
       d.statut = 'En cours de traitement';
+      D.sauverDossier(d);
       D.historique[d.id].push({ date: now, acteur: 'Système', type: 'statut', texte: 'Dossier complet : transféré dans le tableau de bord. Statut : En cours de traitement.' });
     }
+    D.sauverDossier(d);
     rendre();
     info(complet ? 'Dossier complet : transféré dans le tableau de bord. Il apparaît maintenant dans la liste Dossiers.'
                  : 'Document enregistré. Il manque encore : ' + D.documentsManquants(d).map(function (k) { return D.documents[k].libelle; }).join(', ') + '.', complet ? 'success' : 'info');
@@ -408,6 +442,11 @@
         '<div>Le dossier <b class="c-ref">' + d.id + '</b> passera automatiquement en facturation et le service facturation sera notifié.</div></div></div>' +
         '<div class="c-field"><label class="c-field__label" for="m-num">N° de BAS <span class="is-required">*</span></label><input class="c-input u-num" id="m-num" value="2026-BAS-052780"></div>' +
         '<div class="c-field"><label class="c-field__label" for="m-date">Date du BAS</label><input class="c-input" id="m-date" type="date" value="' + auj + '"><span class="c-field__help">Date du jour par défaut, modifiable.</span></div>';
+    } else if (action === 'lien-off') {
+      var t = d.transport;
+      titre = 'Désactiver le lien transporteur ?'; ok = 'Désactiver le lien';
+      corps = '<p><b>' + esc(D.transporteurs[t.transporteur].nom) + '</b> ne pourra plus mettre à jour le statut ni déposer de documents pour l\'ordre de transport <b class="c-ref">' + t.ot + '</b>.</p>' +
+        '<p class="c-field__help">À réserver aux cas particuliers : changement de transporteur, lien transmis par erreur. Le lien se désactive de lui-même à la confirmation de la livraison.</p>';
     } else if (action === 'document') {
       titre = 'Ajouter un document'; ok = 'Enregistrer le document';
       var manq = D.documentsManquants(d);
@@ -425,11 +464,20 @@
     $('dossier-modale-titre').textContent = titre;
     $('dossier-modale-corps').innerHTML = corps;
     $('dossier-modale-ok').textContent = ok;
+    $('dossier-modale-ok').className = 'c-btn ' + (action === 'lien-off' ? 'c-btn--danger' : 'c-btn--primary');
     $('dossier-modale').hidden = false;
     var f = $('dossier-modale-corps').querySelector('input'); if (f) f.focus();
   }
   function valider() {
     var d = D.dossier(ouvert), u = utilisateur(), now = aujourdhui();
+    if (enAttente === 'lien-off') {
+      var ot = D.ots[d.transport.ot];
+      ot.lien.actif = false; D.sauverOT(d.transport.ot);
+      journal(d); D.historique[d.id].push({ date: aujourdhui(), acteur: utilisateur().nom, type: 'lien', texte: 'Lien transporteur de ' + d.transport.ot + ' désactivé.' });
+      $('dossier-modale').hidden = true;
+      rendre(); info('Lien transporteur désactivé. Le transporteur ne peut plus l\'utiliser.');
+      return;
+    }
     if (enAttente === 'document') {
       var cle = $('m-doc').value;
       $('dossier-modale').hidden = true;
@@ -454,6 +502,7 @@
     }
     $('dossier-modale').hidden = true;
     var action = enAttente;
+    D.sauverDossier(d);
     rendre(); signaler(d);
     info(action === 'bae' ? 'BAE enregistré. Le statut du dossier est passé à « BAE obtenu ».' :
          action === 'bas' ? 'BAS enregistré. Le dossier est passé en facturation ; le service facturation est notifié.' :
@@ -474,7 +523,8 @@
     if (a === 'messages') ouvrirMessages();
     if (a === 'drawer-fermer') $('dossier-drawer').classList.remove('is-open');
     if (a === 'document') enAttenteDoc = t.dataset.doc || null;
-    if (a === 'message' || a === 'bae' || a === 'bas' || a === 'document') modale(a);
+    if (a === 'message' || a === 'bae' || a === 'bas' || a === 'document' || a === 'lien-off') modale(a);
+    if (a === 'solliciter') info('Solliciter un autre transporteur — fonction à préciser avec DOUALOG (D5).');
     if (a === 'simuler') recevoir(D.dossier(ouvert), D.documentsManquants(D.dossier(ouvert)), 'client');
     if (a === 'modale-fermer') $('dossier-modale').hidden = true;
     if (a === 'modale-valider') valider();

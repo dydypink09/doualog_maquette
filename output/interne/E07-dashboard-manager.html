@@ -1,0 +1,176 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Rapports — DOUALOG Control Tower</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<script src="../assets/icons.js"></script>
+<script src="../assets/data.js"></script>
+<script src="../assets/shell.js"></script>
+</head>
+<body>
+<!-- E07 · Dashboard Manager — KPI · US-48 (SHOULD) — entrée « Rapports », page d'accueil des profils Manager et Direction.
+     Les 10 indicateurs du CDC §14 ; BAE, BAS et Livrés sont comptés sur la période, les autres à date.
+     Un clic sur un indicateur ouvre E01 filtré sur les dossiers comptés (?ids=…). -->
+<!-- À VALIDER : définitions exactes des indicateurs (QUESTIONS-ONCLE §2.6) · seuil « contrôle en cours depuis 2 jours »
+     · charge par responsable = déclarant assigné (D10) -->
+<div class="c-app">
+  <header class="c-topbar" id="topbar"></header>
+  <nav class="c-sidebar" id="sidebar" aria-label="Navigation principale"></nav>
+
+  <main class="c-main">
+    <h1 class="u-sr">Rapports — pilotage de l'activité</h1>
+
+    <section class="c-list" aria-labelledby="pilotage-titre">
+      <div class="c-list__head">
+        <h2 class="c-block-title" id="pilotage-titre">Pilotage de l'activité</h2>
+        <span class="c-list__meta u-num" id="meta"></span>
+        <div class="c-list__actions u-row u-nowrap" role="group" aria-label="Période">
+          <button class="c-chip" type="button" data-periode="semaine">Cette semaine</button>
+          <button class="c-chip" type="button" data-periode="mois">Ce mois</button>
+          <button class="c-chip" type="button" data-periode="perso">Personnalisée</button>
+          <span class="u-row u-nowrap" id="dates" hidden>
+            <label class="u-sr" for="du">Du</label><input class="c-input" type="date" id="du">
+            <label class="u-sr" for="au">Au</label><input class="c-input" type="date" id="au">
+          </span>
+        </div>
+      </div>
+    </section>
+
+    <div class="c-stats">
+      <div class="c-stats__group c-stats__group--5" id="stats" role="group" aria-label="Indicateurs — un clic ouvre la liste des dossiers concernés"></div>
+    </div>
+
+    <div class="c-dgrid c-dgrid--split" id="exceptions"></div>
+
+    <section class="c-card">
+      <div class="c-card__head"><h3>Charge par responsable</h3><span class="c-field__help">Dossiers actifs du déclarant assigné, à date</span></div>
+      <div class="c-table-wrap c-table-wrap--solo">
+        <table class="c-table">
+          <thead><tr><th>Responsable</th><th class="is-num">Dossiers actifs</th><th class="is-num">Contrôle ou info manquante</th><th class="is-num">Salle d'attente</th><th class="is-num">En facturation</th><th><span class="u-sr">Voir</span></th></tr></thead>
+          <tbody id="charge"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+(function () {
+  var D = window.DOUALOG, F = D.fmt, esc = D.esc;
+  function $(id) { return document.getElementById(id); }
+  function icon(n, cls) { return '<svg class="c-icon' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#i-' + n + '"></use></svg>'; }
+  var auj = D.config.aujourdhui.slice(0, 10);
+  var PERIODES = { semaine: ['2026-10-12', auj], mois: ['2026-10-01', auj] };   // semaine du lundi 12/10
+  var periode = 'semaine';
+  $('du').value = '2026-09-01'; $('au').value = auj;
+
+  window.DOUALOG_SHELL.init({ actif: 'rapports' });
+
+  function bornes() { return periode === 'perso' ? [$('du').value, $('au').value] : PERIODES[periode]; }
+  function dans(iso) { var b = bornes(); return iso && iso.slice(0, 10) >= b[0] && iso.slice(0, 10) <= b[1]; }
+  function age(iso) {
+    var h = Math.floor((new Date(D.config.aujourdhui) - new Date(iso.length === 10 ? iso + 'T00:00' : iso)) / 36e5);
+    return h < 24 ? h + ' h' : Math.floor(h / 24) + ' j';
+  }
+  var liste = function () { return D.tableauDeBord(); };
+  var OT_CONFIRMES = ['Confirmé', 'Camion affecté', 'Chargement', 'En route'];
+
+  /* ── Les 10 indicateurs du CDC §14 ─────────────────────── */
+  var KPIS = [
+    { label: 'Dossiers actifs',         icone: 'dossiers',  ton: 'blue',    f: function (d) { return d.statut !== 'Clôturé'; } },
+    { label: 'Déclarations stockées',   icone: 'document',  ton: 'blue',    f: function (d) { return d.statut === 'Déclaration stockée'; } },
+    { label: 'Déclarations anticipées', icone: 'clock',     ton: 'violet',  f: function (d) { return d.statut === 'Déclaration anticipée'; } },
+    { label: 'Contrôles en cours',      icone: 'controle',  ton: 'magenta', f: function (d) { return d.statut.indexOf('Contrôle') === 0; } },
+    { label: 'BAE obtenus',             icone: 'valide',    ton: 'green',   f: function (d) { return d.bae && dans(d.bae.date); }, periode: true },
+    { label: 'BAS obtenus',             icone: 'package',   ton: 'orange',  f: function (d) { return d.bas && dans(d.bas.date); }, periode: true },
+    { label: 'Transport en cours',      icone: 'transport', ton: 'red',     f: function (d) { return d.transport && OT_CONFIRMES.indexOf(d.transport.statut) >= 0; } },
+    { label: 'Livrés',                  icone: 'check',     ton: 'green',   f: function (d) { return d.livraison && dans(d.livraison); }, periode: true },
+    { label: 'En attente de documents', icone: 'inbox',     ton: 'orange',  attente: true },
+    { label: 'En facturation',          icone: 'facture',   ton: 'violet',  f: function (d) { var x = D.facture(d); return x && x.statut !== 'Réglé'; } }
+  ];
+  function renderKpis() {
+    var b = bornes();
+    $('meta').textContent = 'du ' + F.date(b[0]) + ' au ' + F.date(b[1]) + ' · BAE, BAS et livrés sur la période, autres indicateurs à date';
+    $('stats').innerHTML = KPIS.map(function (k) {
+      var ids = k.attente ? D.salleAttente().map(function (d) { return d.id; }) : liste().filter(k.f).map(function (d) { return d.id; });
+      var titre = k.label + (k.periode ? ' du ' + F.dateCourte(b[0]) + ' au ' + F.dateCourte(b[1]) : '');
+      var href = k.attente ? 'E01-tableau-de-bord.html#salle-attente' : 'E01-tableau-de-bord.html?ids=' + ids.join(',') + '&titre=' + encodeURIComponent(titre);
+      return '<a class="c-stat c-stat--' + k.ton + '" href="' + href + '" title="' + titre + ' — ouvrir la liste">' +
+        '<span class="c-stat__in"><span class="c-stat__icon">' + icon(k.icone) + '</span><span class="c-stat__value">' + ids.length + '</span>' +
+        '<span class="c-stat__label">' + k.label + (k.periode ? ' · période' : '') + '</span></span></a>';
+    }).join('');
+  }
+
+  /* ── Exceptions actionnables ───────────────────────────── */
+  function carte(titre, lignes, vide, entetes) {
+    var corps = lignes.length
+      ? '<div class="c-table-wrap c-table-wrap--solo"><table class="c-table c-table--dense"><thead><tr>' + entetes.map(function (e) { return '<th' + (e[1] ? ' class="' + e[1] + '"' : '') + '>' + e[0] + '</th>'; }).join('') +
+        '<th><span class="u-sr">Ouvrir</span></th></tr></thead><tbody>' + lignes.join('') + '</tbody></table></div>'
+      : '<p class="u-muted">' + vide + '</p>';
+    return '<section class="c-card"><div class="c-card__head"><h3>' + titre + '</h3>' +
+      '<span class="c-count' + (lignes.length ? ' c-count--alert' : '') + '">' + lignes.length + '</span></div><div class="c-card__body">' + corps + '</div></section>';
+  }
+  function ouvrir(href, id) { return '<td class="is-center"><a class="c-btn c-btn--icon c-btn--sm" href="' + href + '" aria-label="Ouvrir ' + id + '" title="Ouvrir">' + icon('eye', 'c-icon--sm') + '</a></td>'; }
+  function renderExceptions() {
+    var info = D.dossiers.filter(function (d) { return d.statut === 'Info manquante'; }).map(function (d) {
+      var c = d.controle;
+      return '<tr class="is-alert"><td><a class="c-ref" href="E01-tableau-de-bord.html?id=' + d.id + '">' + d.id + '</a></td><td class="is-wrap">' + esc(D.client(d).nom) + '</td>' +
+        '<td class="is-wrap">' + esc(c.commentaire) + '</td><td class="is-num u-num">' + age(c.demandeEnvoyee || c.notification) + '</td>' + ouvrir('E01-tableau-de-bord.html?id=' + d.id, d.id) + '</tr>';
+    });
+    var limite = new Date(new Date(D.config.aujourdhui) - 2 * 864e5).toISOString().slice(0, 10);
+    var ctrl = D.dossiers.filter(function (d) { return d.statut.indexOf('Contrôle') === 0 && d.controle.notification <= limite; }).map(function (d) {
+      var c = d.controle;
+      return '<tr class="is-warning"><td><a class="c-ref" href="E01-tableau-de-bord.html?id=' + d.id + '">' + d.id + '</a></td><td class="is-wrap">' + esc(D.client(d).nom) + '</td>' +
+        '<td>' + c.type + ' · ' + esc(c.inspecteur) + '</td><td class="is-num u-num">' + age(c.notification) + '</td>' + ouvrir('E01-tableau-de-bord.html?id=' + d.id, d.id) + '</tr>';
+    });
+    var offres = Object.keys(D.ots).filter(function (k) {
+      var o = D.ots[k]; return !o.offres.some(function (x) { return x.reponse === 'Acceptée'; }) && o.offres.some(function (x) { return !x.reponse; });
+    }).map(function (k) {
+      var o = D.ots[k], attente = o.offres.filter(function (x) { return !x.reponse; });
+      return '<tr><td><a class="c-ref" href="E01-tableau-de-bord.html?id=' + o.dossier + '">' + o.dossier + '</a></td><td><span class="c-ref">' + k + '</span></td>' +
+        '<td class="is-wrap">' + attente.map(function (x) { return esc(D.transporteurs[x.transporteur].nom); }).join(', ') + '</td><td class="is-num u-num">' + age(attente[0].envoi) + '</td>' + ouvrir('E01-tableau-de-bord.html?id=' + o.dossier, o.dossier) + '</tr>';
+    });
+    var factures = D.dossiers.map(function (d) { return { d: d, f: D.facture(d) }; }).filter(function (x) { return x.f && x.f.emise && x.f.statut !== 'Réglé'; });
+    var echues = factures.filter(function (x) { return x.f.echeance < auj; }).map(function (x) {
+      return '<tr class="is-alert"><td><span class="c-ref">' + x.f.num + '</span></td><td>' + esc(D.client(x.d).nom) + '</td><td class="is-num">' + F.montant(x.f.reste) + '</td>' +
+        '<td class="is-num u-num">' + age(x.f.echeance) + '</td>' + ouvrir('E06-facturation.html?id=' + x.d.id, x.f.num) + '</tr>';
+    });
+    var prochaine = factures.sort(function (a, b) { return a.f.echeance < b.f.echeance ? -1 : 1; })[0];
+    $('exceptions').innerHTML =
+      carte('Dossiers en info manquante', info, 'Aucun dossier en attente d\'une information demandée par la douane.', [['N° dossier'], ['Client'], ['Information demandée'], ['Depuis', 'is-num']]) +
+      carte('Contrôles en cours depuis 2 jours ou plus', ctrl, 'Aucun contrôle douane en cours depuis plus de 2 jours.', [['N° dossier'], ['Client'], ['Contrôle'], ['Depuis', 'is-num']]) +
+      carte('Offres transport sans réponse', offres, 'Toutes les offres envoyées ont reçu une réponse.', [['N° dossier'], ['OT'], ['En attente de'], ['Depuis', 'is-num']]) +
+      carte('Factures échues non réglées', echues, 'Aucune facture échue.' + (prochaine ? ' Prochaine échéance : ' + prochaine.f.num + ' le ' + F.date(prochaine.f.echeance) + ' (' + F.montant(prochaine.f.reste) + ').' : ''),
+        [['N° facture'], ['Client'], ['Reste dû', 'is-num'], ['Échue depuis', 'is-num']]);
+  }
+
+  /* ── Charge par responsable (D10 : déclarant assigné) ─── */
+  function renderCharge() {
+    var decl = Object.keys(D.equipe).filter(function (k) { return D.equipe[k].role === 'declarant'; });
+    $('charge').innerHTML = decl.map(function (u) {
+      var siens = D.dossiers.filter(function (d) { return d.responsable === u && d.statut !== 'Clôturé'; });
+      var actifs = siens.filter(function (d) { return !D.enSalleAttente(d); });
+      var exc = actifs.filter(function (d) { return d.statut === 'Info manquante' || d.statut.indexOf('Contrôle') === 0; }).length;
+      var fact = actifs.filter(function (d) { var x = D.facture(d); return x && x.statut !== 'Réglé'; }).length;
+      var ids = actifs.map(function (d) { return d.id; }).join(',');
+      return '<tr><td><b>' + esc(D.equipe[u].nom) + '</b></td><td class="is-num">' + actifs.length + '</td><td class="is-num">' + exc + '</td>' +
+        '<td class="is-num">' + (siens.length - actifs.length) + '</td><td class="is-num">' + fact + '</td>' +
+        '<td class="is-center"><a class="c-btn c-btn--ghost c-btn--sm" href="E01-tableau-de-bord.html?ids=' + ids + '&titre=' + encodeURIComponent('dossiers de ' + D.equipe[u].nom) + '">Voir ses dossiers</a></td></tr>';
+    }).join('');
+  }
+
+  function render() {
+    document.querySelectorAll('[data-periode]').forEach(function (b) { var on = b.dataset.periode === periode; b.classList.toggle('is-active', on); b.setAttribute('aria-pressed', on); });
+    $('dates').hidden = periode !== 'perso';
+    renderKpis(); renderExceptions(); renderCharge();
+  }
+  document.addEventListener('click', function (e) { var b = e.target.closest('[data-periode]'); if (b) { periode = b.dataset.periode; render(); } });
+  $('du').addEventListener('change', render); $('au').addEventListener('change', render);
+  render();
+})();
+</script>
+</body>
+</html>

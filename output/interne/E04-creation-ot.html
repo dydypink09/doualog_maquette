@@ -1,0 +1,276 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Créer un ordre de transport — DOUALOG Control Tower</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<script src="../assets/icons.js"></script>
+<script src="../assets/data.js"></script>
+<script src="../assets/shell.js"></script>
+</head>
+<body>
+<!-- E04 · Création d'un ordre de transport et envoi de l'offre · US-28, 29 (P4)
+     Ouvert depuis « Créer OT » du dossier (E02) : ?id=DLG-… (par défaut DLG-2026-0410, BAE obtenu, sans OT).
+     Étape 1 : OT pré-rempli depuis le dossier, modifiable, option « Pas de livraison ».
+     Étape 2 : choix des transporteurs dans l'annuaire + aperçu de l'email X05.
+     Étape 3 : confirmation, transport « À confirmer », retour au dossier. L'OT créé est gardé pour la suite du parcours (mémoire de démo). -->
+<!-- À VALIDER : C5 (OT possible dès le BAE) · adresses de chargement / livraison proposées par défaut · prix de la prestation absent de l'offre -->
+<div class="c-app">
+  <header class="c-topbar" id="topbar"></header>
+  <nav class="c-sidebar" id="sidebar" aria-label="Navigation principale"></nav>
+
+  <main class="c-main">
+    <h1 class="u-sr">Créer un ordre de transport</h1>
+
+    <section class="c-list" aria-labelledby="ot-titre">
+      <div class="c-list__head">
+        <a class="c-btn c-btn--ghost c-btn--sm" id="retour" href="#"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-chevron-left"></use></svg>Dossier</a>
+        <h2 class="c-block-title" id="ot-titre">Créer un ordre de transport</h2>
+        <span class="c-list__meta u-num" id="meta"></span>
+      </div>
+      <div class="c-list__body">
+        <ol class="c-wf" id="etapes" aria-label="Étapes"></ol>
+      </div>
+    </section>
+
+    <div class="c-alert" id="bloque" hidden>
+      <svg class="c-icon" aria-hidden="true"><use href="#i-info"></use></svg>
+      <div><div class="c-alert__title" id="bloque-titre"></div><div id="bloque-texte"></div></div>
+      <div class="c-alert__actions"><a class="c-btn c-btn--sm" id="bloque-lien" href="#">Retour au dossier</a></div>
+    </div>
+
+    <!-- ══ Étape 1 : ordre de transport ══ -->
+    <section class="c-card" id="etape-1" hidden>
+      <div class="c-card__head"><h3>1 · Ordre de transport</h3><span class="c-field__help">Pré-rempli depuis le dossier, modifiable</span></div>
+      <div class="c-card__body u-stack">
+        <fieldset class="c-fieldset">
+          <legend class="c-field__label">Transport</legend>
+          <div class="u-row">
+            <label class="c-check"><input type="radio" name="mode-livraison" value="transport" checked> Organiser le transport</label>
+            <label class="c-check"><input type="radio" name="mode-livraison" value="aucun"> Pas de livraison (enlèvement par le client)</label>
+          </div>
+        </fieldset>
+
+        <div id="champs-ot" class="u-stack">
+          <p class="c-field__label">Dossier</p>
+          <div class="c-form-grid">
+            <div class="c-field"><label class="c-field__label" for="f-dlg">N° DLG</label><input class="c-input u-num" id="f-dlg" readonly></div>
+            <div class="c-field"><label class="c-field__label" for="f-client">Client</label><input class="c-input" id="f-client" readonly></div>
+            <div class="c-field"><label class="c-field__label" for="f-ref">BL / LTA · conteneur</label><input class="c-input u-num" id="f-ref" readonly></div>
+            <div class="c-field"><label class="c-field__label" for="f-incoterm">Incoterm</label><input class="c-input" id="f-incoterm" readonly></div>
+          </div>
+
+          <p class="c-field__label">Marchandise</p>
+          <div class="c-form-grid">
+            <div class="c-field is-wide"><label class="c-field__label" for="f-marchandise">Désignation <span class="is-required">*</span></label><input class="c-input" id="f-marchandise" required></div>
+            <div class="c-field"><label class="c-field__label" for="f-poids">Poids brut (kg) <span class="is-required">*</span></label><input class="c-input u-num" id="f-poids" inputmode="numeric" required></div>
+            <div class="c-field"><label class="c-field__label" for="f-colis">Nombre de colis <span class="is-required">*</span></label><input class="c-input u-num" id="f-colis" inputmode="numeric" required></div>
+            <div class="c-field"><label class="c-field__label" for="f-unite">Conditionnement</label><input class="c-input" id="f-unite"></div>
+          </div>
+
+          <p class="c-field__label">Enlèvement et livraison</p>
+          <div class="c-form-grid">
+            <div class="c-field is-wide"><label class="c-field__label" for="f-chargement">Adresse de chargement <span class="is-required">*</span></label><input class="c-input" id="f-chargement" required></div>
+            <div class="c-field is-wide"><label class="c-field__label" for="f-livraison">Adresse de livraison <span class="is-required">*</span></label><input class="c-input" id="f-livraison" required></div>
+            <div class="c-field"><label class="c-field__label" for="f-date">Prise en charge souhaitée <span class="is-required">*</span></label><input class="c-input" id="f-date" type="datetime-local" required></div>
+          </div>
+          <div class="c-field"><label class="c-field__label" for="f-instructions">Instructions au transporteur</label><textarea class="c-textarea" id="f-instructions" placeholder="Type de véhicule, horaires d'accès, contact sur place…"></textarea></div>
+        </div>
+
+        <div class="c-alert c-alert--info" id="info-aucun" hidden>
+          <svg class="c-icon" aria-hidden="true"><use href="#i-info"></use></svg>
+          <div><div class="c-alert__title">Aucune offre ne sera envoyée</div><div>Le transport du dossier passera au statut « Pas de livraison ». Le dossier pourra être clôturé dès le règlement de la facture (D16).</div></div>
+        </div>
+      </div>
+      <div class="c-card__foot">
+        <a class="c-btn c-btn--ghost" id="annuler" href="#">Annuler</a>
+        <button class="c-btn c-btn--primary" type="button" id="suivant">Choisir les transporteurs<svg class="c-icon" aria-hidden="true"><use href="#i-arrow-right"></use></svg></button>
+      </div>
+    </section>
+
+    <!-- ══ Étape 2 : transporteurs + aperçu de l'email ══ -->
+    <section class="c-card" id="etape-2" hidden>
+      <div class="c-card__head"><h3>2 · Transporteurs sollicités</h3><span class="c-field__help">La première acceptation attribue l'ordre de transport et clôt l'offre pour les autres (C7)</span></div>
+      <div class="c-card__body">
+        <div class="c-dgrid c-dgrid--split">
+          <div class="u-stack">
+            <div class="c-table-wrap c-table-wrap--solo">
+              <table class="c-table">
+                <thead><tr><th><span class="u-sr">Choisir</span></th><th>Transporteur</th><th>Contact</th><th class="is-num">OT confiés</th></tr></thead>
+                <tbody id="transporteurs"></tbody>
+              </table>
+            </div>
+            <a class="c-btn c-btn--ghost c-btn--sm u-self-start" href="E05-annuaire-transporteurs.html"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-plus"></use></svg>Ajouter un transporteur à l'annuaire</a>
+            <p class="c-field__help" id="choix-aide"></p>
+          </div>
+          <div class="u-stack">
+            <p class="c-field__label">Aperçu de l'email envoyé à chaque transporteur (X05)</p>
+            <iframe id="apercu" class="c-email-preview" title="Aperçu de l'email d'offre de transport"></iframe>
+          </div>
+        </div>
+      </div>
+      <div class="c-card__foot">
+        <button class="c-btn c-btn--ghost" type="button" id="precedent"><svg class="c-icon" aria-hidden="true"><use href="#i-chevron-left"></use></svg>Modifier l'ordre de transport</button>
+        <button class="c-btn c-btn--primary" type="button" id="envoyer" disabled><svg class="c-icon" aria-hidden="true"><use href="#i-send"></use></svg><span id="envoyer-texte">Envoyer l'offre</span></button>
+      </div>
+    </section>
+
+    <!-- ══ Étape 3 : confirmation ══ -->
+    <section class="c-card" id="etape-3" hidden>
+      <div class="c-card__head"><h3>3 · Confirmation</h3></div>
+      <div class="c-card__body u-stack">
+        <div class="c-alert c-alert--success">
+          <svg class="c-icon" aria-hidden="true"><use href="#i-valide"></use></svg>
+          <div><div class="c-alert__title" id="ok-titre"></div><div id="ok-texte"></div></div>
+        </div>
+        <dl class="c-kv c-kv--rows" id="ok-recap"></dl>
+      </div>
+      <div class="c-card__foot">
+        <a class="c-btn" id="voir-email" href="#"><svg class="c-icon" aria-hidden="true"><use href="#i-mail"></use></svg>Voir l'email envoyé</a>
+        <a class="c-btn c-btn--primary" id="retour-dossier" href="#">Retour au dossier<svg class="c-icon" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+(function () {
+  var D = window.DOUALOG, F = D.fmt, esc = D.esc;
+  function $(id) { return document.getElementById(id); }
+  var id = new URLSearchParams(location.search).get('id') || 'DLG-2026-0410';
+  var d = D.dossier(id), c = D.client(d), lienDossier = 'E01-tableau-de-bord.html?id=' + id;
+  var choisis = [], etape = 1;
+
+  window.DOUALOG_SHELL.init({ actif: 'transport' });
+  $('retour').href = $('annuler').href = $('bloque-lien').href = lienDossier;
+  $('meta').textContent = id + ' · ' + c.nom;
+
+  /* Étapes (même composant que le workflow) */
+  function etapes() {
+    var noms = ['Ordre de transport', 'Transporteurs', 'Confirmation'];
+    $('etapes').innerHTML = noms.map(function (n, i) {
+      var e = i + 1 < etape ? 'done' : i + 1 === etape ? 'current' : 'todo';
+      return '<li class="c-wf__step c-wf__step--' + e + '"><span class="c-wf__node"></span><span class="c-wf__label">' + n + '</span><span class="c-wf__date"></span></li>';
+    }).join('');
+    [1, 2, 3].forEach(function (n) { $('etape-' + n).hidden = n !== etape; });
+  }
+
+  /* Cas où l'OT ne peut pas être créé */
+  function bloquer(titre, texte, ton) {
+    $('bloque').hidden = false; $('bloque').classList.add('c-alert--' + ton);
+    $('bloque-titre').textContent = titre; $('bloque-texte').textContent = texte;
+    $('etapes').closest('.c-list__body').hidden = true;
+  }
+  if (d.transport && d.transport.ot) { bloquer('Un ordre de transport existe déjà pour ce dossier', d.transport.ot + ' · transport : ' + d.transport.statut + '. Le suivi se fait dans le dossier.', 'info'); return; }
+  if (d.transport && d.transport.statut === 'Pas de livraison') { bloquer('Pas de livraison pour ce dossier', 'Le transport a été marqué « Pas de livraison ».', 'info'); return; }
+  if (!d.bae) { bloquer('Ordre de transport disponible après le BAE', 'Le bon à enlever n\'est pas encore obtenu pour ce dossier (C5).', 'warning'); return; }
+
+  /* Pré-remplissage depuis le dossier (US-28) */
+  var portOuAero = d.mode === 'Aérien' ? 'Magasin de fret, ' + D.config.aeroport : 'Terminal à conteneurs du ' + D.config.port;
+  var defaut = {
+    'f-dlg': d.id, 'f-client': c.nom, 'f-incoterm': d.incoterm,
+    'f-ref': [D.refTransport(d), d.conteneur].filter(Boolean).join(' · '),
+    'f-marchandise': d.marchandise, 'f-poids': d.poids, 'f-colis': d.colis, 'f-unite': d.unite,
+    'f-chargement': d.type === 'Import' ? portOuAero : c.nom + ' — ' + c.adresse,
+    'f-livraison': d.type === 'Import' ? c.nom + ' — ' + c.adresse : portOuAero,
+    'f-date': '2026-10-19T08:00',
+    'f-instructions': d.conteneur ? 'Conteneur ' + d.conteneur + ' — prévoir un porte-conteneur. Présenter le BAE à la sortie du terminal.' : ''
+  };
+  Object.keys(defaut).forEach(function (k) { $(k).value = defaut[k]; });
+
+  document.querySelectorAll('[name="mode-livraison"]').forEach(function (r) {
+    r.addEventListener('change', function () {
+      var aucun = this.value === 'aucun';
+      $('champs-ot').hidden = aucun; $('info-aucun').hidden = !aucun;
+      $('suivant').innerHTML = aucun ? 'Enregistrer « Pas de livraison »' : 'Choisir les transporteurs<svg class="c-icon" aria-hidden="true"><use href="#i-arrow-right"></use></svg>';
+    });
+  });
+
+  function lireOT() {
+    return {
+      dossier: d.id, cree: D.config.aujourdhui, par: D.acces[window.DOUALOG_SHELL.role()].utilisateur,
+      marchandise: $('f-marchandise').value.trim(), poids: parseInt($('f-poids').value, 10), colis: parseInt($('f-colis').value, 10), unite: $('f-unite').value.trim(),
+      chargement: $('f-chargement').value.trim(), livraisonAdresse: $('f-livraison').value.trim(),
+      priseEnCharge: $('f-date').value, incoterm: d.incoterm, instructions: $('f-instructions').value.trim(),
+      offres: [], camion: null, suivi: [], documents: [], lien: null
+    };
+  }
+  function valide() {
+    var ok = true;
+    ['f-marchandise', 'f-poids', 'f-colis', 'f-chargement', 'f-livraison', 'f-date'].forEach(function (k) {
+      var vide = !$(k).value.trim(), champ = $(k).closest('.c-field');
+      champ.classList.toggle('is-error', vide);
+      var err = champ.querySelector('.c-field__error');
+      if (vide && !err) champ.insertAdjacentHTML('beforeend', '<span class="c-field__error">Champ obligatoire.</span>');
+      if (!vide && err) err.remove();
+      if (vide) ok = false;
+    });
+    return ok;
+  }
+
+  /* Étape 2 : annuaire + aperçu */
+  function renderTransporteurs() {
+    $('transporteurs').innerHTML = Object.keys(D.transporteurs).map(function (t) {
+      var x = D.transporteurs[t], n = D.otsTransporteur(t).length;
+      return '<tr><td><input type="checkbox" data-t="' + t + '" id="t-' + t + '"' + (choisis.indexOf(t) >= 0 ? ' checked' : '') + ' aria-label="Solliciter ' + esc(x.nom) + '"></td>' +
+        '<td><label for="t-' + t + '"><b>' + esc(x.nom) + '</b></label></td><td>' + esc(x.contact) + '<div class="c-field__help">' + x.tel + '</div></td><td class="is-num">' + n + '</td></tr>';
+    }).join('');
+  }
+  function majChoix() {
+    var n = choisis.length;
+    $('envoyer').disabled = !n;
+    $('envoyer-texte').textContent = n ? 'Envoyer l\'offre à ' + n + ' transporteur' + (n > 1 ? 's' : '') : 'Envoyer l\'offre';
+    $('choix-aide').textContent = n ? 'Sélection : ' + choisis.map(function (t) { return D.transporteurs[t].nom; }).join(', ') + '.' : 'Cochez un ou plusieurs transporteurs.';
+    /* L'aperçu affiche l'email destiné au premier transporteur coché */
+    try { sessionStorage.setItem('doualog-ot-brouillon', JSON.stringify({ id: 'brouillon', ot: lireOT(), transporteur: choisis[0] || 't1' })); } catch (e) {}
+    $('apercu').src = '../externe/X05-email-offre-transport.html?brouillon=1&t=' + (choisis[0] || 't1');
+  }
+  $('transporteurs').addEventListener('change', function (e) {
+    var t = e.target.dataset.t; if (!t) return;
+    if (e.target.checked) choisis.push(t); else choisis.splice(choisis.indexOf(t), 1);
+    majChoix();
+  });
+
+  $('suivant').addEventListener('click', function () {
+    if (document.querySelector('[name="mode-livraison"]:checked').value === 'aucun') { pasDeLivraison(); return; }
+    if (!valide()) return;
+    etape = 2; etapes(); renderTransporteurs(); majChoix(); window.scrollTo(0, 0);
+  });
+  $('precedent').addEventListener('click', function () { etape = 1; etapes(); });
+
+  /* Validation : OT créé, offre envoyée, transport « À confirmer » */
+  $('envoyer').addEventListener('click', function () {
+    var num = D.reserverNumeroOT(), ot = lireOT(), now = D.config.aujourdhui;
+    ot.offres = choisis.map(function (t) { return { transporteur: t, envoi: now, reponse: null }; });
+    ot.suivi = [{ statut: 'Demande de transport envoyée', date: now }, { statut: 'À confirmer', date: now }];
+    D.ots[num] = ot; D.sauverOT(num);
+    d.transport = { statut: 'À confirmer', ot: num, transporteurs: choisis.slice() }; D.sauverDossier(d);
+    $('ok-titre').textContent = 'Ordre de transport ' + num + ' créé — offre envoyée';
+    $('ok-texte').textContent = 'Envoyée le ' + F.date(now) + ' à ' + F.heure(now) + ' à ' + choisis.length + ' transporteur' + (choisis.length > 1 ? 's' : '') +
+      '. Transport : « À confirmer ». Vous serez notifié dès la première réponse.';
+    $('ok-recap').innerHTML = [['Ordre de transport', '<span class="c-ref">' + num + '</span>'], ['Dossier', d.id + ' · ' + esc(c.nom)],
+      ['Prise en charge', F.date(ot.priseEnCharge) + ' à ' + F.heure(ot.priseEnCharge)], ['Chargement', esc(ot.chargement)], ['Livraison', esc(ot.livraisonAdresse)],
+      ['Transporteurs sollicités', choisis.map(function (t) { return esc(D.transporteurs[t].nom); }).join(', ')], ['Statut', D.badge('transport', 'À confirmer')]]
+      .map(function (r) { return '<div><dt>' + r[0] + '</dt><dd>' + r[1] + '</dd></div>'; }).join('');
+    $('voir-email').href = '../externe/X05-email-offre-transport.html?ot=' + num + '&t=' + choisis[0];
+    $('retour-dossier').href = lienDossier;
+    etape = 3; etapes(); window.scrollTo(0, 0);
+  });
+
+  function pasDeLivraison() {
+    d.transport = { statut: 'Pas de livraison' }; D.sauverDossier(d);
+    $('ok-titre').textContent = 'Transport enregistré : « Pas de livraison »';
+    $('ok-texte').textContent = 'Aucune offre n\'a été envoyée. La marchandise sera enlevée par le client.';
+    $('ok-recap').innerHTML = '<div><dt>Dossier</dt><dd>' + d.id + ' · ' + esc(c.nom) + '</dd></div><div><dt>Transport</dt><dd>' + D.badge('transport', 'Pas de livraison') + '</dd></div>';
+    $('voir-email').hidden = true;
+    $('retour-dossier').href = lienDossier;
+    etape = 3; etapes();
+  }
+
+  etapes();
+})();
+</script>
+</body>
+</html>

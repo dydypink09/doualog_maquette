@@ -1,0 +1,272 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Facturation — DOUALOG Control Tower</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<script src="../assets/icons.js"></script>
+<script src="../assets/data.js"></script>
+<script src="../assets/shell.js"></script>
+</head>
+<body>
+<!-- E06 · Facturation — liste + aperçu de la facture · US-34 à 37 (P5)
+     Tous les dossiers dont le BAS est obtenu (CDC §10.1). ?id=DLG-… ouvre directement l'aperçu (ex. fil rouge DLG-2026-0412).
+     Parcours : En facturation → Générer la facture (N° séquentiel) → Émettre et envoyer (X07) → Enregistrer un paiement → Réglé.
+     Les actions sont gardées pour la démo (mémoire de démo). -->
+<!-- À VALIDER : taux de TVA (18 %) · identifiant fiscal du client (IFU ou NINEA) · liste et prix des prestations · délai d'échéance (30 jours)
+     · mentions légales de DOUALOG (NINEA, RCCM, adresse) · coordonnées de paiement · clôture du dossier au règlement (si livré ou sans livraison) -->
+<div class="c-app">
+  <header class="c-topbar" id="topbar"></header>
+  <nav class="c-sidebar" id="sidebar" aria-label="Navigation principale"></nav>
+
+  <main class="c-main">
+    <h1 class="u-sr">Facturation</h1>
+
+    <div class="c-alert c-alert--success" id="msg" role="status" hidden>
+      <svg class="c-icon" aria-hidden="true"><use href="#i-valide"></use></svg>
+      <div><div class="c-alert__title" id="msg-titre"></div><div id="msg-texte"></div></div>
+      <div class="c-alert__actions"><button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" type="button" data-fermer-msg aria-label="Fermer le message"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></button></div>
+    </div>
+
+    <section class="c-list" aria-labelledby="fact-titre">
+      <div class="c-list__head">
+        <h2 class="c-block-title" id="fact-titre">Facturation</h2>
+        <span class="c-list__meta u-num" id="meta"></span>
+      </div>
+      <div class="c-toolbar">
+        <div class="c-input-icon c-toolbar__search">
+          <svg class="c-icon" aria-hidden="true"><use href="#i-search"></use></svg>
+          <input class="c-input" id="search" type="search" placeholder="N° DLG, client, N° de facture" aria-label="Rechercher une facture">
+        </div>
+        <div class="u-contents" id="quick" role="group" aria-label="Filtrer par statut de facture"></div>
+      </div>
+      <div class="c-table-wrap">
+        <table class="c-table c-table--sticky">
+          <thead><tr>
+            <th>N° dossier</th><th>Client</th><th>Date BAS</th><th>N° facture</th><th class="is-num">Montant TTC</th><th class="is-num">Reste à payer</th><th>Échéance</th><th>Statut</th><th class="is-center">Actions</th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div class="c-empty" id="empty" hidden>
+          <svg class="c-icon" aria-hidden="true"><use href="#i-facture"></use></svg>
+          <p class="c-empty__title">Aucune facture ne correspond</p>
+          <p class="c-empty__text">Changez de statut ou effacez la recherche.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ══ Aperçu de la facture ══ -->
+<aside class="c-drawer c-drawer--wide" id="apercu" aria-labelledby="apercu-titre">
+  <div class="c-drawer__head">
+    <h2 class="c-block-title" id="apercu-titre"></h2>
+    <span id="apercu-statut"></span>
+    <button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" type="button" data-fermer aria-label="Fermer l'aperçu"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></button>
+  </div>
+  <div class="c-drawer__body u-stack" id="apercu-corps"></div>
+  <div class="c-drawer__foot" id="apercu-actions"></div>
+</aside>
+
+<!-- ══ Modale paiement ══ -->
+<div class="c-overlay" id="modale-paiement" hidden>
+  <div class="c-modal" role="dialog" aria-modal="true" aria-labelledby="paiement-titre">
+    <div class="c-modal__head"><h3 id="paiement-titre">Enregistrer un paiement</h3>
+      <button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" type="button" data-fermer-modale aria-label="Fermer"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></button></div>
+    <div class="c-modal__body">
+      <p id="paiement-intro"></p>
+      <div class="c-field"><label class="c-field__label" for="p-montant">Montant reçu (FCFA) <span class="is-required">*</span></label><input class="c-input u-num" id="p-montant" inputmode="numeric"></div>
+      <div class="c-field"><label class="c-field__label" for="p-date">Date du paiement <span class="is-required">*</span></label><input class="c-input" id="p-date" type="date"></div>
+      <div class="c-field"><label class="c-field__label" for="p-mode">Mode de paiement</label>
+        <select class="c-select" id="p-mode"><option>Virement bancaire</option><option>Chèque</option><option>Espèces</option><option>Paiement mobile</option></select></div>
+    </div>
+    <div class="c-modal__foot"><button class="c-btn c-btn--ghost" type="button" data-fermer-modale>Annuler</button><button class="c-btn c-btn--primary" type="button" id="paiement-ok">Enregistrer le paiement</button></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var D = window.DOUALOG, F = D.fmt, esc = D.esc, B = D.badge;
+  function $(id) { return document.getElementById(id); }
+  function icon(n, cls) { return '<svg class="c-icon' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#i-' + n + '"></use></svg>'; }
+  var DASH = '<span class="c-dash">—</span>', NBSP = ' ';
+  var STATUTS = Object.keys(D.statuts.facture);
+  var etat = { statut: null, q: '', ouvert: null };
+  var aujourdhui = D.config.aujourdhui.slice(0, 10);
+
+  window.DOUALOG_SHELL.init({ actif: 'facturation' });
+
+  function dossiersFactures() { return D.dossiers.filter(function (d) { return d.bas; }); }
+  function plusJours(iso, n) { var x = new Date(iso + 'T00:00'); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); }
+  function echue(f) { return f.echeance && f.statut !== 'Réglé' && f.echeance < aujourdhui; }
+
+  /* ── Liste ─────────────────────────────────────────────── */
+  function render() {
+    var tous = dossiersFactures();
+    $('quick').innerHTML = [null].concat(STATUTS).map(function (s) {
+      var n = s ? tous.filter(function (d) { return D.facture(d).statut === s; }).length : tous.length;
+      var on = etat.statut === s;
+      return '<button class="c-chip' + (on ? ' is-active' : '') + '" type="button" data-statut="' + (s || '') + '" aria-pressed="' + on + '">' + (s || 'Toutes') + ' <span class="c-count">' + n + '</span></button>';
+    }).join('');
+    var q = etat.q.trim().toLowerCase();
+    var rows = tous.filter(function (d) {
+      var f = D.facture(d);
+      if (etat.statut && f.statut !== etat.statut) return false;
+      return !q || [d.id, D.client(d).nom, f.num].join(' ').toLowerCase().indexOf(q) >= 0;
+    }).sort(function (a, b) {   // à émettre d'abord, puis par date de BAS (plus ancien en premier)
+      return STATUTS.indexOf(D.facture(a).statut) - STATUTS.indexOf(D.facture(b).statut) || (a.bas.date < b.bas.date ? -1 : 1);
+    });
+    var aEmettre = tous.filter(function (d) { return D.facture(d).statut === 'En facturation'; }).length;
+    var du = tous.reduce(function (s, d) { var f = D.facture(d); return s + (f.num && f.statut !== 'Réglé' ? f.reste : 0); }, 0);
+    $('meta').textContent = aEmettre + ' facture' + (aEmettre > 1 ? 's' : '') + ' à émettre · ' + F.montant(du) + ' à encaisser';
+    $('tbody').innerHTML = rows.map(function (d) {
+      var f = D.facture(d), c = D.client(d);
+      var cls = d.id === etat.ouvert || (!etat.ouvert && d.filRouge) ? 'is-selected' : (echue(f) ? 'is-alert' : '');
+      return '<tr class="' + cls + '" data-ligne="' + d.id + '">' +
+        '<td><a class="c-ref" href="E01-tableau-de-bord.html?id=' + d.id + '" title="Ouvrir le dossier">' + d.id + '</a></td>' +
+        '<td>' + esc(c.nom) + '</td>' +
+        '<td class="u-num">' + F.date(f.dateBAS) + '</td>' +
+        '<td>' + (f.num ? '<span class="c-ref">' + f.num + '</span>' : '<span class="c-field__help">à générer</span>') + '</td>' +
+        '<td class="is-num">' + F.montant(f.ttc) + '</td>' +
+        '<td class="is-num">' + (f.statut === 'Réglé' ? DASH : F.montant(f.reste)) + '</td>' +
+        '<td class="u-num">' + (f.echeance ? F.date(f.echeance) + (echue(f) ? ' <span class="c-badge c-badge--danger">Échue</span>' : '') : DASH) + '</td>' +
+        '<td>' + B('facture', f.statut) + '</td>' +
+        '<td class="is-center"><span class="u-row u-nowrap">' +
+          '<button class="c-btn c-btn--icon c-btn--sm" type="button" data-apercu="' + d.id + '" aria-label="Aperçu de la facture ' + d.id + '" title="Aperçu de la facture">' + icon('eye', 'c-icon--sm') + '</button>' +
+          (f.num && f.emise ? '<a class="c-btn c-btn--icon c-btn--sm" href="../externe/X07-email-facture.html?id=' + d.id + '" aria-label="Voir l\'email envoyé" title="Voir l\'email envoyé (X07)">' + icon('mail', 'c-icon--sm') + '</a>' : '') +
+        '</span></td></tr>';
+    }).join('');
+    $('empty').hidden = rows.length > 0;
+  }
+
+  /* ── Aperçu de la facture ─────────────────────────────── */
+  function documentFacture(d) {
+    var f = D.facture(d), c = D.client(d), k = D.compagnies[d.compagnie] || {};
+    var prest = f.lignes.filter(function (l) { return D.prestations[l.prestation].tva; });
+    var debours = f.lignes.filter(function (l) { return !D.prestations[l.prestation].tva; });
+    function lignes(ls) { return ls.map(function (l) { return '<tr><td>' + D.prestations[l.prestation].libelle + '</td><td class="is-num">' + F.montant(l.montant) + '</td></tr>'; }).join(''); }
+    var adresse = c.adresse + (/Ziguinchor|Dakar/.test(c.adresse) ? '' : ', ' + D.config.ville);
+    var brouillon = !f.num;
+    return '<div class="c-invoice' + (brouillon ? ' is-brouillon' : '') + '">' +
+      '<div class="c-invoice__head"><div><img class="c-invoice__logo" src="../assets/img/logo.png" alt="DOUALOG — Douane &amp; Logistique">' +
+        '<div class="c-invoice__emetteur"><b>DOUALOG — Douane &amp; Logistique</b><br>' + D.config.ville + ', ' + D.config.pays + ' · ' + D.config.boiteEmail +
+        '<br>NINEA : à compléter · RCCM : à compléter</div></div>' +   // À VALIDER : mentions légales de DOUALOG
+      '<div><div class="c-invoice__title">Facture</div><div class="c-invoice__num">' + (f.num || 'N° attribué à la génération') + '</div>' +
+        '<div class="c-invoice__dates">Date d\'émission : ' + (f.emise ? F.date(f.emise) : (f.generee ? F.date(f.generee) : '—')) +
+        '<br>Échéance : ' + (f.echeance ? F.date(f.echeance) : 'à ' + D.config.delaiPaiementJours + ' jours') + '</div></div></div>' +
+      '<div class="c-invoice__parties">' +
+        '<div><div class="c-invoice__bloc-titre">Facturé à</div><b>' + esc(c.nom) + '</b><br>' + esc(adresse) + '<br>N° IFU : ' + c.ifu + '<br>À l\'attention de ' + esc(c.contact) + '</div>' +
+        '<div><div class="c-invoice__bloc-titre">Références</div>Dossier <b>' + d.id + '</b><br>' + (D.refTransport(d) ? (d.lta ? 'LTA ' : d.bl ? 'BL ' : 'Booking ') + D.refTransport(d) : '') +
+          (d.conteneur ? '<br>Conteneur ' + d.conteneur : '') + '<br>' + (d.mode === 'Aérien' ? 'Vol ' + d.vol : (k.nom || '') + ' · ' + (d.navire || '')) +
+          '<br>' + esc(d.marchandise) + '<br>BAS du ' + F.date(f.dateBAS) + '</div></div>' +
+      '<table class="c-invoice__lignes"><thead><tr><th>Désignation</th><th class="is-num">Montant (' + D.config.devise + ')</th></tr></thead><tbody>' +
+        '<tr class="is-groupe"><td colspan="2">Prestations DOUALOG</td></tr>' + lignes(prest) +
+        '<tr class="is-groupe"><td colspan="2">Débours — refacturés à l\'identique, hors TVA</td></tr>' + lignes(debours) +
+      '</tbody></table>' +
+      '<dl class="c-invoice__totaux"><dt>Total prestations HT</dt><dd>' + F.montant(f.ht) + '</dd>' +
+        '<dt>' + D.config.tvaLibelle + ' sur prestations</dt><dd>' + F.montant(f.tva) + '</dd>' +
+        '<dt>Total débours</dt><dd>' + F.montant(f.debours) + '</dd>' +
+        '<dt class="is-total">Total TTC</dt><dd class="is-total">' + F.montant(f.ttc) + '</dd>' +
+        (f.regle ? '<dt>Déjà réglé</dt><dd>− ' + F.montant(f.regle) + '</dd><dt><b>Reste à payer</b></dt><dd><b>' + F.montant(f.reste) + '</b></dd>' : '') + '</dl>' +
+      '<div class="c-invoice__mentions">Payable au plus tard le ' + (f.echeance ? F.date(f.echeance) : 'jour de l\'échéance') +
+        ', par virement bancaire, chèque ou paiement mobile. Coordonnées de paiement : à compléter.' +   // À VALIDER
+        ' Merci de rappeler le numéro de facture et le N° DLG lors de votre règlement.</div></div>';
+  }
+  function ouvrir(id) {
+    var d = D.dossier(id), f = D.facture(d);
+    etat.ouvert = id;
+    $('apercu-titre').textContent = 'Facture — ' + id;
+    $('apercu-statut').innerHTML = B('facture', f.statut);
+    var info = '';
+    if (!f.num) info = '<div class="c-alert c-alert--info">' + icon('info') + '<div><div class="c-alert__title">Facture prête à générer</div><div>Client, références et prestations sont repris du dossier (BAS du ' + F.date(f.dateBAS) + '). Le numéro est attribué à la génération.</div></div></div>';
+    else if (!f.emise) info = '<div class="c-alert c-alert--info">' + icon('info') + '<div><div class="c-alert__title">Facture ' + f.num + ' générée</div><div>Vérifiez-la puis émettez-la : elle sera envoyée au client par email (X07) avec le PDF en pièce jointe.</div></div></div>';
+    else if (f.statut === 'Réglé') info = '<div class="c-alert c-alert--success">' + icon('valide') + '<div><div class="c-alert__title">Facture réglée</div><div>Paiement intégral reçu le ' + F.date(d.facture.dateReglement) + '.' + (d.statut === 'Clôturé' ? ' Dossier clôturé.' : '') + '</div></div></div>';
+    var paiements = f.paiements.length ? '<section class="c-card"><div class="c-card__head"><h3>Paiements reçus</h3></div><div class="c-card__body"><dl class="c-kv c-kv--rows">' +
+      f.paiements.map(function (p) { return '<div><dt>' + F.date(p.date) + '</dt><dd>' + F.montant(p.montant) + ' · ' + esc(p.mode) + '</dd></div>'; }).join('') + '</dl></div></section>' : '';
+    $('apercu-corps').innerHTML = info + documentFacture(d) + paiements;
+
+    var pdf = '<button class="c-btn" type="button" data-action="pdf">' + icon('pdf') + 'Télécharger PDF</button>';
+    var mail = f.emise ? '<a class="c-btn" href="../externe/X07-email-facture.html?id=' + id + '">' + icon('mail') + 'Voir l\'email envoyé</a>' : '';
+    var principal = !f.num ? '<button class="c-btn c-btn--primary" type="button" data-action="generer">' + icon('facture') + 'Générer la facture</button>'
+      : !f.emise ? '<button class="c-btn c-btn--primary" type="button" data-action="emettre">' + icon('send') + 'Émettre et envoyer au client</button>'
+      : f.statut !== 'Réglé' ? '<button class="c-btn c-btn--primary" type="button" data-action="paiement">' + icon('plus') + 'Enregistrer un paiement</button>' : '';
+    $('apercu-actions').innerHTML = (f.num ? pdf : '') + mail + principal;
+    $('apercu').classList.add('is-open');
+    render();
+  }
+  function fermer() { $('apercu').classList.remove('is-open'); etat.ouvert = null; render(); }
+  function message(titre, texte) { $('msg-titre').textContent = titre; $('msg-texte').textContent = texte; $('msg').hidden = false; }
+
+  /* ── Actions ───────────────────────────────────────────── */
+  function agir(a) {
+    var d = D.dossier(etat.ouvert), f = D.facture(d);
+    d.facture = d.facture || { num: null, statut: 'En facturation' };
+    if (a === 'generer') {
+      d.facture.num = D.reserverNumeroFacture(); d.facture.generee = aujourdhui; d.facture.montant = f.ttc;
+      message('Facture ' + d.facture.num + ' générée', 'Numéro séquentiel attribué. Vérifiez l\'aperçu puis émettez la facture.');
+    }
+    if (a === 'emettre') {
+      d.facture.emise = aujourdhui; d.facture.echeance = plusJours(aujourdhui, D.config.delaiPaiementJours);
+      d.facture.statut = 'Facture émise'; d.facture.regle = 0; d.facture.paiements = [];
+      if (d.statut !== 'Clôturé') d.statut = 'Facturé';   // C2 : le statut global suit la facturation
+      message('Facture ' + d.facture.num + ' émise et envoyée', 'Envoyée à ' + D.client(d).email + ' avec le PDF en pièce jointe. Échéance : ' + F.date(d.facture.echeance) + '.');
+    }
+    if (a === 'pdf') { message('Téléchargement du PDF — prévu dans une prochaine version', 'La facture ' + f.num + ' sera générée au format PDF et archivée dans le dossier.'); return; }
+    if (a === 'paiement') { ouvrirPaiement(d, f); return; }
+    D.sauverDossier(d);
+    ouvrir(d.id);
+  }
+  function ouvrirPaiement(d, f) {
+    $('paiement-intro').innerHTML = 'Facture <b class="c-ref">' + f.num + '</b> · ' + esc(D.client(d).nom) + '<br>Reste à payer : <b>' + F.montant(f.reste) + '</b>';
+    $('p-montant').value = f.reste; $('p-date').value = aujourdhui;
+    $('p-montant').closest('.c-field').classList.remove('is-error');
+    $('modale-paiement').hidden = false; $('p-montant').focus();
+  }
+  $('paiement-ok').addEventListener('click', function () {
+    var d = D.dossier(etat.ouvert), f = D.facture(d), m = parseInt(String($('p-montant').value).replace(/\D/g, ''), 10);
+    var champ = $('p-montant').closest('.c-field'), err = champ.querySelector('.c-field__error');
+    if (err) err.remove();
+    if (!m || m > f.reste) {
+      champ.classList.add('is-error');
+      champ.insertAdjacentHTML('beforeend', '<span class="c-field__error">' + (!m ? 'Indiquez le montant reçu.' : 'Le montant dépasse le reste à payer (' + F.montant(f.reste) + ').') + '</span>');
+      return;
+    }
+    d.facture.paiements = (d.facture.paiements || []).concat([{ date: $('p-date').value, montant: m, mode: $('p-mode').value }]);
+    d.facture.regle = (d.facture.regle || 0) + m; d.facture.dateReglement = $('p-date').value;
+    var solde = d.facture.regle >= f.ttc;
+    d.facture.statut = solde ? 'Réglé' : 'Partiellement réglé';
+    /* CDC §10.3 : réglé → clôture, si la livraison est faite ou s'il n'y en a pas (D16) */
+    var t = d.transport;
+    if (solde && (!t || t.statut === 'Livré' || t.statut === 'Pas de livraison')) d.statut = 'Clôturé';
+    D.sauverDossier(d);
+    $('modale-paiement').hidden = true;
+    message(solde ? 'Facture ' + f.num + ' réglée' : 'Paiement enregistré', F.montant(m) + ' reçu le ' + F.date($('p-date').value) + ' (' + $('p-mode').value.toLowerCase() + ').' +
+      (solde ? (d.statut === 'Clôturé' ? ' Le dossier est clôturé.' : ' Le dossier sera clôturé à la confirmation de la livraison.') : ' Reste à payer : ' + F.montant(f.reste - m) + '.'));
+    ouvrir(d.id);
+  });
+
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-statut],[data-apercu],[data-action],[data-fermer],[data-fermer-modale],[data-fermer-msg]');
+    if (!t) return;
+    if (t.hasAttribute('data-statut')) { etat.statut = t.dataset.statut || null; render(); }
+    if (t.dataset.apercu) ouvrir(t.dataset.apercu);
+    if (t.dataset.action) agir(t.dataset.action);
+    if (t.hasAttribute('data-fermer')) fermer();
+    if (t.hasAttribute('data-fermer-modale')) $('modale-paiement').hidden = true;
+    if (t.hasAttribute('data-fermer-msg')) $('msg').hidden = true;
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Escape') return;
+    if (!$('modale-paiement').hidden) $('modale-paiement').hidden = true; else fermer();
+  });
+  $('search').addEventListener('input', function () { etat.q = this.value; render(); });
+
+  render();
+  var id = new URLSearchParams(location.search).get('id');
+  if (id && D.dossier(id) && D.dossier(id).bas) ouvrir(id);
+})();
+</script>
+</body>
+</html>

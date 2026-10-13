@@ -59,7 +59,8 @@ Ne pas utiliser `ui-design-dydy` ni d'autre skill d'esthétique sur ce projet.
   « Nouveau dossier », puis la carte blanche « Liste des dossiers » (onglets, Filtres, Exporter).
 - Menu dans l'ordre de l'image : Tableau de bord, Dossiers, Transport, Mandats, Clients, Documents, Messagerie,
   Notifications (compteur), Rapports, Paramètres, Déconnexion en bas. Entrées hors V1 visibles mais inactives.
-  Facturation (E06, MUST) ajoutée après Transport — absente de l'image, À VALIDER.
+  Facturation (E06, MUST) ajoutée **entre Documents et Messagerie** — absente de l'image, À VALIDER.
+- **Accueil selon le profil** : E07 (Rapports) pour Manager et Direction, E01 pour les autres (connexion, logo, changement de profil).
 - Logo : pas de version blanche → monogramme sur pastille blanche + nom en texte (DOUA blanc, LOG orange).
 - Rayon 6 px (boutons, champs), 8 px (cartes, tuiles), badges en pilule. Pas d'ombre portée.
 - Icônes : une seule famille, trait 1,8 px, sans remplissage (sprite `assets/icons.js`), aucun emoji.
@@ -125,13 +126,29 @@ les données en mémoire pour la démo (rechargement = retour à l'état initial
 ## Structure des fichiers
 ```
 output/
-├── assets/tokens.css · components.css · icons.js · data.js (jeu de données commun) · shell.js (header + menu) · dossier.js (panneau E02)
+├── assets/tokens.css · components.css · icons.js · data.js (jeu de données + mémoire de démo) · shell.js (header + menu) · dossier.js (panneau E02)
 │          · email.js (remplit les emails X0x depuis data.js) · img/
 ├── design-system.html
 ├── index.html            ← sommaire groupé par parcours
 ├── interne/E01-tableau-de-bord.html …
 └── externe/X01-email-accuse-reception.html …
 ```
+
+## Parcours transport (étape 5)
+- E02 « Créer OT » → **E04** (`?id=`, défaut DLG-2026-0410 : BAE obtenu, sans OT) → email **X05** (`?ot=&t=`) →
+  **X05b** (`?ot=&t=&reponse=acceptee|refusee`, ou `?etat=acceptee|refusee|attribuee` pour la démo) → **X06** (`?ot=`, défaut OT-2026-0156 du fil rouge).
+- **Mémoire de démo** (`data.js`, sessionStorage) : OT créé, réponses aux offres, camion, statuts, documents, BAE, BAS, réception de pièces
+  et fiches transporteurs sont gardés le temps de l'onglet. Fermer l'onglet (ou `DOUALOG.reinitialiserDemo()`) remet l'état initial.
+- Pages externes : composant `.c-ext` (mobile-first, sans navigation applicative).
+
+## Facturation, pilotage, notifications (étape 6)
+- **E06** : tous les dossiers dont le BAS est obtenu ; facture calculée par `DOUALOG.facture(d)` (grilles de `data.js`, TVA sur
+  prestations, débours hors TVA). En facturation → Générer (N° séquentiel FAC-2026-xxxx) → Émettre et envoyer (X07, échéance
+  à 30 jours) → paiements (partiel / réglé). Réglé → dossier Clôturé si livré ou sans livraison (D16). `?id=` ouvre l'aperçu.
+- **E07** : 10 indicateurs du CDC §14 (BAE, BAS, Livrés sur la période ; autres à date), clic → `E01?ids=…&titre=…`,
+  4 listes d'exceptions, charge par déclarant.
+- **E08** : notifications (types et teintes dans `DOUALOG.typesNotification`), lues gardées dans la mémoire de démo ;
+  `DOUALOG_SHELL.majCompteurs()` met à jour la cloche et le menu.
 
 ## Emails (X01, X02, X07, X08, X09…)
 - HTML d'email réaliste : 600 px, tableaux, **styles en ligne** (couleurs en dur reprises de tokens.css, les messageries

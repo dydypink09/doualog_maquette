@@ -132,7 +132,7 @@
   var LIEN_DOSSIER = '?id=';   // E02 : le dossier s'ouvre en panneau bas de page, sans quitter la liste
 
   var liste = D.tableauDeBord();   // recalculée quand un dossier quitte la salle d'attente
-  var etat = { q: '', rapide: 'tous', kpi: null, filtres: {}, tri: null, sens: 1, utilisateur: null };
+  var etat = { q: '', rapide: 'tous', kpi: null, filtres: {}, tri: null, sens: 1, utilisateur: null, ids: null, idsTitre: '' };
 
   /* ── Indicateurs (8, comme l'image) — dossiers de la liste au statut indiqué, à date ── */
   var EN_COURS_TRANSPORT = ['Demande de transport envoyée', 'À confirmer', 'Confirmé', 'Camion affecté', 'Chargement', 'En route'];
@@ -212,6 +212,7 @@
     var q = normaliser(etat.q.trim()), r = RAPIDES.filter(function (x) { return x.id === etat.rapide; })[0], k = etat.kpi ? kpi(etat.kpi) : null;
     return liste.filter(function (d) {
       if (!r.f(d) || (k && !k.f(d)) || !correspond(d, q)) return false;
+      if (etat.ids && etat.ids.indexOf(d.id) < 0) return false;   // filtre venu d'un indicateur de E07
       return FILTRES.every(function (f) { return !etat.filtres[f.k] || f.val(d) === etat.filtres[f.k]; });
     });
   }
@@ -316,7 +317,8 @@
   }
   function renderFiltresActifs() {
     var actifs = FILTRES.filter(function (f) { return etat.filtres[f.k]; });
-    $('active-filters').innerHTML = (etat.kpi ? chipRetirer('kpi', 'Indicateur : ' + kpi(etat.kpi).label) : '') +
+    $('active-filters').innerHTML = (etat.ids ? chipRetirer('ids', 'Indicateur : ' + etat.idsTitre) : '') +
+      (etat.kpi ? chipRetirer('kpi', 'Indicateur : ' + kpi(etat.kpi).label) : '') +
       actifs.map(function (f) { return chipRetirer(f.k, f.label + ' : ' + etat.filtres[f.k]); }).join('');
     var c = $('filters-count');
     c.textContent = actifs.length || '';
@@ -459,7 +461,12 @@
     }
     if (t.dataset.rapide) { etat.rapide = t.dataset.rapide; render(); }
     if (t.dataset.kpi) { etat.kpi = etat.kpi === t.dataset.kpi ? null : t.dataset.kpi; ouvrirOnglet('dossiers'); render(); }
-    if (t.dataset.remove) { if (t.dataset.remove === 'kpi') etat.kpi = null; else delete etat.filtres[t.dataset.remove]; render(); }
+    if (t.dataset.remove) {
+      if (t.dataset.remove === 'kpi') etat.kpi = null;
+      else if (t.dataset.remove === 'ids') { etat.ids = null; history.replaceState(null, '', location.pathname + location.hash); }
+      else delete etat.filtres[t.dataset.remove];
+      render();
+    }
     if (t.dataset.tab) { ouvrirOnglet(t.dataset.tab); history.replaceState(null, '', t.dataset.tab === 'attente' ? '#salle-attente' : location.pathname + location.search); }
     if (t.hasAttribute('data-close-filters')) ouvrirFiltres(false);
   });
@@ -481,13 +488,16 @@
     ouvrirFiltres(false); render();
   });
   $('filters-reset').addEventListener('click', function () { etat.filtres = {}; renderChampsFiltres(); render(); });
-  $('clear-all').addEventListener('click', function () { etat.q = ''; $('search').value = ''; etat.rapide = 'tous'; etat.kpi = null; etat.filtres = {}; render(); });
+  $('clear-all').addEventListener('click', function () { etat.q = ''; $('search').value = ''; etat.rapide = 'tous'; etat.kpi = null; etat.ids = null; etat.filtres = {}; render(); });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') ouvrirFiltres(false); });
   window.addEventListener('hashchange', lireHash);
 
   /* ── Initialisation ──────────────────────────────────────── */
-  var q = new URLSearchParams(location.search).get('q');
+  var params = new URLSearchParams(location.search), q = params.get('q');
   if (q) { etat.q = q; $('search').value = q; }
+  /* ?ids=DLG-…,DLG-…&titre=… : liste ouverte depuis un indicateur du dashboard Manager (E07) */
+  if (params.get('ids') !== null) { etat.ids = params.get('ids') ? params.get('ids').split(',') : []; etat.idsTitre = params.get('titre') || 'sélection'; }
+  if (params.get('rapide')) etat.rapide = params.get('rapide');
 
   window.DOUALOG_SHELL.init({
     actif: 'tableau',

@@ -11,7 +11,11 @@
 
   function remplir() {
     var p = new URLSearchParams(location.search);
-    var d = D.dossier(p.get('id') || document.body.dataset.defaut), c = D.client(d);
+    /* Email lié à un ordre de transport (X05) : ?ot=OT-… &t=transporteur, ou ?brouillon=1 (aperçu depuis E04) */
+    var otId = p.get('ot') || document.body.dataset.ot || null, ot = null, brouillon = !!p.get('brouillon');
+    if (brouillon) { try { var b = JSON.parse(sessionStorage.getItem('doualog-ot-brouillon')); ot = b.ot; otId = 'OT-2026-…'; } catch (e) {} }
+    else if (otId) ot = D.ots[otId];
+    var d = D.dossier(ot ? ot.dossier : (p.get('id') || document.body.dataset.defaut)), c = D.client(d);
     var relance = parseInt(p.get('relance') || '0', 10);
     var sa = d.salleAttente, envois = sa ? sa.envois : [];
     var refT = d.bl ? 'BL ' + d.bl : d.lta ? 'LTA ' + d.lta : d.booking ? 'Booking ' + d.booking : '';
@@ -55,6 +59,29 @@
     };
     var conditions = { relance: relance > 0, initial: relance === 0, incomplet: manquants.length > 0 || !d.docs.mandat, complet: manquants.length === 0 && d.docs.mandat };
 
+    if (ot) {
+      var tid = p.get('t') || (ot.offres[0] && ot.offres[0].transporteur) || 't1', tr = D.transporteurs[tid];
+      var offre = ot.offres.filter(function (o) { return o.transporteur === tid; })[0];
+      v.ot = otId; v.transporteur = tr.nom; v.transporteurContact = tr.contact; v.transporteurEmail = tr.email;
+      v.otMarchandise = ot.marchandise; v.otPoids = F.poids(ot.poids); v.otColis = F.nombre(ot.colis) + ' ' + ot.unite;
+      v.otConteneur = d.conteneur ? d.conteneur + (d.typeConteneur ? ' (' + d.typeConteneur + ')' : '') : '—';
+      v.otChargement = ot.chargement; v.otLivraison = ot.livraisonAdresse; v.otPrise = dh(ot.priseEnCharge);
+      v.otPriseDate = F.date(ot.priseEnCharge); v.otInstructions = ot.instructions || 'Aucune.'; v.otIncoterm = ot.incoterm;
+      v.otEnvoi = dh(offre ? offre.envoi : D.config.aujourdhui);
+      var base = 'X05b-retour-offre.html?ot=' + otId + '&t=' + tid + '&reponse=';
+      liens.accepter = brouillon ? '#' : base + 'acceptee';
+      liens.refuser = brouillon ? '#' : base + 'refusee';
+    }
+    /* Email facture (X07) : montants et dates de la facture du dossier */
+    var fac = D.facture(d);
+    if (fac) {
+      v.factureNum = fac.num || '(à générer)'; v.factureTTC = F.montant(fac.ttc); v.factureHT = F.montant(fac.ht);
+      v.factureTVA = F.montant(fac.tva); v.factureDebours = F.montant(fac.debours); v.factureReste = F.montant(fac.reste);
+      v.factureEmise = fac.emise ? F.date(fac.emise) : F.date(D.config.aujourdhui); v.factureEcheance = fac.echeance ? F.date(fac.echeance) : '—';
+      v.facturePdf = 'Facture_' + (fac.num || 'DOUALOG') + '_' + d.id + '.pdf'; v.tvaLibelle = D.config.tvaLibelle;
+      v.dateBAS = F.date(fac.dateBAS); v.conteneur = d.conteneur || '—';
+      v.envoiFacture = fac.emise ? F.date(fac.emise) : F.date(D.config.aujourdhui);
+    }
     document.querySelectorAll('[data-f]').forEach(function (el) { el.textContent = v[el.dataset.f]; });
     document.querySelectorAll('[data-href]').forEach(function (el) { el.setAttribute('href', liens[el.dataset.href]); });
     document.querySelectorAll('[data-liste]').forEach(function (el) { el.innerHTML = listes[el.dataset.liste]; });

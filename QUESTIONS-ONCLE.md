@@ -143,6 +143,19 @@ La maquette garde : nom de la société, personne à contacter, email, télépho
 Faut-il aussi les types de camions, les zones desservies, autre chose ?
 Réponse : ……………………………………
 
+**5.6 L'offre envoyée aux transporteurs doit-elle indiquer un prix ?**
+La maquette envoie le détail du transport (marchandise, poids, adresses, date) sans prix : le transporteur accepte ou refuse.
+Le prix est-il fixé à l'avance avec chaque transporteur, ou faut-il lui demander un tarif ?
+Réponse : ……………………………………
+
+**5.7 Combien de temps un transporteur a-t-il pour répondre à une offre ?**
+La maquette ne fixe pas de délai.
+Réponse : ……………………………………
+
+**5.8 Le transporteur doit-il déposer le bon de livraison signé pour confirmer la livraison ?**
+La maquette l'exige : le bouton « Confirmer la livraison » reste grisé tant que le bon de livraison signé n'est pas déposé.
+Réponse : ……………………………………
+
 ---
 
 ## 6. Factures et fin du dossier
@@ -163,4 +176,16 @@ La maquette affiche « prochaine relance dans 2 jours », à titre d'exemple.
 
 **6.4 Quelle couleur pour les états de facture ?**
 La maquette : facture envoyée en bleu, payée en partie en orange, payée en vert.
+Réponse : ……………………………………
+
+**6.5 Sous combien de jours vos clients doivent-ils payer une facture ?**
+La maquette met l'échéance à 30 jours après l'émission.
+Réponse : ……………………………………
+
+**6.6 Quelles informations doivent figurer sur vos factures ?**
+La maquette prévoit la place pour : votre NINEA, votre RCCM, votre adresse, et vos coordonnées de paiement (banque, RIB, numéro de paiement mobile). Pouvez-vous nous les communiquer ?
+Réponse : ……………………………………
+
+**6.7 Un dossier payé mais pas encore livré : on le clôture tout de suite ?**
+La maquette attend la confirmation de la livraison pour clôturer le dossier.
 Réponse : ……………………………………

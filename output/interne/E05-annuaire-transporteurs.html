@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Transporteurs — DOUALOG Control Tower</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<script src="../assets/icons.js"></script>
+<script src="../assets/data.js"></script>
+<script src="../assets/shell.js"></script>
+</head>
+<body>
+<!-- E05 · Annuaire des transporteurs · US-27 (P4) — entrée « Transport » du menu.
+     Ajout et modification dans le panneau latéral (gardés pour la démo). -->
+<!-- À VALIDER (D15) : champs de la fiche transporteur limités à raison sociale, contact, email, téléphone. -->
+<div class="c-app">
+  <header class="c-topbar" id="topbar"></header>
+  <nav class="c-sidebar" id="sidebar" aria-label="Navigation principale"></nav>
+
+  <main class="c-main">
+    <h1 class="u-sr">Transport</h1>
+
+    <div class="c-alert c-alert--success" id="msg" role="status" hidden>
+      <svg class="c-icon" aria-hidden="true"><use href="#i-valide"></use></svg>
+      <div id="msg-texte"></div>
+      <div class="c-alert__actions"><button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" type="button" id="msg-fermer" aria-label="Fermer le message"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></button></div>
+    </div>
+
+    <section class="c-list" aria-labelledby="annuaire-titre">
+      <div class="c-list__head">
+        <h2 class="c-block-title" id="annuaire-titre">Annuaire des transporteurs</h2>
+        <span class="c-list__meta" id="meta"></span>
+        <div class="c-list__actions">
+          <button class="c-btn c-btn--primary c-btn--sm" type="button" data-editer=""><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-plus"></use></svg>Ajouter un transporteur</button>
+        </div>
+      </div>
+      <div class="c-toolbar">
+        <div class="c-input-icon c-toolbar__search">
+          <svg class="c-icon" aria-hidden="true"><use href="#i-search"></use></svg>
+          <input class="c-input" id="search" type="search" placeholder="Raison sociale, contact, téléphone" aria-label="Rechercher un transporteur">
+        </div>
+      </div>
+      <div class="c-table-wrap">
+        <table class="c-table c-table--sticky">
+          <thead><tr>
+            <th>Raison sociale</th><th>Contact</th><th>Email</th><th>Téléphone</th><th class="is-num">OT confiés</th><th>Dernier OT</th><th class="is-center">Actions</th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div class="c-empty" id="empty" hidden>
+          <svg class="c-icon" aria-hidden="true"><use href="#i-search"></use></svg>
+          <p class="c-empty__title">Aucun transporteur ne correspond</p>
+          <p class="c-empty__text">Vérifiez l'orthographe ou ajoutez le transporteur à l'annuaire.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ══ Fiche transporteur (panneau latéral) ══ -->
+<aside class="c-drawer" id="fiche" aria-labelledby="fiche-titre">
+  <div class="c-drawer__head">
+    <h2 class="c-block-title" id="fiche-titre"></h2>
+    <button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" type="button" data-fermer aria-label="Fermer"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></button>
+  </div>
+  <div class="c-drawer__body u-stack">
+    <div class="c-field"><label class="c-field__label" for="t-nom">Raison sociale <span class="is-required">*</span></label><input class="c-input" id="t-nom" data-requis></div>
+    <div class="c-field"><label class="c-field__label" for="t-contact">Personne à contacter <span class="is-required">*</span></label><input class="c-input" id="t-contact" data-requis></div>
+    <div class="c-field"><label class="c-field__label" for="t-email">Email <span class="is-required">*</span></label><input class="c-input" id="t-email" type="email" data-requis><span class="c-field__help">Les offres de transport (X05) sont envoyées à cette adresse.</span></div>
+    <div class="c-field"><label class="c-field__label" for="t-tel">Téléphone <span class="is-required">*</span></label><input class="c-input" id="t-tel" type="tel" placeholder="+221 7x xxx xx xx" data-requis></div>
+    <div id="fiche-ots"></div>
+  </div>
+  <div class="c-drawer__foot">
+    <button class="c-btn c-btn--ghost" type="button" data-fermer>Annuler</button>
+    <button class="c-btn c-btn--primary" type="button" id="enregistrer">Enregistrer</button>
+  </div>
+</aside>
+
+<script>
+(function () {
+  var D = window.DOUALOG, F = D.fmt, esc = D.esc;
+  function $(id) { return document.getElementById(id); }
+  function icon(n, cls) { return '<svg class="c-icon' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#i-' + n + '"></use></svg>'; }
+  var q = '', edite = null;
+
+  window.DOUALOG_SHELL.init({ actif: 'transport' });
+
+  function normaliser(s) { return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
+  function render() {
+    var ids = Object.keys(D.transporteurs).sort(function (a, b) { return D.transporteurs[a].nom.localeCompare(D.transporteurs[b].nom, 'fr'); });
+    var vus = ids.filter(function (t) { var x = D.transporteurs[t]; return !q || normaliser([x.nom, x.contact, x.tel, x.email].join(' ')).indexOf(normaliser(q)) >= 0; });
+    $('meta').textContent = ids.length + ' transporteurs' + (vus.length !== ids.length ? ' · ' + vus.length + ' affichés' : '');
+    $('tbody').innerHTML = vus.map(function (t) {
+      var x = D.transporteurs[t], ots = D.otsTransporteur(t), dernier = ots[0];
+      return '<tr><td><b>' + esc(x.nom) + '</b></td><td>' + esc(x.contact) + '</td>' +
+        '<td><a href="mailto:' + esc(x.email) + '">' + esc(x.email) + '</a></td><td class="u-num">' + esc(x.tel) + '</td>' +
+        '<td class="is-num">' + ots.length + '</td>' +
+        '<td>' + (dernier ? '<span class="c-ref">' + dernier.ot + '</span><div class="c-field__help">' + dernier.dossier + (dernier.date ? ' · ' + F.date(dernier.date) : '') + '</div>' : '<span class="c-dash">—</span>') + '</td>' +
+        '<td class="is-center"><button class="c-btn c-btn--icon c-btn--sm" type="button" data-editer="' + t + '" aria-label="Modifier ' + esc(x.nom) + '" title="Modifier">' + icon('edit', 'c-icon--sm') + '</button></td></tr>';
+    }).join('');
+    $('empty').hidden = vus.length > 0;
+  }
+
+  function ouvrir(t) {
+    edite = t || null;
+    var x = t ? D.transporteurs[t] : { nom: '', contact: '', email: '', tel: '' };
+    $('fiche-titre').textContent = t ? 'Modifier le transporteur' : 'Ajouter un transporteur';
+    $('t-nom').value = x.nom; $('t-contact').value = x.contact; $('t-email').value = x.email; $('t-tel').value = x.tel;
+    document.querySelectorAll('#fiche .c-field').forEach(function (c) { c.classList.remove('is-error'); var e = c.querySelector('.c-field__error'); if (e) e.remove(); });
+    var ots = t ? D.otsTransporteur(t) : [];
+    $('fiche-ots').innerHTML = t ? '<p class="c-field__label">Ordres de transport confiés (' + ots.length + ')</p>' + (ots.length ? '<ul class="c-doclist c-doclist--compact">' + ots.map(function (o) {
+      return '<li class="c-doc c-doc--optional"><span class="c-doc__state">' + icon('transport') + '</span><span class="c-doc__name">' + o.ot + '</span><span class="c-doc__actions"><a href="E01-tableau-de-bord.html?id=' + o.dossier + '">' + o.dossier + '</a></span></li>';
+    }).join('') + '</ul>' : '<p class="c-field__help">Aucun pour l\'instant.</p>') : '';
+    $('fiche').classList.add('is-open');
+    $('t-nom').focus();
+  }
+  function fermer() { $('fiche').classList.remove('is-open'); }
+
+  $('enregistrer').addEventListener('click', function () {
+    var ok = true;
+    document.querySelectorAll('#fiche [data-requis]').forEach(function (i) {
+      var champ = i.closest('.c-field'), v = i.value.trim();
+      var erreur = !v ? 'Champ obligatoire.' : (i.type === 'email' && !/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(v) ? 'Adresse email invalide.' : '');
+      champ.classList.toggle('is-error', !!erreur);
+      var e = champ.querySelector('.c-field__error'); if (e) e.remove();
+      if (erreur) { champ.insertAdjacentHTML('beforeend', '<span class="c-field__error">' + erreur + '</span>'); ok = false; }
+    });
+    if (!ok) return;
+    var id = edite || 't' + (Object.keys(D.transporteurs).length + 1);
+    D.transporteurs[id] = { nom: $('t-nom').value.trim(), contact: $('t-contact').value.trim(), email: $('t-email').value.trim(), tel: $('t-tel').value.trim() };
+    D.sauverTransporteur(id);
+    $('msg-texte').textContent = (edite ? 'Fiche mise à jour : ' : 'Transporteur ajouté à l\'annuaire : ') + D.transporteurs[id].nom + '.';
+    $('msg').hidden = false;
+    fermer(); render();
+  });
+  document.addEventListener('click', function (e) {
+    var b = e.target.closest('[data-editer]'); if (b) ouvrir(b.dataset.editer);
+    if (e.target.closest('[data-fermer]')) fermer();
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') fermer(); });
+  $('msg-fermer').addEventListener('click', function () { $('msg').hidden = true; });
+  $('search').addEventListener('input', function () { q = this.value; render(); });
+  render();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Votre réponse à l'offre de transport — DOUALOG</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<script src="../assets/icons.js"></script>
+<script src="../assets/data.js"></script>
+</head>
+<body>
+<!-- X05b · Page de retour après le clic Accepter / Refuser de l'email X05 · US-31 (P4)
+     ?ot=OT-…&t=t3&reponse=acceptee|refusee : enregistre la réponse (mémoire de démo) puis affiche l'état.
+     C7 : la première acceptation attribue l'OT ; les autres transporteurs voient « Offre déjà attribuée ».
+     ?etat=acceptee|refusee|attribuee : affiche directement un état, sans rien enregistrer (sommaire de la maquette). -->
+<div class="c-ext">
+  <header class="c-ext__top">
+    <div class="c-ext__top-in">
+      <span class="c-brand"><span class="c-brand__mark"><img src="../assets/img/logo-monogramme.png" alt=""></span>
+        <span><span class="c-brand__name">DOUA<em>LOG</em></span><span class="c-brand__sub">Douane &amp; Logistique</span></span></span>
+      <span class="c-ext__ctx">Offre de transport<b id="ctx-ot"></b></span>
+    </div>
+  </header>
+
+  <main class="c-ext__main" id="contenu"></main>
+
+  <footer class="c-ext__foot" id="pied"></footer>
+</div>
+
+<script>
+(function () {
+  var D = window.DOUALOG, F = D.fmt, esc = D.esc;
+  function $(id) { return document.getElementById(id); }
+  function icon(n, cls) { return '<svg class="c-icon' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#i-' + n + '"></use></svg>'; }
+  var p = new URLSearchParams(location.search);
+  var otId = p.get('ot') || 'OT-2026-0161', ot = D.ots[otId];
+  var t = p.get('t') || ot.offres[0].transporteur, tr = D.transporteurs[t];
+  var d = D.dossier(ot.dossier), now = D.config.aujourdhui;
+  var offre = ot.offres.filter(function (o) { return o.transporteur === t; })[0];
+  var gagnant = ot.offres.filter(function (o) { return o.reponse === 'Acceptée'; })[0];
+
+  /* Enregistrement de la réponse (sauf aperçu direct d'un état) */
+  var etat = p.get('etat');
+  if (!etat) {
+    var reponse = p.get('reponse') || 'acceptee';
+    if (gagnant && gagnant.transporteur !== t) etat = 'attribuee';                 // C7 : un autre a accepté avant
+    else if (offre.reponse === 'Acceptée') etat = 'acceptee';                       // déjà accepté (lien ouvert une 2e fois)
+    else if (offre.reponse === 'Offre clôturée') etat = 'attribuee';
+    else if (reponse === 'refusee') {
+      offre.reponse = 'Refusée'; offre.date = now; etat = 'refusee';
+      D.sauverOT(otId);
+    } else {
+      offre.reponse = 'Acceptée'; offre.date = now;
+      ot.offres.forEach(function (o) { if (o !== offre && !o.reponse) { o.reponse = 'Offre clôturée'; o.date = now; } });
+      ot.suivi.push({ statut: 'Confirmé', date: now });
+      ot.lien = { actif: true, expire: 'à la confirmation de livraison' };
+      d.transport = { statut: 'Confirmé', ot: otId, transporteur: t };
+      D.sauverOT(otId); D.sauverDossier(d);
+      etat = 'acceptee';
+    }
+  }
+
+  $('ctx-ot').textContent = otId;
+  var recap = '<section class="c-card"><div class="c-card__head"><h3>Ordre de transport ' + otId + '</h3></div><div class="c-card__body"><dl class="c-kv c-kv--rows">' +
+    [['Dossier', d.id], ['Marchandise', esc(ot.marchandise)], ['Poids brut', F.poids(ot.poids)], ['Colis', F.nombre(ot.colis) + ' ' + esc(ot.unite)],
+     ['Chargement', esc(ot.chargement)], ['Livraison', esc(ot.livraisonAdresse)], ['Prise en charge', F.date(ot.priseEnCharge) + ' à ' + F.heure(ot.priseEnCharge)],
+     ['Instructions', esc(ot.instructions || 'Aucune')]]
+      .map(function (r) { return '<div><dt>' + r[0] + '</dt><dd>' + r[1] + '</dd></div>'; }).join('') + '</dl></div></section>';
+  var contact = D.equipe.u4;   // Service transport (CDC §02)
+
+  var html;
+  if (etat === 'acceptee') {
+    html = '<div><h1>Offre acceptée</h1><p class="c-ext__lead">Merci ' + esc(tr.contact) + '. L\'ordre de transport <b>' + otId + '</b> est attribué à <b>' + esc(tr.nom) + '</b>.</p></div>' +
+      '<div class="c-alert c-alert--success">' + icon('valide') + '<div><div class="c-alert__title">Prochaine étape : indiquez le camion et le chauffeur</div>' +
+      '<div>Depuis votre lien personnel, vous mettrez aussi à jour le statut du transport et déposerez les documents de livraison.</div></div></div>' +
+      '<a class="c-btn c-btn--primary c-btn--block" href="X06-lien-transporteur.html?ot=' + otId + '&t=' + t + '">' + icon('link') + 'Ouvrir mon lien transporteur</a>' +
+      '<p class="c-field__help">Ce lien vous a aussi été envoyé par email. Il reste actif jusqu\'à la confirmation de la livraison.</p>' + recap;
+  } else if (etat === 'refusee') {
+    html = '<div><h1>Votre refus est enregistré</h1><p class="c-ext__lead">Merci ' + esc(tr.contact) + ' pour votre réponse rapide. DOUALOG a été informé et sollicitera un autre transporteur si nécessaire.</p></div>' +
+      '<div class="c-alert c-alert--info">' + icon('info') + '<div><div class="c-alert__title">Vous n\'avez rien d\'autre à faire</div>' +
+      '<div>Si vous changez d\'avis, contactez le service transport : l\'offre a peut-être déjà été attribuée.</div></div></div>' + recap;
+  } else {
+    html = '<div><h1>Cette offre a déjà été attribuée</h1><p class="c-ext__lead">Un autre transporteur a accepté l\'ordre de transport <b>' + otId + '</b> avant vous.</p></div>' +
+      '<div class="c-alert c-alert--warning">' + icon('clock') + '<div><div class="c-alert__title">Merci de votre réactivité</div>' +
+      '<div>L\'offre était adressée à plusieurs transporteurs et revient au premier qui l\'accepte. Nous reviendrons vers vous pour de prochains transports.</div></div></div>';
+  }
+  $('contenu').innerHTML = html;
+  $('pied').innerHTML = 'Une question ? Service transport DOUALOG — ' + esc(contact.nom) + ' · <a href="mailto:' + D.config.boiteEmail + '?subject=' + encodeURIComponent('[' + otId + '] ') + '">' + D.config.boiteEmail + '</a><br>' +
+    D.config.ville + ', ' + D.config.pays + ' · Connecter • Sécuriser • Livrer';
+})();
+</script>
+</body>
+</html>

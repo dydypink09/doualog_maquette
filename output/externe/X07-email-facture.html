@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Facture — maquette email</title>
+<!-- X07 · Email facture client · US-36 (P5) — envoyé à l'émission de la facture depuis E06, PDF en pièce jointe.
+     ?id=DLG-… (par défaut DLG-2026-0402, facture émise ; pour le fil rouge : émettre la facture de DLG-2026-0412 dans E06).
+     HTML d'email : 600 px, tableaux, styles en ligne. Données : ../assets/data.js. -->
+<!-- À VALIDER : coordonnées de paiement (banque, RIB, paiement mobile) · délai d'échéance · relances automatiques à l'échéance (CDC §10.4). -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="../assets/data.js"></script>
+<script src="../assets/email.js"></script>
+</head>
+<body data-defaut="DLG-2026-0402" style="margin:0;padding:0;background:#E9EDF2;font-family:Inter,Arial,Helvetica,sans-serif;-webkit-font-smoothing:antialiased;">
+
+<!-- En-tête de messagerie (aperçu, hors email) -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#E9EDF2;">
+  <tr><td align="center" style="padding:24px 12px 0;">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:100%;background:#FFFFFF;border:1px solid #D1D5DB;border-radius:8px 8px 0 0;">
+      <tr><td style="padding:16px 20px 12px;font-size:17px;line-height:24px;font-weight:700;color:#111827;" data-objet>
+        [<span data-f="id"></span>] Facture <span data-f="factureNum"></span>
+      </td></tr>
+      <tr><td style="padding:0 20px 10px;font-size:13px;line-height:20px;color:#6B7280;">
+        <b style="color:#374151;">De :</b> DOUALOG — Facturation &lt;<span data-f="boite"></span>&gt;<br>
+        <b style="color:#374151;">À :</b> <span data-f="contact"></span> &lt;<span data-f="emailClient"></span>&gt;<br>
+        <b style="color:#374151;">Date :</b> <span data-f="envoiFacture"></span>
+      </td></tr>
+      <tr><td style="padding:0 20px 14px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #E5E7EB;border-radius:6px;background:#F9FAFB;"><tr>
+          <td style="padding:8px 10px;font-size:11px;line-height:14px;font-weight:700;color:#FFFFFF;background:#B23327;border-radius:4px;" valign="middle">PDF</td>
+          <td style="padding:8px 12px;font-size:13px;line-height:18px;color:#111827;"><span data-f="facturePdf"></span><br><span style="color:#6B7280;font-size:12px;">Facture · 1 page</span></td>
+        </tr></table>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+
+<!-- Email -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#E9EDF2;">
+  <tr><td align="center" style="padding:0 12px 32px;">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:100%;background:#FFFFFF;border:1px solid #D1D5DB;border-top:0;">
+
+      <!-- Bandeau DOUALOG -->
+      <tr><td style="background:#0A1628;padding:18px 28px;border-bottom:2px solid #F97316;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td width="44" valign="middle"><img src="../assets/img/logo-monogramme.png" width="36" alt="" style="display:block;width:36px;background:#FFFFFF;border-radius:6px;padding:4px;"></td>
+          <td valign="middle" style="padding-left:10px;">
+            <div style="font-size:20px;line-height:22px;font-weight:700;color:#FFFFFF;letter-spacing:.02em;">DOUA<span style="color:#F97316;">LOG</span></div>
+            <div style="font-size:10px;line-height:14px;color:#AEB7C6;letter-spacing:.14em;text-transform:uppercase;">Douane &amp; Logistique</div>
+          </td>
+          <td align="right" valign="middle" style="font-size:11px;line-height:16px;color:#AEB7C6;letter-spacing:.06em;text-transform:uppercase;">Facture</td>
+        </tr></table>
+      </td></tr>
+
+      <!-- Corps -->
+      <tr><td style="padding:32px 28px 8px;">
+        <h1 style="margin:0 0 16px;font-size:22px;line-height:30px;font-weight:700;color:#0C2C5E;">Votre facture pour le dossier <span data-f="id"></span></h1>
+        <p style="margin:0 0 12px;font-size:15px;line-height:24px;color:#374151;">Bonjour <span data-f="contact"></span>,</p>
+        <p style="margin:0 0 20px;font-size:15px;line-height:24px;color:#374151;">
+          Les formalités de votre dossier sont terminées (bon à sortir obtenu le <span data-f="dateBAS"></span>).
+          Vous trouverez ci-joint la facture correspondante.
+        </p>
+      </td></tr>
+
+      <!-- Montant mis en avant -->
+      <tr><td style="padding:0 28px 20px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F3F4F6;border-left:4px solid #F97316;border-radius:0 6px 6px 0;">
+          <tr>
+            <td style="padding:16px 20px;" valign="top">
+              <div style="font-size:11px;line-height:16px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6B7280;">Facture <span data-f="factureNum"></span></div>
+              <div style="font-size:28px;line-height:36px;font-weight:700;color:#0C2C5E;" data-f="factureTTC"></div>
+              <div style="font-size:13px;line-height:20px;color:#374151;">Total TTC · émise le <span data-f="factureEmise"></span></div>
+            </td>
+            <td style="padding:16px 20px;" valign="top" align="right">
+              <div style="font-size:11px;line-height:16px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6B7280;">À régler avant le</div>
+              <div style="font-size:20px;line-height:36px;font-weight:700;color:#111827;" data-f="factureEcheance"></div>
+            </td>
+          </tr>
+        </table>
+      </td></tr>
+
+      <!-- Détail -->
+      <tr><td style="padding:0 28px 8px;">
+        <div style="font-size:12px;line-height:18px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#0C2C5E;margin-bottom:4px;">Détail</div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="font-size:14px;line-height:20px;color:#374151;">
+          <tr><td style="padding:8px 0;border-bottom:1px solid #E5E7EB;">Prestations DOUALOG (HT)</td><td align="right" style="padding:8px 0;border-bottom:1px solid #E5E7EB;" data-f="factureHT"></td></tr>
+          <tr><td style="padding:8px 0;border-bottom:1px solid #E5E7EB;"><span data-f="tvaLibelle"></span> sur prestations</td><td align="right" style="padding:8px 0;border-bottom:1px solid #E5E7EB;" data-f="factureTVA"></td></tr>
+          <tr><td style="padding:8px 0;border-bottom:1px solid #E5E7EB;">Débours (droits, taxes et frais portuaires avancés pour votre compte)</td><td align="right" style="padding:8px 0;border-bottom:1px solid #E5E7EB;" data-f="factureDebours"></td></tr>
+          <tr><td style="padding:10px 0;font-weight:700;color:#0C2C5E;">Total TTC</td><td align="right" style="padding:10px 0;font-weight:700;color:#0C2C5E;" data-f="factureTTC"></td></tr>
+        </table>
+      </td></tr>
+
+      <!-- Références -->
+      <tr><td style="padding:12px 28px 0;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="border:1px solid #E5E7EB;border-radius:6px;">
+          <tr><td style="padding:12px 16px;font-size:13px;line-height:21px;color:#374151;">
+            <b style="color:#0C2C5E;">Références :</b> dossier <b data-f="id"></b> · <span data-f="refTransport"></span> · conteneur <span data-f="conteneur"></span><br>
+            <span data-f="marchandise"></span>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      <!-- Bouton -->
+      <tr><td align="center" style="padding:28px 28px 8px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td style="background:#F97316;border-radius:6px;">
+            <a data-href="perso" href="#" style="display:inline-block;padding:14px 32px;font-size:15px;line-height:20px;font-weight:700;color:#FFFFFF;text-decoration:none;">Voir mon dossier</a>
+          </td>
+        </tr></table>
+      </td></tr>
+      <tr><td align="center" style="padding:0 28px 24px;">
+        <p style="margin:0;font-size:12px;line-height:18px;color:#6B7280;">La facture et les documents du dossier (BAE, BAS) sont aussi disponibles sur votre lien personnel.</p>
+      </td></tr>
+
+      <!-- Paiement -->
+      <tr><td style="padding:0 28px 24px;">
+        <div style="font-size:12px;line-height:18px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#0C2C5E;margin-bottom:6px;">Modalités de paiement</div>
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F9FAFB;border:1px dashed #D1D5DB;border-radius:6px;">
+          <tr><td style="padding:12px 16px;font-size:13px;line-height:21px;color:#374151;">
+            Virement bancaire, chèque ou paiement mobile.<br>
+            <span style="color:#6B7280;">Banque, RIB et numéro de paiement mobile : à compléter.</span><br>
+            Merci d'indiquer <b data-f="factureNum"></b> et <b data-f="id"></b> en référence de votre règlement.
+          </td></tr>
+        </table>
+      </td></tr>
+
+      <tr><td style="padding:0 28px 32px;">
+        <p style="margin:0;font-size:15px;line-height:24px;color:#374151;">Nous vous remercions de votre confiance.<br>Bien cordialement,<br><b>Le service facturation DOUALOG</b></p>
+      </td></tr>
+
+      <!-- Pied -->
+      <tr><td style="background:#F3F4F6;padding:20px 28px;border-top:1px solid #E5E7EB;">
+        <p style="margin:0 0 6px;font-size:12px;line-height:18px;color:#374151;"><b>DOUALOG — Douane &amp; Logistique</b> · <span data-f="ville"></span>, <span data-f="pays"></span> · <a data-href="mailto" href="#" style="color:#0C2C5E;" data-f="boite"></a></p>
+        <p style="margin:0 0 6px;font-size:10px;line-height:16px;color:#6B7280;letter-spacing:.2em;text-transform:uppercase;">Connecter • Sécuriser • Livrer</p>
+        <p style="margin:0;font-size:11px;line-height:16px;color:#6B7280;">Pour toute question sur cette facture, répondez à ce message en conservant le numéro de dossier dans l'objet.</p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>

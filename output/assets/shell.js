@@ -18,19 +18,21 @@
     return D.acces[r] ? r : 'declarant';
   }
   function ecrireRole(r) { try { localStorage.setItem(KEY, r); } catch (e) {} }
-  function nonLues() { return D.notifications.filter(function (n) { return !n.lue; }).length; }
+  function nonLues() { return D.nonLues(); }
+  /* Page d'accueil du profil : E07 pour Manager et Direction, E01 sinon */
+  function accueil(role) { return D.acces[role].accueil || 'E01-tableau-de-bord.html'; }
 
   function renderTopbar(role) {
     var notif = nonLues(), mails = D.emailsNonLus.length;
     $('topbar').innerHTML =
-      '<a class="c-brand" href="E01-tableau-de-bord.html" aria-label="DOUALOG — Tableau de bord">' +
+      '<a class="c-brand" id="shell-accueil" href="' + accueil(role) + '" aria-label="DOUALOG — Accueil">' +
         '<span class="c-brand__mark"><img src="../assets/img/logo-monogramme.png" alt=""></span>' +
         '<span><span class="c-brand__name">DOUA<em>LOG</em></span><span class="c-brand__sub">Control Tower</span></span></a>' +
       '<div class="c-topbar__search c-input-icon">' + icon('search') +
         '<input class="c-input" id="shell-search" type="search" placeholder="Rechercher un dossier, un BL, un conteneur, un client…" aria-label="Recherche globale"></div>' +
       '<div class="c-topbar__right">' +
         '<a class="c-btn c-btn--icon c-btn--ghost c-topbar__icon" href="E08-notifications.html" aria-label="Notifications, ' + notif + ' non lues">' +
-          icon('bell', 'c-icon--lg') + '<span class="c-count c-count--accent">' + (notif || '') + '</span></a>' +
+          icon('bell', 'c-icon--lg') + '<span class="c-count c-count--accent" id="shell-notif">' + (notif || '') + '</span></a>' +
         /* Messagerie générale hors V1 : le compteur montre les emails entrants non lus de la boîte DOUALOG */
         '<span class="c-btn c-btn--icon c-btn--ghost c-topbar__icon" role="img" title="Emails entrants non lus — messagerie générale prévue après la V1" aria-label="' + mails + ' emails entrants non lus">' +
           icon('mail', 'c-icon--lg') + '<span class="c-count c-count--accent">' + (mails || '') + '</span></span>' +
@@ -48,7 +50,7 @@
     }
     /* Entrée hors droits du profil : rendue grisée par appliquerRole (le menu reste celui de l'image) */
     return '<li data-nav="' + e.id + '"><a class="c-nav__item" href="' + e.href + '">' + icon(e.icone) + e.label +
-      (n ? '<span class="c-count">' + n + '</span>' : '') + '</a></li>';
+      '<span class="c-count"' + (e.id === 'notifications' ? ' id="shell-nav-notif"' : '') + (n ? '' : ' data-zero') + '>' + (n || '') + '</span></a></li>';
   }
 
   function renderSidebar() {
@@ -90,7 +92,14 @@
     setActive(opts.actif);
     appliquerRole(role);
 
-    $('shell-role').addEventListener('change', function () { ecrireRole(this.value); appliquerRole(this.value); });
+    $('shell-role').addEventListener('change', function () {
+      ecrireRole(this.value);
+      /* Changement de profil depuis une page d'accueil : on bascule sur l'accueil du nouveau profil */
+      var page = location.pathname.split('/').pop(), dest = accueil(this.value);
+      if (!location.search && (page === 'E01-tableau-de-bord.html' || page === 'E07-dashboard-manager.html') && page !== dest) { location.href = dest; return; }
+      $('shell-accueil').href = dest;
+      appliquerRole(this.value);
+    });
     var s = $('shell-search');
     s.addEventListener('input', function () { if (opts.onSearch) opts.onSearch(s.value); });
     s.addEventListener('keydown', function (e) {
@@ -98,5 +107,15 @@
     });
   }
 
-  window.DOUALOG_SHELL = { init: init, setActive: setActive, role: lireRole, icon: icon };
+  /* Met à jour les compteurs de notifications (cloche + menu) après « marquer comme lu » */
+  function majCompteurs() {
+    var n = nonLues();
+    [$('shell-notif'), $('shell-nav-notif')].forEach(function (el) {
+      if (!el) return;
+      el.textContent = n || '';
+      if (n) el.removeAttribute('data-zero'); else el.setAttribute('data-zero', '');
+    });
+  }
+
+  window.DOUALOG_SHELL = { init: init, setActive: setActive, role: lireRole, icon: icon, accueil: accueil, majCompteurs: majCompteurs };
 })();

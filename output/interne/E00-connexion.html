@@ -12,7 +12,7 @@
 <!-- E00 · Connexion · US-45 — maquette : le bouton mène au tableau de bord sans contrôle -->
 <main class="c-auth">
 
-  <form class="c-auth__card" action="E01-tableau-de-bord.html" method="get">
+  <form class="c-auth__card" action="E01-tableau-de-bord.html" method="get" id="connexion">
     <div>
       <img class="c-auth__logo" src="../assets/img/logo.png" alt="DOUALOG — Douane &amp; Logistique">
       <h1>Connexion</h1>
@@ -48,5 +48,14 @@
   </p>
 
 </main>
+<script src="../assets/data.js"></script>
+<script>
+  /* Accueil selon le profil choisi en dernier (E07 pour Manager et Direction) */
+  document.getElementById('connexion').addEventListener('submit', function (e) {
+    var r = null; try { r = localStorage.getItem('doualog-role'); } catch (x) {}
+    var a = window.DOUALOG.acces[r];
+    if (a && a.accueil) { e.preventDefault(); location.href = a.accueil; }
+  });
+</script>
 </body>
 </html>
