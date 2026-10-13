@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design system — DOUALOG Control Tower</title>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/components.css">
+<script src="assets/icons.js"></script>
+<script src="assets/data.js"></script>
+<style>
+  /* Mise en page propre à cette page de référence (aucun composant ici) */
+  .ds { max-width: 1240px; margin: 0 auto; padding: var(--sp-8) var(--sp-6) var(--sp-12); }
+  .ds-head { display: flex; align-items: center; gap: var(--sp-4); padding-bottom: var(--sp-4); border-bottom: 2px solid var(--border-ink); }
+  .ds-head img { width: 120px; }
+  .ds-head p { color: var(--text-secondary); font-size: var(--fs-sm); }
+  .ds-toc { display: flex; flex-wrap: wrap; gap: var(--sp-1) var(--sp-4); padding: var(--sp-3) 0; border-bottom: var(--border-w) solid var(--border); font-size: var(--fs-sm); }
+  .ds-toc a { text-decoration: none; font-weight: var(--fw-semibold); }
+  .ds-sec { padding-top: var(--sp-12); }
+  .ds-sec > h2 { padding-bottom: var(--sp-2); margin-bottom: var(--sp-2); border-bottom: var(--border-w) solid var(--border-ink); }
+  .ds-intro { color: var(--text-secondary); max-width: 80ch; margin-bottom: var(--sp-4); }
+  .ds-box { background: var(--bg-surface); border: var(--border-w) solid var(--border); border-radius: var(--radius-md); padding: var(--sp-6); margin-bottom: var(--sp-3); }
+  .ds-box--flush { padding: 0; overflow: hidden; }
+  .ds-cap { margin-bottom: var(--sp-3); }
+  .ds-grid { display: grid; gap: var(--sp-3); grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+  .ds-swatch { border: var(--border-w) solid var(--border); border-radius: var(--radius-md); overflow: hidden; background: var(--bg-surface); }
+  .ds-swatch__c { height: 64px; border-bottom: var(--border-w) solid var(--border); }
+  .ds-swatch__i { padding: var(--sp-2) var(--sp-3); font-size: var(--fs-sm); }
+  .ds-swatch__i code { color: var(--text-secondary); font-size: var(--fs-xs); }
+  .ds-map { width: 100%; border-collapse: collapse; font-size: var(--fs-md); }
+  .ds-map td, .ds-map th { padding: var(--sp-2) var(--sp-3); border-bottom: var(--border-w) solid var(--border); text-align: left; vertical-align: middle; }
+  .ds-map th { font-size: var(--fs-xs); text-transform: uppercase; letter-spacing: var(--ls-label); color: var(--text-secondary); }
+  .ds-icons { display: grid; grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); background: var(--bg-surface); border: var(--border-w) solid var(--border); border-radius: var(--radius-md); }
+  .ds-icons div { border-right: var(--border-w) solid var(--border); border-bottom: var(--border-w) solid var(--border); display: flex; flex-direction: column; align-items: center; gap: var(--sp-2); padding: var(--sp-4) var(--sp-2); font-size: var(--fs-xs); color: var(--text-secondary); }
+  .ds-icons .c-icon { width: 22px; height: 22px; color: var(--text-primary); }
+  .ds-scale td { padding: var(--sp-2) var(--sp-3); border-bottom: var(--border-w) solid var(--border); }
+  .ds-space { display: flex; align-items: center; gap: var(--sp-3); font-size: var(--fs-sm); padding: var(--sp-1) 0; }
+  .ds-space i { display: block; height: 12px; background: var(--action-primary); }
+  .ds-two { display: grid; grid-template-columns: 1fr 1fr; gap: var(--sp-3); }
+  .ds-shell { height: 260px; overflow: hidden; border: var(--border-w) solid var(--border-ink); border-radius: var(--radius-md); }
+  .ds-shell .c-app { min-height: 0; height: 100%; }
+  .ds-shell .c-topbar, .ds-shell .c-sidebar { position: static; height: auto; }
+  .ds-note { font-size: var(--fs-sm); color: var(--text-secondary); margin-top: var(--sp-2); }
+  .ds-panel-demo { position: relative; height: 380px; overflow: hidden; border: var(--border-w) solid var(--border); border-radius: var(--radius-md); background: var(--bg-app); }
+  .ds-panel-demo .c-panel { position: absolute; left: 0; height: 88%; }
+  @media (max-width: 760px) { .ds-two { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+<div class="ds">
+
+  <header class="ds-head">
+    <img src="assets/img/logo.png" alt="DOUALOG — Douane & Logistique">
+    <div>
+      <h1>Design system — Control Tower</h1>
+      <p>Référence visuelle des maquettes V1 · Charte MIV-DLG-2026-A · tokens.css, components.css, icons.js, data.js</p>
+    </div>
+  </header>
+  <nav class="ds-toc" aria-label="Sommaire">
+    <a href="#couleurs">Couleurs</a><a href="#typo">Typographie</a><a href="#espaces">Espacements</a><a href="#icones">Icônes</a>
+    <a href="#statuts">Statuts</a><a href="#boutons">Boutons</a><a href="#champs">Champs</a><a href="#shell">Shell</a>
+    <a href="#tableau">Tableau</a><a href="#onglets">Onglets</a><a href="#workflow">Workflow</a><a href="#bandeau">Bandeau</a>
+    <a href="#panneau">Panneau &amp; modale</a><a href="#timeline">Timeline</a><a href="#documents">Documents</a>
+    <a href="#alertes">Alertes</a><a href="#vide">État vide</a><a href="#kpi">KPI</a><a href="#depot">Dépôt</a>
+  </nav>
+
+  <!-- ══ COULEURS ══ -->
+  <section class="ds-sec" id="couleurs">
+    <h2>Couleurs</h2>
+    <p class="ds-intro">Uniquement les couleurs de la charte. L'or est réservé à l'action principale, à l'élément actif et au focus ; jamais en fond de grande zone.</p>
+    <p class="u-label ds-cap">Identité &amp; surfaces</p>
+    <div class="ds-grid" id="sw-base"></div>
+    <p class="u-label ds-cap" style="margin-top: var(--sp-6)">Six teintes de statut — paires fond / texte (contraste ≥ 4,5:1)</p>
+    <div class="ds-grid" id="sw-tones"></div>
+    <p class="ds-note">Le texte vert des badges est assombri (<code>#23683A</code>) pour atteindre le contraste AA — valeur déduite, à valider.</p>
+  </section>
+
+  <!-- ══ TYPOGRAPHIE ══ -->
+  <section class="ds-sec" id="typo">
+    <h2>Typographie — Sora</h2>
+    <p class="ds-intro">Une seule police. Hiérarchie par le poids et la taille. Chiffres tabulaires pour les références, dates et montants.</p>
+    <div class="ds-box ds-box--flush">
+      <table class="ds-scale" style="width:100%;border-collapse:collapse">
+        <tr><td class="u-label">Titre KPI · 30 / 700</td><td style="font-size:var(--fs-3xl);font-weight:var(--fw-bold);color:var(--text-heading)" class="u-num">17</td></tr>
+        <tr><td class="u-label">Titre de page · 22 / 700</td><td><h1>Tableau de bord</h1></td></tr>
+        <tr><td class="u-label">Sous-titre · 17 / 600</td><td><h2>Contrôle douane</h2></td></tr>
+        <tr><td class="u-label">Corps formulaire · 14 / 400</td><td style="font-size:var(--fs-base)">Vérification du poids et du marquage des sacs : conforme au manifeste.</td></tr>
+        <tr><td class="u-label">Corps application · 13 / 400</td><td>Déclaration stockée, en attente de contrôle.</td></tr>
+        <tr><td class="u-label">Métadonnée · 12 / 400</td><td style="font-size:var(--fs-sm)" class="u-muted">Reçu le 29/09/2026 · 09:14</td></tr>
+        <tr><td class="u-label">Libellé · 11 / 600 majuscules</td><td><span class="u-label">N° dossier</span></td></tr>
+        <tr><td class="u-label">Référence · 13 / 500 tabulaire</td><td><span class="c-ref">DLG-2026-0412</span> · <a class="c-ref" href="#">DLG-2026-0412</a> (lien)</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══ ESPACEMENTS ══ -->
+  <section class="ds-sec" id="espaces">
+    <h2>Espacements, angles, ombre</h2>
+    <div class="ds-two">
+      <div class="ds-box" id="spaces"></div>
+      <div class="ds-box">
+        <p>Rayon <b>6 px</b> pour boutons, champs, cartes. Badges en <b>pilule</b>.</p>
+        <p style="margin-top:var(--sp-2)"><b>Aucune ombre portée</b> : la séparation se fait par la bordure fine et l'espacement.</p>
+        <p style="margin-top:var(--sp-2)">Hauteurs : champ / bouton 36 px (32 px en petit) · ligne de tableau 40 px · topbar 56 px + trait or 2 px.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ ICÔNES ══ -->
+  <section class="ds-sec" id="icones">
+    <h2>Icônes</h2>
+    <p class="ds-intro">Une famille, trait 1,8 px, sans remplissage. 16 px dans les tableaux, 20 px dans la navigation. Une icône seulement si elle accélère la reconnaissance.</p>
+    <div class="ds-icons" id="icons"></div>
+  </section>
+
+  <!-- ══ STATUTS ══ -->
+  <section class="ds-sec" id="statuts">
+    <h2>Badges de statut</h2>
+    <p class="ds-intro">Le même libellé et la même teinte partout (liste, dossier, pages externes). Toujours pastille + libellé, jamais la couleur seule. Mapping des 13 statuts du CDC §08 sur les 6 teintes de la charte.</p>
+    <div class="ds-two">
+      <div class="ds-box ds-box--flush"><table class="ds-map"><thead><tr><th>Statut dossier</th><th>Teinte</th></tr></thead><tbody id="map-dossier"></tbody></table></div>
+      <div class="u-stack">
+        <div class="ds-box ds-box--flush"><table class="ds-map"><thead><tr><th>Statut transport</th><th>Teinte</th></tr></thead><tbody id="map-transport"></tbody></table></div>
+        <div class="ds-box ds-box--flush"><table class="ds-map"><thead><tr><th>Statut facture <!-- À VALIDER : couleurs D3 --></th><th>Teinte</th></tr></thead><tbody id="map-facture"></tbody></table></div>
+      </div>
+    </div>
+    <div class="ds-box">
+      <p class="u-label ds-cap">Contrôle · résultat · BAE / BAS · type de flux (contour) · compteurs</p>
+      <div class="u-row" id="badges-misc"></div>
+      <div class="u-row" style="margin-top:var(--sp-3)">
+        <span class="c-count">3</span><span class="c-count c-count--alert">2</span><span class="c-count c-count--accent">17</span>
+        <span class="u-muted" style="font-size:var(--fs-sm)">Compteur neutre · alertes non lues · élément actif</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ BOUTONS ══ -->
+  <section class="ds-sec" id="boutons">
+    <h2>Boutons</h2>
+    <p class="ds-intro">Un seul bouton primaire (or) par zone. Les autres actions : secondaire (contour encre), discret ou danger.</p>
+    <div class="ds-box u-stack">
+      <div class="u-row">
+        <button class="c-btn c-btn--primary"><svg class="c-icon" aria-hidden="true"><use href="#i-check"></use></svg>BAS obtenu</button>
+        <button class="c-btn"><svg class="c-icon" aria-hidden="true"><use href="#i-mail"></use></svg>Envoyer un email</button>
+        <button class="c-btn c-btn--ghost">Annuler</button>
+        <button class="c-btn c-btn--danger">Désactiver le lien</button>
+        <button class="c-btn c-btn--icon" aria-label="Plus d'actions"><svg class="c-icon" aria-hidden="true"><use href="#i-more"></use></svg></button>
+      </div>
+      <div class="u-row">
+        <button class="c-btn c-btn--primary c-btn--sm">Créer OT</button>
+        <button class="c-btn c-btn--sm"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-pdf"></use></svg>Exporter PDF</button>
+        <button class="c-btn c-btn--ghost c-btn--sm">Voir</button>
+        <button class="c-btn c-btn--sm c-btn--icon" aria-label="Ouvrir le dossier"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-eye"></use></svg></button>
+      </div>
+      <div class="u-row">
+        <button class="c-btn c-btn--primary" disabled>Désactivé</button>
+        <button class="c-btn c-btn--primary is-loading">Envoi</button>
+        <span class="u-muted" style="font-size:var(--fs-sm)">États : désactivé · en cours</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ CHAMPS ══ -->
+  <section class="ds-sec" id="champs">
+    <h2>Champs de saisie</h2>
+    <p class="ds-intro">Libellé au-dessus, jamais en placeholder seul. Obligatoire marqué *. Erreur sous le champ, en langage clair.</p>
+    <div class="ds-box">
+      <div class="c-form-grid">
+        <div class="c-field"><label class="c-field__label" for="f1">N° de BAE <span class="is-required">*</span></label><input class="c-input u-num" id="f1" value="2026-BAE-048213"></div>
+        <div class="c-field"><label class="c-field__label" for="f2">Type de contrôle</label>
+          <select class="c-select" id="f2"><option>Aucun</option><option selected>Physique</option><option>Documentaire</option></select></div>
+        <div class="c-field"><label class="c-field__label" for="f3">Date de contrôle</label><input class="c-input" id="f3" type="date" value="2026-10-07"></div>
+        <div class="c-field is-error"><label class="c-field__label" for="f4">Inspecteur <span class="is-required">*</span></label><input class="c-input" id="f4" value="">
+          <span class="c-field__error"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-controle"></use></svg>Indiquez le nom de l'inspecteur.</span></div>
+        <div class="c-field"><label class="c-field__label" for="f5">Date de réception</label><input class="c-input u-num" id="f5" value="29/09/2026 · 09:14" readonly><span class="c-field__help">Horodatage automatique</span></div>
+        <div class="c-field"><label class="c-field__label" for="f6">Navire</label><input class="c-input" id="f6" value="MSC Ilaria" disabled></div>
+        <div class="c-field is-wide"><label class="c-field__label" for="f7">Commentaire</label><textarea class="c-textarea" id="f7">Vérification du poids et du marquage des sacs : conforme au manifeste.</textarea></div>
+        <div class="c-field"><span class="c-field__label">Transporteurs</span>
+          <label class="c-check"><input type="checkbox" checked> Trans-Express Logistique</label>
+          <label class="c-check"><input type="checkbox"> Atlantic Fret</label></div>
+        <div class="c-field"><span class="c-field__label">Résultat</span>
+          <label class="c-check"><input type="radio" name="r" checked> Conforme</label>
+          <label class="c-check"><input type="radio" name="r"> Info manquante</label></div>
+        <div class="c-field"><label class="c-field__label" for="f8">Recherche</label>
+          <div class="c-input-icon"><svg class="c-icon" aria-hidden="true"><use href="#i-search"></use></svg><input class="c-input" id="f8" placeholder="N° DLG, BL, client"></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ SHELL ══ -->
+  <section class="ds-sec" id="shell">
+    <h2>Shell applicatif</h2>
+    <p class="ds-intro">Topbar encre + trait or, monogramme sur pastille blanche (pas de logo blanc), recherche globale, sélecteur de rôle, cloche. Menu latéral ardoise, élément actif en or.</p>
+    <div class="ds-shell">
+      <div class="c-app">
+        <header class="c-topbar">
+          <a class="c-brand" href="#"><span class="c-brand__mark"><img src="assets/img/logo-monogramme.png" alt=""></span>
+            <span><span class="c-brand__name">DOUALOG</span><span class="c-brand__sub">Control Tower</span></span></a>
+          <div class="c-topbar__search c-input-icon"><svg class="c-icon" aria-hidden="true"><use href="#i-search"></use></svg><input class="c-input" placeholder="Rechercher un N° DLG, un BL, un client"></div>
+          <div class="c-topbar__right">
+            <label class="c-role"><span class="c-role__label">Vue</span>
+              <select class="c-select" id="role-select"></select></label>
+            <a class="c-btn c-btn--icon c-btn--ghost c-topbar__bell" href="#" aria-label="Notifications"><svg class="c-icon c-icon--lg" aria-hidden="true"><use href="#i-bell"></use></svg><span class="c-count c-count--alert" id="bell-count"></span></a>
+            <span class="c-user"><span class="c-user__initials">RA</span>Rachida Adjovi</span>
+          </div>
+        </header>
+        <nav class="c-sidebar" aria-label="Navigation principale">
+          <ul class="c-nav">
+            <li><a class="c-nav__item is-active" href="#"><svg class="c-icon" aria-hidden="true"><use href="#i-dossiers"></use></svg>Dossiers<span class="c-count" id="nav-count-db"></span></a></li>
+            <li><a class="c-nav__item" href="#"><svg class="c-icon" aria-hidden="true"><use href="#i-inbox"></use></svg>Salle d'attente<span class="c-count" id="nav-count-sa"></span></a></li>
+            <li><a class="c-nav__item" href="#"><svg class="c-icon" aria-hidden="true"><use href="#i-transport"></use></svg>Transporteurs</a></li>
+            <li><a class="c-nav__item" href="#"><svg class="c-icon" aria-hidden="true"><use href="#i-facture"></use></svg>Facturation</a></li>
+          </ul>
+        </nav>
+        <main class="c-main">
+          <div class="c-page-head"><div class="c-page-head__title"><h1>Dossiers</h1><span class="c-page-head__meta">17 dossiers · 3 en salle d'attente</span></div></div>
+        </main>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ TABLEAU ══ -->
+  <section class="ds-sec" id="tableau">
+    <h2>Barre d'outils, filtres rapides et tableau</h2>
+    <p class="ds-intro">Tableau pleine largeur, lignes alternées, en-têtes triables. Exceptions marquées par un filet à gauche (rouge : bloquant, rouille : vigilance), ligne sélectionnée surlignée. Survol des dates « Stockée » et « Anticipé » : détail en infobulle.</p>
+    <div class="c-toolbar">
+      <div class="c-input-icon c-toolbar__search"><svg class="c-icon" aria-hidden="true"><use href="#i-search"></use></svg><input class="c-input" placeholder="Rechercher"></div>
+      <span class="c-toolbar__sep"></span>
+      <button class="c-chip is-active">Tous <span class="c-count">17</span></button>
+      <button class="c-chip">En contrôle <span class="c-count">3</span></button>
+      <button class="c-chip">Info manquante <span class="c-count">1</span></button>
+      <button class="c-chip">Mes dossiers <span class="c-count">8</span></button>
+      <div class="c-toolbar__end"><button class="c-btn c-btn--sm"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-filter"></use></svg>Filtres</button></div>
+    </div>
+    <div class="c-table-wrap">
+      <table class="c-table">
+        <thead><tr>
+          <th><button class="c-th-sort is-sorted">N° dossier <svg class="c-icon" aria-hidden="true"><use href="#i-sort"></use></svg></button></th>
+          <th>Type</th><th>Client</th><th>Statut</th><th>Stockée</th><th>Anticipé</th><th>Contrôle</th><th>Transport</th><th class="is-center">Alertes</th><th></th>
+        </tr></thead>
+        <tbody id="table-demo"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- ══ ONGLETS ══ -->
+  <section class="ds-sec" id="onglets">
+    <h2>Onglets</h2>
+    <div class="ds-box">
+      <div class="c-tabs c-tabs--page" role="tablist">
+        <button class="c-tabs__tab is-active" role="tab" aria-selected="true">Dossiers <span class="c-count c-count--accent">17</span></button>
+        <button class="c-tabs__tab" role="tab">Salle d'attente <span class="c-count">3</span></button>
+      </div>
+      <div class="c-tabs" role="tablist" style="margin-top:var(--sp-6)" id="tabs-demo">
+        <button class="c-tabs__tab is-active" role="tab" aria-selected="true">Informations générales</button>
+        <button class="c-tabs__tab" role="tab">Douane</button>
+        <button class="c-tabs__tab" role="tab">Documents</button>
+        <button class="c-tabs__tab" role="tab">Transport</button>
+        <button class="c-tabs__tab" role="tab">Messagerie <span class="c-count">9</span></button>
+        <button class="c-tabs__tab" role="tab">Historique</button>
+      </div>
+      <p class="ds-note">Onglets de page (au-dessus de la liste) · onglets du dossier (panneau bas de page).</p>
+    </div>
+  </section>
+
+  <!-- ══ WORKFLOW ══ -->
+  <section class="ds-sec" id="workflow">
+    <h2>Workflow horizontal</h2>
+    <p class="ds-intro">9 étapes du CDC §6.2. Le trait dégrade de la couleur de l'étape passée vers la suivante ; les étapes à venir restent en trait gris plat. États : terminé (vert), anticipé (violet), en cours (or), contrôle en cours (rouille), bloquant (rouge), sans objet (gris « – »), à venir (cercle vide).</p>
+    <div class="ds-box u-stack" id="wf-demos"></div>
+  </section>
+
+  <!-- ══ BANDEAU ══ -->
+  <section class="ds-sec" id="bandeau">
+    <h2>Bandeau dossier</h2>
+    <p class="ds-intro">Fond encre, statut en badge, les 12 informations clés du CDC §6.1 et les actions rapides. Le workflow s'affiche dessous.</p>
+    <div class="ds-box ds-box--flush" id="banner-demo"></div>
+  </section>
+
+  <!-- ══ PANNEAU & MODALE ══ -->
+  <section class="ds-sec" id="panneau">
+    <h2>Panneau bas de page, panneau latéral, modale</h2>
+    <p class="ds-intro">Le dossier s'ouvre dans un panneau en bas de page, la liste reste visible au-dessus. Panneau latéral pour éditer une fiche (annuaire). Modale réservée aux confirmations et saisies courtes.</p>
+    <div class="u-row" style="margin-bottom:var(--sp-3)">
+      <button class="c-btn" data-toggle="panel-demo">Ouvrir / fermer le panneau</button>
+      <button class="c-btn" data-toggle="drawer-demo">Ouvrir le panneau latéral</button>
+      <button class="c-btn" data-open="modal-demo">Ouvrir la modale</button>
+    </div>
+    <div class="ds-panel-demo">
+      <div class="c-panel is-open" id="panel-demo">
+        <div class="c-panel__tools">
+          <button class="c-btn c-btn--icon c-btn--sm c-btn--on-dark" aria-label="Agrandir"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-maximize"></use></svg></button>
+          <button class="c-btn c-btn--icon c-btn--sm c-btn--on-dark" aria-label="Fermer" data-toggle="panel-demo"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></button>
+        </div>
+        <div class="c-banner"><div class="c-banner__top"><span class="c-banner__ref">DLG-2026-0412</span><span id="panel-badge"></span><span class="c-banner__client">Agro-Industrie du Littoral</span></div></div>
+        <div class="c-panel__body">
+          <div class="c-tabs"><button class="c-tabs__tab is-active">Informations générales</button><button class="c-tabs__tab">Douane</button><button class="c-tabs__tab">Documents</button></div>
+          <div class="c-tabs__panel"><p class="u-muted">Contenu de l'onglet.</p></div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="c-drawer" id="drawer-demo" aria-label="Modifier un transporteur">
+      <div class="c-drawer__head"><h3>Modifier le transporteur</h3>
+        <button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" aria-label="Fermer" data-toggle="drawer-demo"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></button></div>
+      <div class="c-drawer__body u-stack">
+        <div class="c-field"><label class="c-field__label" for="d1">Raison sociale <span class="is-required">*</span></label><input class="c-input" id="d1" value="Trans-Express Logistique"></div>
+        <div class="c-field"><label class="c-field__label" for="d2">Contact</label><input class="c-input" id="d2" value="Éric Dossa"></div>
+        <div class="c-field"><label class="c-field__label" for="d3">Email <span class="is-required">*</span></label><input class="c-input" id="d3" value="exploitation@transexpress-logistique.com"></div>
+      </div>
+      <div class="c-drawer__foot"><button class="c-btn c-btn--ghost" data-toggle="drawer-demo">Annuler</button><button class="c-btn c-btn--primary">Enregistrer</button></div>
+    </aside>
+
+    <div class="c-overlay" id="modal-demo" hidden>
+      <div class="c-modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+        <div class="c-modal__head"><h3 id="modal-title">Valider le BAS ?</h3>
+          <button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" aria-label="Fermer" data-close="modal-demo"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></button></div>
+        <div class="c-modal__body">
+          <p>Le dossier <b class="c-ref">DLG-2026-0412</b> passera automatiquement <b>en facturation</b> et le Service facturation sera notifié.</p>
+          <div class="c-field"><label class="c-field__label" for="m1">N° de BAS <span class="is-required">*</span></label><input class="c-input u-num" id="m1" value="2026-BAS-051907"></div>
+          <div class="c-field"><label class="c-field__label" for="m2">Date du BAS</label><input class="c-input" id="m2" type="date" value="2026-10-12"><span class="c-field__help">Date du jour par défaut, modifiable.</span></div>
+        </div>
+        <div class="c-modal__foot"><button class="c-btn c-btn--ghost" data-close="modal-demo">Annuler</button><button class="c-btn c-btn--primary" data-close="modal-demo">Valider le BAS</button></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ TIMELINE ══ -->
+  <section class="ds-sec" id="timeline">
+    <h2>Timeline / historique</h2>
+    <p class="ds-intro">Plus récent en haut, horodatage précis, acteur + action. Type d'événement distingué par une petite icône.</p>
+    <div class="ds-box"><ol class="c-timeline" id="timeline-demo"></ol></div>
+  </section>
+
+  <!-- ══ DOCUMENTS ══ -->
+  <section class="ds-sec" id="documents">
+    <h2>Liste de documents</h2>
+    <p class="ds-intro">Chaque document attendu avec son état. Un document obligatoire manquant porte un filet rouge.</p>
+    <ul class="c-doclist">
+      <li class="c-doc c-doc--ok"><span class="c-doc__state"><svg class="c-icon" aria-hidden="true"><use href="#i-check"></use></svg></span>
+        <div><div class="c-doc__name">Facture commerciale</div><div class="c-doc__meta">Facture_commerciale_INV-88214.pdf · email client · 29/09/2026 · 09:14</div></div>
+        <div class="c-doc__actions"><button class="c-btn c-btn--ghost c-btn--sm">Voir</button><button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" aria-label="Télécharger"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-download"></use></svg></button></div></li>
+      <li class="c-doc c-doc--missing"><span class="c-doc__state"><svg class="c-icon" aria-hidden="true"><use href="#i-x"></use></svg></span>
+        <div><div class="c-doc__name">Certificat d'origine</div><div class="c-doc__meta">Demandé au client le 13/10/2026 · relancé le 15/10/2026</div></div>
+        <div class="c-doc__actions"><button class="c-btn c-btn--sm"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-upload"></use></svg>Ajouter</button></div></li>
+      <li class="c-doc c-doc--optional"><span class="c-doc__state"><svg class="c-icon" aria-hidden="true"><use href="#i-clock"></use></svg></span>
+        <div><div class="c-doc__name">Bon de livraison signé</div><div class="c-doc__meta">Attendu du transporteur à la livraison</div></div></li>
+    </ul>
+  </section>
+
+  <!-- ══ ALERTES ══ -->
+  <section class="ds-sec" id="alertes">
+    <h2>Alertes</h2>
+    <div class="u-stack">
+      <div class="c-alert c-alert--danger"><svg class="c-icon" aria-hidden="true"><use href="#i-alert"></use></svg>
+        <div><div class="c-alert__title">Information demandée au client</div><div>Certificat d'origine requis pour appliquer le tarif préférentiel. Demande envoyée le 13/10/2026 à 15:22.</div></div>
+        <div class="c-alert__actions"><button class="c-btn c-btn--sm">Voir l'email</button></div></div>
+      <div class="c-alert c-alert--warning"><svg class="c-icon" aria-hidden="true"><use href="#i-clock"></use></svg>
+        <div><div class="c-alert__title">Valider le BAS déclenche la facturation</div><div>Le dossier sera basculé en facturation et le Service facturation notifié.</div></div></div>
+      <div class="c-alert c-alert--success"><svg class="c-icon" aria-hidden="true"><use href="#i-valide"></use></svg>
+        <div><div class="c-alert__title">Offre acceptée par Trans-Express Logistique</div><div>Le 09/10/2026 à 14:47. L'offre a été clôturée pour Atlantic Fret.</div></div></div>
+      <div class="c-alert c-alert--info"><svg class="c-icon" aria-hidden="true"><use href="#i-info"></use></svg>
+        <div>Prochaine relance automatique le 18/10/2026 à 08:16. <!-- À VALIDER : fréquence des relances (D11) --></div></div>
+    </div>
+  </section>
+
+  <!-- ══ ÉTAT VIDE ══ -->
+  <section class="ds-sec" id="vide">
+    <h2>État vide</h2>
+    <div class="ds-two">
+      <div class="ds-box"><div class="c-empty"><svg class="c-icon" aria-hidden="true"><use href="#i-search"></use></svg>
+        <div class="c-empty__title">Aucun dossier ne correspond à ces filtres</div>
+        <div class="c-empty__text">Aucun dossier « Info manquante » pour Koffi Mensah.</div>
+        <button class="c-btn c-btn--sm">Effacer les filtres</button></div></div>
+      <div class="ds-box"><div class="c-empty"><svg class="c-icon" aria-hidden="true"><use href="#i-inbox"></use></svg>
+        <div class="c-empty__title">Salle d'attente vide</div>
+        <div class="c-empty__text">Tous les dossiers reçus ont leurs documents obligatoires.</div></div></div>
+    </div>
+  </section>
+
+  <!-- ══ KPI ══ -->
+  <section class="ds-sec" id="kpi">
+    <h2>Indicateurs (KPI)</h2>
+    <p class="ds-intro">Sobres : valeur, libellé, période. Le filet supérieur reprend la teinte du statut concerné. Chaque indicateur ouvre la liste filtrée.</p>
+    <div class="c-kpis" id="kpi-demo"></div>
+  </section>
+
+  <!-- ══ DÉPÔT ══ -->
+  <section class="ds-sec" id="depot">
+    <h2>Zone de dépôt de fichier</h2>
+    <p class="ds-intro">Pages client et transporteur (dépôt de documents), onglet Documents.</p>
+    <div class="ds-box"><label class="c-dropzone"><svg class="c-icon" aria-hidden="true"><use href="#i-upload"></use></svg>
+      <span class="c-dropzone__title">Déposer le certificat d'origine</span><span>Glissez le fichier ici ou cliquez pour le choisir · PDF, JPG ou PNG, 10 Mo maximum</span>
+      <input type="file" class="u-sr"></label></div>
+  </section>
+
+</div>
+
+<script>
+(function () {
+  var D = window.DOUALOG, B = D.badge, F = D.fmt;
+  function $(id) { return document.getElementById(id); }
+  function icon(n, cls) { return '<svg class="c-icon' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#i-' + n + '"></use></svg>'; }
+
+  /* Couleurs */
+  var base = [
+    ['Bleu marine', '--navy-500', '#0C2C5E', 'Titres, liens, structure'],
+    ['Or douane', '--gold-500', '#D6821A', 'Action principale, actif, focus'],
+    ['Encre', '--ink-950', '#070D18', 'Topbar, bandeau dossier'],
+    ['Ardoise', '--slate-900', '#131A26', 'Menu latéral'],
+    ['Ivoire écran', '--neutral-50', '#F1EEE7', 'Fond de la zone de travail'],
+    ['Blanc', '--neutral-0', '#FFFFFF', 'Cartes, panneaux, champs'],
+    ['Ligne alternée', '--neutral-25', '#F7F5F0', 'Lignes paires du tableau'],
+    ['Encre texte', '--neutral-900', '#14110D', 'Texte principal'],
+    ['Gris chaud', '--neutral-600', '#5B564A', 'Texte secondaire'],
+    ['Trait', '--neutral-300', '#B9B0A0', 'Séparateurs, à venir'],
+    ['Bordure', '--neutral-200', '#D9D2C2', 'Bordures fines']
+  ];
+  $('sw-base').innerHTML = base.map(function (c) {
+    return '<div class="ds-swatch"><div class="ds-swatch__c" style="background:var(' + c[1] + ')"></div><div class="ds-swatch__i"><b>' + c[0] + '</b><br><code>' + c[2] + ' · ' + c[1] + '</code><br>' + c[3] + '</div></div>';
+  }).join('');
+  var tones = [['success', 'Succès', 'Terminé, obtenu, livré'], ['info', 'Info', 'En cours normal'], ['warning', 'Vigilance', 'Attente, à traiter'], ['danger', 'Bloquant', 'Anomalie, blocage'], ['special', 'Spécifique', 'Anticipé, facturation'], ['neutral', 'Neutre', 'Non applicable, clôturé']];
+  $('sw-tones').innerHTML = tones.map(function (t) {
+    return '<div class="ds-swatch"><div class="ds-swatch__c" style="background:var(--tone-' + t[0] + ')"></div><div class="ds-swatch__i"><b>' + t[1] + '</b> <code>--tone-' + t[0] + '</code><br>' + t[2] + '<br><span class="c-badge c-badge--' + t[0] + '" style="margin-top:6px">' + t[1] + '</span></div></div>';
+  }).join('');
+
+  /* Espacements */
+  $('spaces').innerHTML = [1, 2, 3, 4, 5, 6, 8, 12].map(function (n) {
+    return '<div class="ds-space"><code style="width:64px">--sp-' + n + '</code><i style="width:var(--sp-' + n + ')"></i><span class="u-muted">' + getComputedStyle(document.documentElement).getPropertyValue('--sp-' + n).trim() + '</span></div>';
+  }).join('');
+
+  /* Icônes */
+  $('icons').innerHTML = (window.DOUALOG_ICONS || []).map(function (n) { return '<div>' + icon(n) + n + '</div>'; }).join('');
+
+  /* Mapping statuts */
+  var toneLib = { success: 'Succès', info: 'Info', warning: 'Vigilance', danger: 'Bloquant', special: 'Spécifique', neutral: 'Neutre' };
+  function map(fam, id) {
+    $(id).innerHTML = Object.keys(D.statuts[fam]).map(function (s) {
+      return '<tr><td>' + B(fam, s) + '</td><td class="u-muted">' + toneLib[D.statuts[fam][s]] + '</td></tr>';
+    }).join('');
+  }
+  map('dossier', 'map-dossier'); map('transport', 'map-transport'); map('facture', 'map-facture');
+  $('badges-misc').innerHTML = ['Aucun', 'Physique', 'Documentaire'].map(function (s) { return B('controle', s); }).join('') +
+    ['En cours', 'Conforme', 'Non conforme', 'Info manquante'].map(function (s) { return B('resultat', s); }).join('') +
+    B('bon', 'En attente') + B('bon', 'Obtenu') + B('type', 'Import') + B('type', 'Export');
+
+  /* Shell */
+  $('role-select').innerHTML = D.roles.map(function (r) { return '<option' + (r.id === 'declarant' ? ' selected' : '') + '>' + r.label + '</option>'; }).join('');
+  var nonLues = D.notifications.filter(function (n) { return !n.lue; }).length;
+  $('bell-count').textContent = nonLues;
+  $('nav-count-db').textContent = D.tableauDeBord().length;
+  $('nav-count-sa').textContent = D.salleAttente().length;
+
+  /* Tableau (extrait du jeu de données) */
+  var rows = ['DLG-2026-0412', 'DLG-2026-0415', 'DLG-2026-0416', 'DLG-2026-0420', 'DLG-2026-0423'].map(D.dossier);
+  $('table-demo').innerHTML = rows.map(function (d) {
+    var cls = d.statut === 'Info manquante' ? 'is-alert' : (d.statut.indexOf('Contrôle') === 0 ? 'is-warning' : '');
+    if (d.filRouge) cls = 'is-selected';
+    var stock = d.declStockee ? '<span class="c-tip" tabindex="0">' + F.dateCourte(d.declStockee) + '<span class="c-tip__bubble"><b>Déclaration stockée</b><br>' + F.dateHeure(d.declStockee) + '</span></span>' : '<span class="c-dash">—</span>';
+    var anti = d.declAnticipee ? '<span class="c-tip" tabindex="0">' + F.dateCourte(d.declAnticipee) + '<span class="c-tip__bubble"><b>Anticipée le ' + F.dateHeure(d.declAnticipee) + '</b><br>' + (d.mode === 'Aérien' ? 'ETA vol ' + d.vol : 'ETA navire ' + d.navire) + ' : ' + F.date(d.eta) + '</span></span>' : '<span class="c-dash">—</span>';
+    var n = D.alertes(d.id);
+    return '<tr class="' + cls + '"><td><a class="c-ref" href="#">' + d.id + '</a></td><td>' + B('type', d.type) + '</td><td>' + D.client(d).nom + '</td><td>' + B('dossier', d.statut) + '</td><td>' + stock + '</td><td>' + anti + '</td><td>' + (d.controle ? B('controle', d.controle.type) : '<span class="c-dash">—</span>') + '</td><td>' + (d.transport ? B('transport', d.transport.statut) : '<span class="c-dash">—</span>') + '</td><td class="is-center">' + (n ? '<span class="c-count c-count--alert">' + n + '</span>' : '<span class="c-dash">—</span>') + '</td><td><button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" aria-label="Ouvrir ' + d.id + '">' + icon('eye', 'c-icon--sm') + '</button></td></tr>';
+  }).join('');
+
+  /* Workflow */
+  function wf(d, dark) {
+    return '<ol class="c-wf' + (dark ? ' c-wf--on-dark' : '') + '" aria-label="Avancement du dossier">' + D.workflow(d).map(function (s) {
+      var label = s.tip ? '<span class="c-tip" tabindex="0">' + s.label + '<span class="c-tip__bubble">' + s.tip + '</span></span>' : s.label;
+      return '<li class="c-wf__step c-wf__step--' + s.etat + '"><span class="c-wf__node"></span><span class="c-wf__label">' + label + '</span><span class="c-wf__date">' + (s.date || '') + '</span></li>';
+    }).join('') + '</ol>';
+  }
+  $('wf-demos').innerHTML = ['DLG-2026-0412', 'DLG-2026-0416', 'DLG-2026-0405', 'DLG-2026-0426'].map(function (id) {
+    var d = D.dossier(id);
+    return '<div><p class="u-label ds-cap">' + id + ' · ' + B('dossier', d.statut) + '</p>' + wf(d) + '</div>';
+  }).join('<hr style="border:0;border-top:1px solid var(--border);margin:var(--sp-2) 0">');
+
+  /* Bandeau */
+  var d = D.dossier('DLG-2026-0412'), c = D.client(d);
+  var kv = [['Type', B('type', d.type)], ['Mode', d.mode], ['ETA', F.date(d.eta)], ['BL / AWB', d.bl], ['Conteneur', d.conteneur],
+    ['Déclarant', D.responsable(d).nom], ['Incoterm', d.incoterm], ['Poids brut', F.poids(d.poids)], ['Colis', F.nombre(d.colis) + ' ' + d.unite], ['Navire', d.navire]];
+  $('banner-demo').innerHTML = '<div class="c-banner"><div class="c-banner__top"><span class="c-banner__ref">' + d.id + '</span>' + B('dossier', d.statut, 'c-badge--lg') +
+    '<span class="c-banner__client">' + c.nom + '</span><div class="c-banner__actions">' +
+    '<button class="c-btn c-btn--sm c-btn--on-dark">' + icon('mail', 'c-icon--sm') + 'Envoyer un email</button>' +
+    '<button class="c-btn c-btn--sm c-btn--on-dark">' + icon('transport', 'c-icon--sm') + 'Créer OT</button>' +
+    '<button class="c-btn c-btn--sm c-btn--on-dark">' + icon('pdf', 'c-icon--sm') + 'Exporter PDF</button></div></div>' +
+    '<div class="c-banner__grid">' + kv.map(function (x) { return '<div><div class="c-banner__k">' + x[0] + '</div><div class="c-banner__v">' + x[1] + '</div></div>'; }).join('') + '</div>' +
+    '<div style="margin-top:var(--sp-4)">' + wf(d, true) + '</div></div>';
+  $('panel-badge').innerHTML = B('dossier', d.statut);
+
+  /* Timeline */
+  var ico = { creation: 'dossiers', statut: 'valide', email: 'mail', lien: 'link', transport: 'transport', assignation: 'user' };
+  $('timeline-demo').innerHTML = D.historique['DLG-2026-0412'].slice(-7).reverse().map(function (h) {
+    var tone = h.texte.indexOf('Statut') >= 0 || h.texte.indexOf('Transport :') >= 0 ? ' c-timeline__item--success' : '';
+    return '<li class="c-timeline__item' + tone + '"><span class="c-timeline__icon">' + icon(ico[h.type] || 'info') + '</span><div><div class="c-timeline__time">' + F.dateHeure(h.date) + '</div><div class="c-timeline__text">' + h.texte + '</div><div class="c-timeline__actor">' + h.acteur + '</div></div></li>';
+  }).join('');
+
+  /* KPI (CDC §14) calculés sur le jeu de données */
+  var all = D.dossiers, cnt = function (f) { return all.filter(f).length; };
+  var kpis = [
+    ['info', cnt(function (x) { return !D.enSalleAttente(x) && x.statut !== 'Clôturé'; }), 'Dossiers actifs'],
+    ['warning', cnt(function (x) { return x.statut.indexOf('Contrôle') === 0; }), 'Contrôles en cours'],
+    ['danger', cnt(function (x) { return x.statut === 'Info manquante'; }), 'Info manquante'],
+    ['success', cnt(function (x) { return x.bae && x.bae.date >= '2026-10-01'; }), 'BAE obtenus en octobre'],
+    ['special', cnt(function (x) { return x.statut === 'En facturation'; }), 'En facturation'],
+    ['warning', D.salleAttente().length, 'En attente de documents']
+  ];
+  $('kpi-demo').innerHTML = kpis.map(function (k) {
+    return '<a class="c-kpi c-kpi--' + k[0] + '" href="#"><span class="c-kpi__value">' + k[1] + '</span><span class="c-kpi__label">' + k[2] + '</span><span class="c-kpi__delta">au 16/10/2026</span></a>';
+  }).join('');
+
+  /* Interactions de démonstration (JS minimal : panneau, onglets, modale) */
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-toggle],[data-open],[data-close],.c-tabs__tab');
+    if (!t) return;
+    if (t.dataset.toggle) $(t.dataset.toggle).classList.toggle('is-open');
+    if (t.dataset.open) $(t.dataset.open).hidden = false;
+    if (t.dataset.close) $(t.dataset.close).hidden = true;
+    if (t.classList.contains('c-tabs__tab')) {
+      t.parentNode.querySelectorAll('.c-tabs__tab').forEach(function (x) { x.classList.remove('is-active'); x.removeAttribute('aria-selected'); });
+      t.classList.add('is-active'); t.setAttribute('aria-selected', 'true');
+    }
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { $('modal-demo').hidden = true; $('drawer-demo').classList.remove('is-open'); } });
+})();
+</script>
+</body>
+</html>

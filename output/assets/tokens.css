@@ -1,0 +1,134 @@
+/* ══════════════════════════════════════════════════════════════
+   DOUALOG Control Tower — Tokens
+   Source : charte-graphique/index.html (Réf. MIV-DLG-2026-A).
+   Aucune valeur en dur dans les pages : tout passe par ces variables.
+   ══════════════════════════════════════════════════════════════ */
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&display=swap');
+
+:root {
+  color-scheme: light;
+
+  /* — Palette brute (charte §02) — */
+  --navy-500: #0C2C5E;        /* Bleu marine Doualog — titres, structure */
+  --gold-500: #D6821A;        /* Or douane — aplats, boutons */
+  --gold-600: #C07416;        /* hover bouton or — déduit, à valider */
+  --gold-text: #B96C15;       /* Or douane — texte et traits sur clair */
+  --gold-50:  #F3E2C6;        /* Or doux — focus, surlignage */
+  --on-gold:  #1A1204;        /* texte sur aplat or */
+
+  --ink-950: #070D18;         /* Encre — topbar, bandeau dossier */
+  --slate-900: #131A26;       /* Ardoise — menu latéral */
+  --slate-800: #1B2432;       /* Ardoise claire — survol menu */
+
+  --neutral-0:   #FFFFFF;     /* cartes, panneaux, champs */
+  --neutral-25:  #F7F5F0;     /* ligne alternée de tableau */
+  --neutral-50:  #F1EEE7;     /* Ivoire écran — fond zone de travail */
+  --neutral-200: #D9D2C2;     /* bordure */
+  --neutral-300: #B9B0A0;     /* trait, séparateur fort, à venir */
+  --neutral-600: #5B564A;     /* texte secondaire */
+  --neutral-900: #14110D;     /* texte principal */
+
+  --on-dark:        #EDEEF2;
+  --on-dark-muted:  rgba(237, 238, 242, .60);
+  --on-dark-line:   rgba(255, 255, 255, .12);
+
+  /* — Statuts : 6 teintes sémantiques (charte §07) — */
+  --tone-success: #2E8347;    /* Vert Validé */
+  --tone-info:    #2F63AE;    /* Bleu Réception */
+  --tone-warning: #B04B1B;    /* Rouille — vigilance */
+  --tone-danger:  #B23327;    /* Rouge Alerte — bloquant */
+  --tone-special: #6A4FD1;    /* Violet Anticipé — cas particulier */
+  --tone-neutral: #5B564A;    /* Gris encre — non commencé, terminé */
+
+  /* Paires fond + texte des badges (fond = teinte à 15 % sur blanc).
+     Contraste texte/fond vérifié ≥ 4,5:1. Le vert est assombri pour le texte. */
+  --status-success-bg: #E0ECE3; --status-success-fg: #23683A; /* fg déduit, à valider (contraste) */
+  --status-info-bg:    #E0E8F3; --status-info-fg:    #2F63AE;
+  --status-warning-bg: #F3E4DD; --status-warning-fg: #B04B1B;
+  --status-danger-bg:  #F3E0DF; --status-danger-fg:  #B23327;
+  --status-special-bg: #E9E5F8; --status-special-fg: #6A4FD1;
+  --status-neutral-bg: #E6E6E4; --status-neutral-fg: #5B564A;
+
+  /* — Sémantique : surfaces & texte — */
+  --bg-app:         var(--neutral-50);
+  --bg-surface:     var(--neutral-0);
+  --bg-subtle:      var(--neutral-25);
+  --bg-chrome:      var(--ink-950);
+  --bg-nav:         var(--slate-900);
+  --bg-nav-hover:   var(--slate-800);
+  --bg-overlay:     rgba(7, 13, 24, .55);
+  --border:         var(--neutral-200);
+  --border-strong:  var(--neutral-300);
+  --border-ink:     var(--neutral-900);
+  --text-primary:   var(--neutral-900);
+  --text-secondary: var(--neutral-600);
+  --text-muted:     var(--neutral-300);
+  --text-heading:   var(--navy-500);
+  --text-link:      var(--navy-500);
+
+  /* — Sémantique : actions — */
+  --action-primary:       var(--gold-500);
+  --action-primary-hover: var(--gold-600);
+  --action-on-primary:    var(--on-gold);
+  --action-active:        var(--gold-500);   /* élément actif nav, onglet, étape en cours */
+  --focus-ring:           var(--gold-500);
+  --focus-halo:           var(--gold-50);
+
+  /* — Typographie (charte §03, densifiée pour l'application) — */
+  --font-sans: 'Sora', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --fs-2xs: 10px;   /* micro-libellé (étapes du workflow) */
+  --fs-xs:  11px;   /* libellé majuscules */
+  --fs-sm:  12px;   /* métadonnées, badges */
+  --fs-md:  13px;   /* corps applicatif, tableaux, références */
+  --fs-base:14px;   /* corps de formulaire */
+  --fs-lg:  15px;   /* corps de page externe */
+  --fs-xl:  17px;   /* sous-titre */
+  --fs-2xl: 22px;   /* titre de page */
+  --fs-3xl: 30px;   /* titre d'article, chiffre KPI */
+  --fw-regular: 400; --fw-medium: 500; --fw-semibold: 600; --fw-bold: 700;
+  --lh-tight: 1.25; --lh-normal: 1.5; --lh-relaxed: 1.6;
+  --ls-label: .06em;
+
+  /* — Espacements (base 4, jalons de la charte : 4 · 8 · 16 · 24 · 48) — */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
+  --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-12: 48px;
+
+  /* — Formes (charte §06 : 6 px, pilule pour les badges, pas d'ombre) — */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-pill: 999px;
+  --border-w: 1px;
+  --border-w-strong: 1.5px;
+  --shadow: none;
+
+  /* — Icônes — */
+  --icon-sm: 14px; --icon-md: 16px; --icon-lg: 20px;
+  --icon-stroke: 1.8;
+
+  /* — Layout — */
+  --sidebar-w: 224px;
+  --topbar-h: 56px;
+  --topbar-line: 2px;     /* trait or sous la topbar */
+  --row-h: 40px;
+  --control-h: 36px;
+  --control-h-sm: 30px;
+  --panel-h: 62vh;        /* panneau dossier en bas de page */
+  --content-max: 1680px;
+  --external-max: 640px;  /* pages client / transporteur, emails */
+
+  /* — Couches — */
+  --z-sticky: 10;
+  --z-panel: 30;
+  --z-overlay: 40;
+  --z-modal: 50;
+  --z-tooltip: 60;
+
+  /* — Mouvement — */
+  --dur-fast: 120ms;
+  --dur-base: 200ms;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root { --dur-fast: 0ms; --dur-base: 0ms; }
+}
