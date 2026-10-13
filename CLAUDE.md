@@ -101,7 +101,7 @@ rangée 2 = Transport, Suivi transport, Notifications.
 `E01-tableau-de-bord.html?id=DLG-…` l'ouvre au chargement ; `E02-dossier.html` redirige vers E01 avec le fil rouge.
 BAE et BAS s'empilent dans une colonne (côte à côte sur grand écran). Les actions BAE / BAS / nouveau message modifient
 les données en mémoire pour la démo (rechargement = retour à l'état initial).
-| E03 | Salle d'attente — dossiers incomplets (**onglet de la carte « Liste des dossiers » de E01**) | P2 | US-04, 06 |
+| E03 | Salle d'attente — dossiers incomplets (**onglet de la carte « Liste des dossiers » de E01** ; `E03-salle-attente.html` ouvre cet onglet) | P2 | US-04, 06 |
 | E04 | Création OT + envoi offre (choix transporteurs) | P4 | US-28, 29 |
 | E05 | Annuaire transporteurs | P4 | US-27 |
 | E06 | Facturation — liste + aperçu facture | P5 | US-34 à 37 |
@@ -125,12 +125,21 @@ les données en mémoire pour la démo (rechargement = retour à l'état initial
 ## Structure des fichiers
 ```
 output/
-├── assets/tokens.css · components.css · icons.js · data.js (jeu de données commun) · shell.js (header + menu) · dossier.js (panneau E02) · img/
+├── assets/tokens.css · components.css · icons.js · data.js (jeu de données commun) · shell.js (header + menu) · dossier.js (panneau E02)
+│          · email.js (remplit les emails X0x depuis data.js) · img/
 ├── design-system.html
 ├── index.html            ← sommaire groupé par parcours
 ├── interne/E01-tableau-de-bord.html …
 └── externe/X01-email-accuse-reception.html …
 ```
+
+## Emails (X01, X02, X07, X08, X09…)
+- HTML d'email réaliste : 600 px, tableaux, **styles en ligne** (couleurs en dur reprises de tokens.css, les messageries
+  ne lisent pas les variables CSS), police Inter avec repli Arial. En-tête de messagerie (objet, De, À, date) au-dessus de l'email.
+- Bandeau bleu nuit + ligne orange, logo (monogramme + DOUA**LOG**), N° DLG mis en avant, bouton orange, pied « Connecter • Sécuriser • Livrer ».
+- Contenu rempli par `assets/email.js` depuis `data.js` (`?id=DLG-…`, défaut dans `data-defaut`) : `[data-f]`, `[data-href]`, `[data-liste]`, `[data-si]`.
+- Variante relance : `X02-email-documents-manquants.html?relance=n` (`X02-email-relance.html` = relance n°2 de DLG-2026-0426).
+- `salleAttente.envois` : 1er envoi = demande initiale (X02), suivants = relances n°1, n°2…
 
 ## Données de maquette
 - Un **seul jeu de données partagé** (`assets/data.js`) : 20 dossiers `DLG-2026-0xxx`, cohérents d'un écran à l'autre

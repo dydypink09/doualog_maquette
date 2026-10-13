@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Documents manquants — maquette email</title>
+<!-- X02 · Email documents manquants · US-05 (P2) + variante relance · US-06.
+     ?id=DLG-… (par défaut DLG-2026-0428, packing list manquante) · ?relance=n affiche la relance n° n (objet + bandeau différents).
+     X02-email-relance.html ouvre la relance n°2 du dossier DLG-2026-0426.
+     HTML d'email : 600 px, tableaux, styles en ligne. Données : ../assets/data.js. -->
+<!-- À VALIDER : fréquence des relances et nombre maximal de relances (D11, QUESTIONS-ONCLE §6.3). -->
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+<script src="../assets/data.js"></script>
+<script src="../assets/email.js"></script>
+</head>
+<body data-defaut="DLG-2026-0428" style="margin:0;padding:0;background:#E9EDF2;font-family:Inter,Arial,Helvetica,sans-serif;-webkit-font-smoothing:antialiased;">
+
+<!-- En-tête de messagerie (aperçu, hors email) -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#E9EDF2;">
+  <tr><td align="center" style="padding:24px 12px 0;">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:100%;background:#FFFFFF;border:1px solid #D1D5DB;border-radius:8px 8px 0 0;">
+      <tr><td style="padding:16px 20px 12px;font-size:17px;line-height:24px;font-weight:700;color:#111827;" data-objet>
+        <span data-si="relance">Relance n°<span data-f="relanceN"></span> — </span>[<span data-f="id"></span>] Documents manquants pour le traitement de votre dossier
+      </td></tr>
+      <tr><td style="padding:0 20px 14px;font-size:13px;line-height:20px;color:#6B7280;">
+        <b style="color:#374151;">De :</b> DOUALOG &lt;<span data-f="boite"></span>&gt;<br>
+        <b style="color:#374151;">À :</b> <span data-f="contact"></span> &lt;<span data-f="emailClient"></span>&gt;<br>
+        <b style="color:#374151;">Date :</b> <span data-si="initial"><span data-f="envoiInitial"></span></span><span data-si="relance"><span data-f="envoiRelance"></span></span>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+
+<!-- Email -->
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#E9EDF2;">
+  <tr><td align="center" style="padding:0 12px 32px;">
+    <table role="presentation" width="600" cellpadding="0" cellspacing="0" border="0" style="width:600px;max-width:100%;background:#FFFFFF;border:1px solid #D1D5DB;border-top:0;">
+
+      <!-- Bandeau DOUALOG -->
+      <tr><td style="background:#0A1628;padding:18px 28px;border-bottom:2px solid #F97316;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td width="44" valign="middle"><img src="../assets/img/logo-monogramme.png" width="36" alt="" style="display:block;width:36px;background:#FFFFFF;border-radius:6px;padding:4px;"></td>
+          <td valign="middle" style="padding-left:10px;">
+            <div style="font-size:20px;line-height:22px;font-weight:700;color:#FFFFFF;letter-spacing:.02em;">DOUA<span style="color:#F97316;">LOG</span></div>
+            <div style="font-size:10px;line-height:14px;color:#AEB7C6;letter-spacing:.14em;text-transform:uppercase;">Douane &amp; Logistique</div>
+          </td>
+          <td align="right" valign="middle" style="font-size:11px;line-height:16px;color:#AEB7C6;letter-spacing:.06em;text-transform:uppercase;">Documents manquants</td>
+        </tr></table>
+      </td></tr>
+
+      <!-- Bandeau relance (variante) -->
+      <tr data-si="relance"><td style="background:#F3E4DD;padding:12px 28px;border-bottom:1px solid #E8CBBE;font-size:13px;line-height:20px;color:#B04B1B;">
+        <b style="text-transform:uppercase;letter-spacing:.06em;">Relance n°<span data-f="relanceN"></span></b> — notre premier message vous a été envoyé le <span data-f="envoiInitialDate"></span>.
+      </td></tr>
+
+      <!-- Corps -->
+      <tr><td style="padding:32px 28px 8px;">
+        <h1 style="margin:0 0 16px;font-size:22px;line-height:30px;font-weight:700;color:#0C2C5E;">
+          <span data-si="initial">Il manque des documents pour traiter votre dossier</span><span data-si="relance">Nous attendons toujours vos documents</span>
+        </h1>
+        <p style="margin:0 0 12px;font-size:15px;line-height:24px;color:#374151;">Bonjour <span data-f="contact"></span>,</p>
+        <p style="margin:0 0 20px;font-size:15px;line-height:24px;color:#374151;" data-si="initial">
+          Nous avons bien reçu votre envoi du <span data-f="reception"></span>, enregistré sous le numéro <b data-f="id"></b>.
+          Pour lancer les formalités de dédouanement, il nous manque les pièces suivantes :
+        </p>
+        <p style="margin:0 0 20px;font-size:15px;line-height:24px;color:#374151;" data-si="relance">
+          Malgré notre message du <span data-f="envoiInitialDate"></span>, nous n'avons pas encore reçu les pièces suivantes
+          pour votre dossier <b data-f="id"></b> :
+        </p>
+      </td></tr>
+
+      <!-- Pièces manquantes -->
+      <tr><td style="padding:0 28px 8px;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#FBF3F2;border:1px solid #EBC9C5;border-radius:6px;">
+          <tr><td style="padding:10px 16px 6px;">
+            <div style="font-size:12px;line-height:18px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:#B23327;">Pièces à nous transmettre (<span data-f="nbManquants"></span>)</div>
+            <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" data-liste="manquants"></table>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      <!-- Rappel du dossier -->
+      <tr><td style="padding:16px 28px 0;">
+        <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F3F4F6;border-left:4px solid #F97316;border-radius:0 6px 6px 0;">
+          <tr><td style="padding:12px 18px;">
+            <div style="font-size:11px;line-height:16px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:#6B7280;">Votre dossier</div>
+            <div style="font-size:22px;line-height:30px;font-weight:700;color:#0C2C5E;" data-f="id"></div>
+            <div style="font-size:13px;line-height:20px;color:#374151;"><span data-f="client"></span> · <span data-f="marchandise"></span></div>
+          </td></tr>
+        </table>
+      </td></tr>
+
+      <!-- Bouton -->
+      <tr><td align="center" style="padding:28px 28px 8px;">
+        <table role="presentation" cellpadding="0" cellspacing="0" border="0"><tr>
+          <td style="background:#F97316;border-radius:6px;">
+            <a data-href="depot" href="#" style="display:inline-block;padding:14px 32px;font-size:15px;line-height:20px;font-weight:700;color:#FFFFFF;text-decoration:none;">Déposer mes documents</a>
+          </td>
+        </tr></table>
+      </td></tr>
+      <tr><td align="center" style="padding:0 28px 24px;">
+        <p style="margin:0;font-size:12px;line-height:18px;color:#6B7280;">Le dépôt se fait sur votre lien personnel ; un code de confirmation vous sera envoyé par email pour le valider.</p>
+      </td></tr>
+
+      <tr><td style="padding:0 28px 24px;">
+        <p style="margin:0 0 12px;font-size:14px;line-height:22px;color:#374151;">
+          Vous pouvez aussi <b>répondre directement à cet email</b> en joignant les documents : ils seront rattachés automatiquement à votre dossier.
+        </p>
+        <p style="margin:0;font-size:14px;line-height:22px;color:#374151;">
+          Le dédouanement ne peut pas commencer sans ces pièces. Sans réponse de votre part, nous vous enverrons un rappel le <b data-f="prochaine"></b>.
+        </p>
+      </td></tr>
+
+      <tr><td style="padding:0 28px 32px;">
+        <p style="margin:0;font-size:15px;line-height:24px;color:#374151;">Nous vous remercions de votre retour.<br>Bien cordialement,<br><b>L'équipe DOUALOG</b></p>
+      </td></tr>
+
+      <!-- Pied -->
+      <tr><td style="background:#F3F4F6;padding:20px 28px;border-top:1px solid #E5E7EB;">
+        <p style="margin:0 0 6px;font-size:12px;line-height:18px;color:#374151;"><b>DOUALOG — Douane &amp; Logistique</b> · <span data-f="ville"></span>, <span data-f="pays"></span> · <a data-href="mailto" href="#" style="color:#0C2C5E;" data-f="boite"></a></p>
+        <p style="margin:0 0 6px;font-size:10px;line-height:16px;color:#6B7280;letter-spacing:.2em;text-transform:uppercase;">Connecter • Sécuriser • Livrer</p>
+        <p style="margin:0;font-size:11px;line-height:16px;color:#6B7280;">Cet email est envoyé automatiquement. Pour nous écrire, répondez simplement à ce message en conservant le numéro de dossier dans l'objet.</p>
+      </td></tr>
+    </table>
+  </td></tr>
+</table>
+</body>
+</html>

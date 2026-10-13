@@ -3,12 +3,14 @@
    Structure de references/vision-client.jpeg (partie basse), en pleine hauteur sous le header : bandeau, workflow, puis tous les blocs
    visibles en grille (pas d'onglets). Historique dans un panneau latéral (menu « … » ou lien en bas).
    Usage : DOUALOG_DOSSIER.ouvrir('DLG-2026-0412') · fermer() · événement document 'dlg:dossier'
-   Les actions de démonstration (BAE, BAS, nouveau message) modifient les données en mémoire.
+   Les actions de démonstration (BAE, BAS, nouveau message, réception de document) modifient les données en mémoire.
+   Dossier en salle d'attente (E03) : encart « en attente de … », bloc Documents mis en évidence, bascule dans la liste
+   quand plus rien ne manque (événement 'dlg:dossier' avec detail.transfert).
    ══════════════════════════════════════════════════════════════ */
 (function () {
   var D = window.DOUALOG, B = D.badge, F = D.fmt, esc = D.esc;
   var DASH = '<span class="c-dash">—</span>';
-  var ouvert = null, enAttente = null;   // dossier affiché · action de la modale
+  var ouvert = null, enAttente = null, enAttenteDoc = null;   // dossier affiché · action de la modale · document visé
 
   function $(id) { return document.getElementById(id); }
   function icon(n, cls) { return '<svg class="c-icon' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#i-' + n + '"></use></svg>'; }
@@ -18,8 +20,8 @@
       return '<div><dt>' + r[0] + '</dt><dd>' + (r[1] === null || r[1] === undefined || r[1] === '' ? DASH : r[1]) + '</dd></div>';
     }).join('') + '</dl>';
   }
-  function carte(titre, corps, actions, pied) {
-    return '<section class="c-card"><div class="c-card__head"><h3>' + titre + '</h3>' + (actions ? '<div class="c-card__actions">' + actions + '</div>' : '') + '</div>' +
+  function carte(titre, corps, actions, pied, attrs) {
+    return '<section class="c-card"' + (attrs || '') + '><div class="c-card__head"><h3>' + titre + '</h3>' + (actions ? '<div class="c-card__actions">' + actions + '</div>' : '') + '</div>' +
       '<div class="c-card__body">' + corps + '</div>' + (pied ? '<div class="c-card__foot">' + pied + '</div>' : '') + '</section>';
   }
   function utilisateur() { return D.equipe[D.acces[window.DOUALOG_SHELL.role()].utilisateur]; }
@@ -88,7 +90,7 @@
     return carte('Informations générales', kv([
       [d.type === 'Import' ? 'Importateur' : 'Exportateur', esc(c.nom)],
       ['N° IFU', c.ifu],   // À VALIDER : IFU ou NINEA (QUESTIONS-ONCLE §1.1 bis)
-      d.bl ? ['BL', d.bl] : d.lta ? ['LTA', d.lta] : ['Booking', d.booking],
+      d.bl ? ['BL', d.bl] : d.lta ? ['LTA', d.lta] : d.booking ? ['Booking', d.booking] : [d.mode === 'Aérien' ? 'LTA' : 'BL', null],
       d.mode === 'Aérien' ? ['Vol', d.vol] : ['Conteneur', d.conteneur],
       d.mode === 'Aérien' ? null : ['Navire', d.navire],
       ['Compagnie', k.nom],
@@ -113,13 +115,16 @@
     var lignes = cles.map(function (k) {
       var ok = d.docs[k];
       if (!ok) manquants++;
-      var note = !ok && k === 'certificatOrigine' && demandeControle ? ' — demandé par la douane' : '';
+      var note = !ok && k === 'certificatOrigine' && demandeControle ? ' — demandé par la douane' : (!ok && k === 'mandat' && d.salleAttente && d.salleAttente.mandatDemande ? ' — demandé le ' + F.date(d.salleAttente.mandatDemande) : '');
       return '<li class="c-doc ' + (ok ? 'c-doc--ok' : 'c-doc--missing') + '"><span class="c-doc__state">' + icon(ok ? 'check' : 'x') + '</span>' +
         '<span class="c-doc__name">' + D.documents[k].libelle + note + '</span>' +
-        (ok ? '<span class="c-doc__actions"><button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" type="button" aria-label="Télécharger ' + D.documents[k].libelle + '">' + icon('download', 'c-icon--sm') + '</button></span>' : '') + '</li>';
+        '<span class="c-doc__actions">' + (ok
+          ? '<button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" type="button" aria-label="Télécharger ' + D.documents[k].libelle + '">' + icon('download', 'c-icon--sm') + '</button>'
+          : '<button class="c-btn c-btn--sm" type="button" data-d="document" data-doc="' + k + '">' + icon('upload', 'c-icon--sm') + 'Ajouter</button>') + '</span></li>';
     }).join('');
     var titre = 'Documents' + (manquants ? ' <span class="c-count c-count--alert" title="' + manquants + ' manquant(s)">' + manquants + '</span>' : '');
-    return carte(titre, '<ul class="c-doclist c-doclist--compact">' + lignes + '</ul>');
+    /* Salle d'attente : pas d'onglets, le bloc Documents est mis en évidence */
+    return carte(titre, '<ul class="c-doclist c-doclist--compact">' + lignes + '</ul>', '', '', ' id="bloc-documents"' + (D.enSalleAttente(d) ? ' data-focus' : ''));
   }
 
   /* ── Bloc Déclaration / Contrôle (US-22, 23, 24) ─────────── */
@@ -182,6 +187,10 @@
       /* Dossiers sans fil détaillé : accusé de réception (toujours envoyé, CDC §3) + demande d'information éventuelle */
       var m = [{ id: 'a', date: d.reception, categorie: 'entrant', de: D.client(d).email, objet: 'Envoi des documents — ' + d.marchandise },
                { id: 'b', date: d.reception, categorie: 'auto', de: D.config.boiteEmail, objet: '[' + d.id + '] Accusé de réception de votre envoi' }];
+      if (d.salleAttente) d.salleAttente.envois.forEach(function (x, i) {
+        m.push({ id: 'r' + i, date: x, categorie: 'auto', de: D.config.boiteEmail, objet: (i ? 'Relance n°' + i + ' — ' : '') + '[' + d.id + '] Documents manquants pour le traitement de votre dossier' });
+      });
+      if (d.salleAttente && d.salleAttente.mandatDemande) m.push({ id: 'md', date: d.salleAttente.mandatDemande, categorie: 'auto', de: D.config.boiteEmail, objet: '[' + d.id + '] Mandat de représentation en douane à signer' });
       if (d.controle && d.controle.demandeEnvoyee) m.push({ id: 'c', date: d.controle.demandeEnvoyee, categorie: 'auto', de: D.config.boiteEmail, objet: '[' + d.id + '] Information demandée par la douane' });
       D.messages[d.id] = m;
     }
@@ -262,8 +271,8 @@
     var r = D.responsable(d).nom, c = D.client(d), j = [];
     j.push({ date: d.reception, acteur: 'Système', type: 'creation', texte: 'Dossier créé à partir de l’email de ' + c.email + '. Type : ' + d.type + '.' });
     j.push({ date: d.reception, acteur: 'Système', type: 'email', texte: 'Accusé de réception envoyé au client.' });
-    if (d.salleAttente) d.salleAttente.relances.forEach(function (x, i) {
-      j.push({ date: x, acteur: 'Système', type: 'email', texte: (i ? 'Relance n° ' + (i + 1) + ' : ' : 'Documents manquants signalés au client : ') + D.documentsManquants(d).map(function (k) { return D.documents[k].libelle; }).join(', ') + '.' });
+    if (d.salleAttente) d.salleAttente.envois.forEach(function (x, i) {
+      j.push({ date: x, acteur: 'Système', type: 'email', texte: (i ? 'Relance n° ' + i + ' envoyée au client : ' : 'Documents manquants signalés au client : ') + D.documentsManquants(d).map(function (k) { return D.documents[k].libelle; }).join(', ') + '.' });
     });
     if (d.declStockee) j.push({ date: d.declStockee, acteur: r, type: 'statut', texte: 'Déclaration stockée saisie. Statut : Déclaration stockée.' });
     if (d.declAnticipee) j.push({ date: d.declAnticipee, acteur: r, type: 'statut', texte: 'Déclaration anticipée. Statut : Déclaration anticipée.' });
@@ -299,13 +308,49 @@
     $('dossier-drawer').classList.add('is-open');
   }
 
+  /* ── Salle d'attente (E03, US-04 à 06) ─────────────────────── */
+  function lienEmail(d) {
+    var r = D.relances(d);
+    return '../externe/X02-email-documents-manquants.html?id=' + d.id + (r.nombre ? '&relance=' + r.nombre : '');
+  }
+  function encartAttente(d) {
+    if (!D.enSalleAttente(d)) return '';
+    var r = D.relances(d), manq = D.documentsManquants(d);
+    var noms = manq.map(function (k) { return D.documents[k].libelle; }).join(', ');
+    var envoi = r.nombre ? 'Relance n°' + r.nombre + ' envoyée le ' + F.date(r.dernier) + ' à ' + F.heure(r.dernier) : 'Client informé le ' + F.date(r.dernier) + ' à ' + F.heure(r.dernier);
+    return '<div class="c-alert c-alert--warning">' + icon('inbox') +
+      '<div><div class="c-alert__title">Dossier en salle d\'attente — en attente de : ' + noms + '</div>' +
+      '<div>' + envoi + ' · prochaine relance automatique le ' + F.date(r.prochaine) + '. <a href="' + lienEmail(d) + '">Voir l\'email envoyé</a></div></div>' +
+      /* Démo : représente l'arrivée des pièces (email du client ou dépôt sur son lien personnel) */
+      '<div class="c-alert__actions"><button class="c-btn c-btn--sm" type="button" data-d="simuler">' + icon('download', 'c-icon--sm') +
+        (manq.length > 1 ? 'Simuler la réception des documents' : 'Simuler la réception du document') + '</button></div></div>';
+  }
+  /* Réception d'une ou plusieurs pièces : si plus rien ne manque, le dossier quitte la salle d'attente */
+  function recevoir(d, cles, source) {
+    var u = utilisateur(), now = aujourdhui();
+    journal(d);
+    cles.forEach(function (k) {
+      d.docs[k] = true;
+      D.historique[d.id].push({ date: now, acteur: source === 'client' ? 'Client (email)' : u.nom, type: 'creation', texte: 'Document reçu : ' + D.documents[k].libelle + (source === 'client' ? ' (réponse du client par email).' : ' (ajouté par ' + u.nom + ').') });
+    });
+    var complet = D.enSalleAttente(d) && D.documentsManquants(d).length === 0;
+    if (complet) {
+      d.statut = 'En cours de traitement';
+      D.historique[d.id].push({ date: now, acteur: 'Système', type: 'statut', texte: 'Dossier complet : transféré dans le tableau de bord. Statut : En cours de traitement.' });
+    }
+    rendre();
+    info(complet ? 'Dossier complet : transféré dans le tableau de bord. Il apparaît maintenant dans la liste Dossiers.'
+                 : 'Document enregistré. Il manque encore : ' + D.documentsManquants(d).map(function (k) { return D.documents[k].libelle; }).join(', ') + '.', complet ? 'success' : 'info');
+    document.dispatchEvent(new CustomEvent('dlg:dossier', { detail: { id: d.id, transfert: complet } }));
+  }
+
   /* ── Rendu du panneau ─────────────────────────────────────── */
   function rendre() {
     var d = D.dossier(ouvert);
     $('dossier').innerHTML = bandeau(d) +
       '<div class="c-panel__body">' +
         '<div class="c-alert c-alert--info" id="dossier-msg" role="status" hidden>' + icon('info') + '<div id="dossier-msg-texte"></div></div>' +
-        workflow(d) +
+        encartAttente(d) + workflow(d) +
         '<div class="c-dgrid c-dgrid--row1">' + infos(d) + documents(d) + controle(d) + '<div class="c-dgrid__stack">' + bae(d) + bas(d) + '</div>' + messagerie(d) + '</div>' +
         '<div class="c-dgrid c-dgrid--row2">' + transport(d) + suiviTransport(d) + notifications(d) + '</div>' +
         '<div class="c-panel__foot"><button class="c-btn c-btn--ghost c-btn--sm" type="button" data-d="historique">' + icon('clock', 'c-icon--sm') +
@@ -325,6 +370,11 @@
     clearTimeout(p._entree);
     p._entree = setTimeout(function () { p.classList.remove('is-entering'); }, 1400);
     p.classList.add('is-open');
+    var focus = p.querySelector('[data-focus]');
+    if (focus) {
+      focus.classList.add('is-focus');
+      setTimeout(function () { focus.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 500);
+    }
     document.body.classList.add('has-panel-open');
     signaler(D.dossier(id));
   }
@@ -335,7 +385,12 @@
     document.body.classList.remove('has-panel-open');
     signaler(null);
   }
-  function info(texte) { $('dossier-msg-texte').textContent = texte; $('dossier-msg').hidden = false; }
+  function info(texte, ton) {
+    var m = $('dossier-msg');
+    m.className = 'c-alert c-alert--' + (ton || 'info');
+    m.querySelector('use').setAttribute('href', '#i-' + (ton === 'success' ? 'valide' : 'info'));
+    $('dossier-msg-texte').textContent = texte; m.hidden = false;
+  }
 
   /* ── Modale : BAE, BAS, nouveau message ───────────────────── */
   function modale(action) {
@@ -353,6 +408,13 @@
         '<div>Le dossier <b class="c-ref">' + d.id + '</b> passera automatiquement en facturation et le service facturation sera notifié.</div></div></div>' +
         '<div class="c-field"><label class="c-field__label" for="m-num">N° de BAS <span class="is-required">*</span></label><input class="c-input u-num" id="m-num" value="2026-BAS-052780"></div>' +
         '<div class="c-field"><label class="c-field__label" for="m-date">Date du BAS</label><input class="c-input" id="m-date" type="date" value="' + auj + '"><span class="c-field__help">Date du jour par défaut, modifiable.</span></div>';
+    } else if (action === 'document') {
+      titre = 'Ajouter un document'; ok = 'Enregistrer le document';
+      var manq = D.documentsManquants(d);
+      corps = '<div class="c-field"><label class="c-field__label" for="m-doc">Type de document <span class="is-required">*</span></label><select class="c-select" id="m-doc">' +
+        manq.map(function (k) { return '<option value="' + k + '"' + (k === enAttenteDoc ? ' selected' : '') + '>' + D.documents[k].libelle + '</option>'; }).join('') + '</select></div>' +
+        '<label class="c-dropzone">' + icon('upload') + '<span class="c-dropzone__title">Déposer le fichier</span><span>Glissez le fichier ici ou cliquez pour le choisir · PDF, JPG ou PNG, 10 Mo maximum</span><input type="file" class="u-sr"></label>' +
+        '<p class="c-field__help">Le document est rattaché au dossier ' + d.id + '. Si plus rien ne manque, le dossier passe dans le tableau de bord.</p>';
     } else {
       titre = 'Nouveau message'; ok = 'Envoyer';
       corps = '<div class="c-field"><label class="c-field__label" for="m-a">À</label><input class="c-input" id="m-a" value="' + esc(D.client(d).email) + '"></div>' +
@@ -368,6 +430,12 @@
   }
   function valider() {
     var d = D.dossier(ouvert), u = utilisateur(), now = aujourdhui();
+    if (enAttente === 'document') {
+      var cle = $('m-doc').value;
+      $('dossier-modale').hidden = true;
+      recevoir(d, [cle], 'interne');
+      return;
+    }
     if (enAttente === 'bae' || enAttente === 'bas') {
       var num = $('m-num').value.trim(), date = $('m-date').value;
       if (!num) { $('m-num').closest('.c-field').classList.add('is-error'); return; }
@@ -405,7 +473,9 @@
     if (a === 'historique') ouvrirHistorique();
     if (a === 'messages') ouvrirMessages();
     if (a === 'drawer-fermer') $('dossier-drawer').classList.remove('is-open');
-    if (a === 'message' || a === 'bae' || a === 'bas') modale(a);
+    if (a === 'document') enAttenteDoc = t.dataset.doc || null;
+    if (a === 'message' || a === 'bae' || a === 'bas' || a === 'document') modale(a);
+    if (a === 'simuler') recevoir(D.dossier(ouvert), D.documentsManquants(D.dossier(ouvert)), 'client');
     if (a === 'modale-fermer') $('dossier-modale').hidden = true;
     if (a === 'modale-valider') valider();
     if (a === 'pdf') info('Export PDF du dossier — prévu dans une prochaine version.');   // D13
@@ -418,5 +488,9 @@
   });
 
   if (document.body) monter(); else document.addEventListener('DOMContentLoaded', monter);
-  window.DOUALOG_DOSSIER = { ouvrir: ouvrir, fermer: fermer, ouvert: function () { return ouvert; } };
+  window.DOUALOG_DOSSIER = {
+    ouvrir: ouvrir, fermer: fermer, ouvert: function () { return ouvert; },
+    ajouterDocument: function (id) { ouvrir(id); enAttenteDoc = null; modale('document'); },
+    lienEmail: function (id) { return lienEmail(D.dossier(id)); }
+  };
 })();

@@ -39,6 +39,7 @@ button, input, select, textarea { font: inherit; color: inherit; }
 .u-stack { display: flex; flex-direction: column; gap: var(--sp-3); }
 .u-grow  { flex: 1; min-width: 0; }
 .u-contents { display: contents; }
+.u-nowrap { flex-wrap: nowrap; white-space: nowrap; }
 .u-mt-3 { margin-top: var(--sp-3); }
 .u-mb-4 { margin-bottom: var(--sp-4); }
 .u-self-start { align-self: flex-start; }   /* le conteneur s'efface : ses enfants s'enroulent un par un dans la barre */
@@ -740,3 +741,6 @@ a.c-kpi:hover { border-color: var(--border-strong); border-top-color: var(--k-c,
 .c-msg--danger  { --m: var(--tone-danger); }
 .c-msg--special { --m: var(--tone-special); }
 .c-msglist--wrap .c-msg__text, .c-msglist--wrap .c-msg__from { white-space: normal; }
+
+/* Bloc mis en évidence à l'ouverture (ex. Documents d'un dossier en salle d'attente, puisqu'il n'y a pas d'onglets) */
+.c-card.is-focus { border-color: var(--action-primary); box-shadow: 0 0 0 3px var(--focus-halo); }

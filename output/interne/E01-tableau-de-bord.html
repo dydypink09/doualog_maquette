@@ -12,7 +12,8 @@
 <script src="../assets/dossier.js"></script>
 </head>
 <body>
-<!-- E01 · Tableau de bord — indicateurs + liste des dossiers · US-10, 11, 16 (+ onglet Salle d'attente, détaillé en E03)
+<!-- E01 · Tableau de bord — indicateurs + liste des dossiers · US-10, 11, 16
+     E03 · onglet Salle d'attente (#salle-attente) · US-04, 05, 06, 08 — E03-salle-attente.html ouvre directement cet onglet
      E02 · l'œil ou le N° de dossier ouvre le dossier en panneau bas de page (assets/dossier.js) ; ?id=DLG-… l'ouvre au chargement
      Structure : references/vision-client.jpeg -->
 <!-- À VALIDER : ordre de tri par urgence (QUESTIONS-ONCLE §2.3) · menu par rôle (data.js > acces, §2.2)
@@ -93,11 +94,16 @@
         <div class="c-table-wrap">
           <table class="c-table c-table--sticky">
             <thead><tr>
-              <th>N° dossier</th><th>Client</th><th>Réception</th><th>Pièces manquantes</th>
-              <th>Relances · dernière</th><th>Relance prévue</th><th>Responsable</th><th class="is-center">Actions</th>
+              <th>N° dossier</th><th>Type</th><th>Client</th><th>Réception</th><th>Documents manquants</th>
+              <th>Relances</th><th>Mandat</th><th>Ancienneté</th><th class="is-center">Actions</th>
             </tr></thead>
             <tbody id="tbody-attente"></tbody>
           </table>
+          <div class="c-empty" id="empty-attente" hidden>
+            <svg class="c-icon" aria-hidden="true"><use href="#i-inbox"></use></svg>
+            <p class="c-empty__title">Salle d'attente vide</p>
+            <p class="c-empty__text">Tous les dossiers reçus ont leurs documents obligatoires.</p>
+          </div>
         </div>
       </div>
     </section>
@@ -125,7 +131,7 @@
   var DASH = '<span class="c-dash">—</span>';
   var LIEN_DOSSIER = '?id=';   // E02 : le dossier s'ouvre en panneau bas de page, sans quitter la liste
 
-  var liste = D.tableauDeBord();
+  var liste = D.tableauDeBord();   // recalculée quand un dossier quitte la salle d'attente
   var etat = { q: '', rapide: 'tous', kpi: null, filtres: {}, tri: null, sens: 1, utilisateur: null };
 
   /* ── Indicateurs (8, comme l'image) — dossiers de la liste au statut indiqué, à date ── */
@@ -323,26 +329,53 @@
     $('empty').hidden = rows.length > 0;
     $('sort-reset').hidden = !etat.tri;
     var tri = etat.tri ? 'tri par ' + COLS.filter(function (c) { return c.k === etat.tri; })[0].label.toLowerCase() : 'tri par urgence';
-    $('meta').textContent = (rows.length === liste.length ? liste.length + ' dossiers' : rows.length + ' sur ' + liste.length) +
+    etat.meta = (rows.length === liste.length ? liste.length + ' dossiers' : rows.length + ' sur ' + liste.length) +
       ' · ' + tri + ' · au ' + F.date(D.config.aujourdhui) + ' ' + F.heure(D.config.aujourdhui);
+    majMeta();
+    $('count-dossiers').textContent = liste.length;
+    $('count-attente').textContent = D.salleAttente().length;
     renderStats(); renderEntetes(); renderRapides(); renderFiltresActifs();
   }
 
-  /* ── Salle d'attente (état simple) ───────────────────────── */
+  function majMeta() {
+    var n = D.salleAttente().length;
+    $('meta').textContent = etat.onglet === 'attente'
+      ? n + ' dossier' + (n > 1 ? 's incomplets' : ' incomplet') + ' · relance automatique tous les ' + D.config.frequenceRelanceJours + ' jours'
+      : (etat.meta || '');
+  }
+
+  /* ── Salle d'attente (E03) ──────────────────────────────── */
+  function anciennete(d) {
+    var h = Math.floor((new Date(D.config.aujourdhui) - new Date(d.reception)) / 36e5);
+    return h < 24 ? h + ' h' : Math.floor(h / 24) + ' j';
+  }
   function renderAttente() {
+    var sa = D.salleAttente();
     $('attente-text').textContent = 'Le client a reçu la liste des pièces manquantes et il est relancé automatiquement tous les ' +
       D.config.frequenceRelanceJours + ' jours. Le dossier rejoint la liste dès que toutes les pièces sont reçues.';
-    $('tbody-attente').innerHTML = D.salleAttente().map(function (d) {
-      var r = d.salleAttente.relances, lien = LIEN_DOSSIER + d.id;
-      var manquants = D.documentsManquants(d).map(function (k) { return D.documents[k].libelle; }).join(', ');
-      return '<tr data-ligne="' + d.id + '"><td><a class="c-ref" data-ouvrir="' + d.id + '" href="' + lien + '">' + d.id + '</a></td>' +
-        '<td>' + esc(D.client(d).nom) + '</td>' +
+    $('empty-attente').hidden = sa.length > 0;
+    $('tbody-attente').innerHTML = sa.map(function (d) {
+      var r = D.relances(d), lien = LIEN_DOSSIER + d.id, c = D.client(d);
+      var manquants = D.documentsManquants(d).filter(function (k) { return k !== 'mandat'; })
+        .map(function (k) { return '<span class="c-badge c-badge--danger">' + D.documents[k].libelle + '</span>'; }).join(' ');
+      var relances = '<b>' + (r.nombre ? r.nombre + ' relance' + (r.nombre > 1 ? 's' : '') : 'Demande initiale') + '</b>' +
+        '<div class="c-field__help">dernier envoi ' + F.dateCourte(r.dernier) + ' · prochaine ' + F.dateCourte(r.prochaine) + '</div>';
+      var mandat = d.docs.mandat
+        ? '<span class="c-badge c-badge--success">Trouvé</span>' + '<div class="c-field__help">valide jusqu\'au ' + F.date(c.mandat.jusquau).slice(0, 6) + c.mandat.jusquau.slice(2, 4) + '</div>'
+        : '<span class="c-badge c-badge--danger">Absent</span><div class="c-field__help">' + (d.salleAttente.mandatDemande ? 'demandé le ' + F.dateCourte(d.salleAttente.mandatDemande) : 'à demander') + '</div>';
+      var cls = !d.docs.mandat ? 'is-alert' : (r.nombre >= 2 ? 'is-warning' : '');   // mandat absent = bloquant · 2 relances sans réponse = vigilance
+      return '<tr class="' + cls + '" data-ligne="' + d.id + '"><td><a class="c-ref" data-ouvrir="' + d.id + '" href="' + lien + '">' + d.id + '</a></td>' +
+        '<td>' + B('type', d.type) + '</td>' +
+        '<td>' + esc(c.nom) + '</td>' +
         '<td class="u-num">' + dateHeure(d.reception) + '</td>' +
-        '<td><b>' + manquants + '</b></td>' +
-        '<td class="u-num">' + r.length + ' · ' + F.date(r[r.length - 1]) + '</td>' +
-        '<td class="u-num">' + F.date(d.salleAttente.prochaineRelance) + '</td>' +
-        '<td>' + D.responsable(d).nom + '</td>' +
-        '<td class="is-center">' + boutonOeil(lien, d.id) + '</td></tr>';
+        '<td>' + (manquants || DASH) + '</td>' +
+        '<td>' + relances + '</td>' +
+        '<td>' + mandat + '</td>' +
+        '<td class="u-num">' + anciennete(d) + '</td>' +
+        '<td class="is-center"><span class="u-row u-nowrap">' + boutonOeil(lien, d.id) +
+          '<button class="c-btn c-btn--icon c-btn--sm" type="button" data-ajouter="' + d.id + '" aria-label="Ajouter un document au dossier ' + d.id + '" title="Ajouter un document">' + icon('upload', 'c-icon--sm') + '</button>' +
+          '<a class="c-btn c-btn--icon c-btn--sm" href="' + window.DOUALOG_DOSSIER.lienEmail(d.id) + '" aria-label="Voir l\'email envoyé au client" title="Voir l\'email envoyé (X02)">' + icon('mail', 'c-icon--sm') + '</a>' +
+        '</span></td></tr>';
     }).join('');
   }
 
@@ -355,6 +388,8 @@
       $('panel-' + t.dataset.tab).hidden = !on;
       t.querySelector('.c-count').className = 'c-count' + (on ? ' c-count--accent' : '');
     });
+    etat.onglet = id;
+    majMeta();
   }
   function lireHash() {
     if (location.hash === '#salle-attente') { ouvrirOnglet('attente'); window.DOUALOG_SHELL.setActive('dossiers'); $('liste').scrollIntoView(); }
@@ -373,7 +408,12 @@
   }
   function ouvrirFiltres(on) { renderChampsFiltres(); $('filters').classList.toggle('is-open', on); if (on) $('f-type').focus(); }
 
-  function message(titre, texte) { $('msg-title').textContent = titre; $('msg-text').textContent = texte; $('msg').hidden = false; }
+  function message(titre, texte, ton) {
+    var m = $('msg');
+    m.className = 'c-alert c-alert--' + (ton || 'info');
+    m.querySelector('use').setAttribute('href', '#i-' + (ton === 'success' ? 'valide' : 'info'));
+    $('msg-title').textContent = titre; $('msg-text').textContent = texte; m.hidden = false;
+  }
 
   /* ── Événements ──────────────────────────────────────────── */
   document.addEventListener('dlg:role', function (e) {
@@ -394,6 +434,11 @@
   document.addEventListener('dlg:dossier', function (e) {
     var id = e.detail.id;
     history.replaceState(null, '', location.pathname + (id ? '?id=' + id : '') + location.hash);
+    liste = D.tableauDeBord();
+    if (e.detail.transfert) {
+      message('Dossier complet : ' + id + ' transféré dans le tableau de bord',
+        'Toutes les pièces sont reçues. Le dossier quitte la salle d\'attente et apparaît dans la liste Dossiers, au statut « En cours de traitement ».', 'success');
+    }
     renderAttente(); render();
     /* Le panneau couvre toute la hauteur : à la fermeture, on retrouve la ligne du dossier qu'on vient de quitter */
     if (id) dernierOuvert = id; else if (dernierOuvert) montrerLigne(dernierOuvert);
@@ -401,6 +446,8 @@
   document.addEventListener('click', function (e) {
     var o = e.target.closest('[data-ouvrir]');
     if (o) { e.preventDefault(); window.DOUALOG_DOSSIER.ouvrir(o.dataset.ouvrir); return; }
+    var aj = e.target.closest('[data-ajouter]');
+    if (aj) window.DOUALOG_DOSSIER.ajouterDocument(aj.dataset.ajouter);
   });
 
   document.addEventListener('click', function (e) {
@@ -439,8 +486,6 @@
   window.addEventListener('hashchange', lireHash);
 
   /* ── Initialisation ──────────────────────────────────────── */
-  $('count-dossiers').textContent = liste.length;
-  $('count-attente').textContent = D.salleAttente().length;
   var q = new URLSearchParams(location.search).get('q');
   if (q) { etat.q = q; $('search').value = q; }
 

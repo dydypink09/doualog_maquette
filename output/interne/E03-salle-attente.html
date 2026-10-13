@@ -1,0 +1,15 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Salle d'attente — DOUALOG Control Tower</title>
+<!-- E03 · Salle d'attente : c'est l'onglet « Salle d'attente » du tableau de bord (E01), même shell et mêmes indicateurs.
+     Ce fichier ouvre directement cet onglet. ?id=DLG-… ouvre en plus le dossier (bloc Documents mis en évidence). -->
+<script>
+  var id = new URLSearchParams(location.search).get('id');
+  location.replace('E01-tableau-de-bord.html' + (id ? '?id=' + encodeURIComponent(id) : '') + '#salle-attente');
+</script>
+<meta http-equiv="refresh" content="0; url=E01-tableau-de-bord.html#salle-attente">
+</head>
+<body></body>
+</html>

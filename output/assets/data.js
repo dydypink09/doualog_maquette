@@ -340,14 +340,15 @@
       declStockee: null, declAnticipee: null,
       controle: null, bae: null, bas: null, transport: null, livraison: null, facture: null
     },
-    /* Salle d'attente — dossiers incomplets */
+    /* Salle d'attente — dossiers incomplets.
+       salleAttente.envois : 1er = demande initiale des pièces (X02), suivants = relances n°1, n°2… (US-06) */
     {
       id: 'DLG-2026-0426', type: 'Import', mode: 'Maritime', client: 'c05', statut: 'En attente de documents',
-      reception: '2026-10-14T08:15', responsable: 'u2',
+      reception: '2026-10-12T08:15', responsable: 'u2',
       bl: null, conteneur: null, navire: 'MSC Lorena', compagnie: 'k1', eta: '2026-10-28',
       incoterm: 'CIF', poids: 3900, colis: 260, unite: 'cartons', marchandise: 'Capsules et étiquettes',
       docs: docs({ bl: false, bonLivraison: false }),
-      salleAttente: { relances: ['2026-10-14T08:16', '2026-10-16T08:16'], prochaineRelance: '2026-10-18T08:16' },
+      salleAttente: { envois: ['2026-10-12T08:16', '2026-10-14T08:16', '2026-10-16T08:16'], prochaineRelance: '2026-10-18T08:16' },
       declStockee: null, declAnticipee: null, controle: null, bae: null, bas: null, transport: null, livraison: null, facture: null
     },
     {
@@ -356,7 +357,7 @@
       booking: 'MAE-BK-26-771904', conteneur: null, navire: 'Maersk Kalmar', compagnie: 'k2', eta: '2026-10-27',
       incoterm: 'FOB', poids: 25000, colis: 312, unite: 'sacs', marchandise: 'Noix de cajou brutes',
       docs: docs({ instruction: false, bl: false, bonLivraison: false, mandat: false }),
-      salleAttente: { relances: ['2026-10-15T10:03'], prochaineRelance: '2026-10-17T10:03', mandatDemande: '2026-10-15T10:03' },
+      salleAttente: { envois: ['2026-10-15T10:03'], prochaineRelance: '2026-10-17T10:03', mandatDemande: '2026-10-15T10:03' },
       declStockee: null, declAnticipee: null, controle: null, bae: null, bas: null, transport: null, livraison: null, facture: null
     },
     {
@@ -365,7 +366,7 @@
       lta: '071-30055902', vol: 'ET 0921', compagnie: 'k6', eta: '2026-10-21',
       incoterm: 'CPT', poids: 148, colis: 6, unite: 'colis', marchandise: 'Pièces de rechange pour décortiqueuse',
       docs: docs({ packing: false }),
-      salleAttente: { relances: ['2026-10-16T08:32'], prochaineRelance: '2026-10-18T08:32' },
+      salleAttente: { envois: ['2026-10-16T08:32'], prochaineRelance: '2026-10-18T08:32' },
       declStockee: null, declAnticipee: null, controle: null, bae: null, bas: null, transport: null, livraison: null, facture: null
     }
   ];
@@ -585,6 +586,11 @@
   }
   function tableauDeBord() { return dossiers.filter(function (d) { return !enSalleAttente(d); }); }
   function salleAttente() { return dossiers.filter(enSalleAttente); }
+  /* Relances d'un dossier en salle d'attente : nombre, dernier envoi, prochaine */
+  function relances(d) {
+    var e = d.salleAttente ? d.salleAttente.envois : [];
+    return { envois: e, nombre: Math.max(e.length - 1, 0), dernier: e[e.length - 1] || null, prochaine: d.salleAttente ? d.salleAttente.prochaineRelance : null };
+  }
 
   /* Totaux d'une grille tarifaire (TVA uniquement sur les prestations, pas sur les débours) */
   function totaux(lignes) {
@@ -660,6 +666,6 @@
     fmt: { date: fmtDate, dateCourte: fmtDateCourte, heure: fmtHeure, dateHeure: fmtDateHeure, nombre: fmtNombre, montant: fmtMontant, poids: fmtPoids },
     esc: esc, badge: badge, dossier: dossier, client: client, responsable: responsable, refTransport: refTransport,
     enSalleAttente: enSalleAttente, alertes: alertes, documentsManquants: documentsManquants,
-    tableauDeBord: tableauDeBord, salleAttente: salleAttente, totaux: totaux, workflow: workflow
+    tableauDeBord: tableauDeBord, salleAttente: salleAttente, relances: relances, totaux: totaux, workflow: workflow
   };
 })();
