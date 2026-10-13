@@ -10,6 +10,7 @@
 <script src="../assets/data.js"></script>
 <script src="../assets/shell.js"></script>
 <script src="../assets/dossier.js"></script>
+<script src="../assets/demo.js"></script>
 </head>
 <body>
 <!-- E01 · Tableau de bord — indicateurs + liste des dossiers · US-10, 11, 16
@@ -135,7 +136,8 @@
   var etat = { q: '', rapide: 'tous', kpi: null, filtres: {}, tri: null, sens: 1, utilisateur: null, ids: null, idsTitre: '' };
 
   /* ── Indicateurs (8, comme l'image) — dossiers de la liste au statut indiqué, à date ── */
-  var EN_COURS_TRANSPORT = ['Demande de transport envoyée', 'À confirmer', 'Confirmé', 'Camion affecté', 'Chargement', 'En route'];
+  /* CDC §14 : OT confirmés, non encore livrés (les offres « À confirmer » ont leur filtre rapide) */
+  var EN_COURS_TRANSPORT = ['Confirmé', 'Camion affecté', 'Chargement', 'En route'];
   var KPIS = [
     { id: 'actifs',     label: 'Dossiers actifs',         icone: 'dossiers',  ton: 'blue',    f: function (d) { return d.statut !== 'Clôturé'; } },
     { id: 'stockees',   label: 'Déclarations stockées',   icone: 'document',  ton: 'blue',    court: 'Décl. stockées',   f: function (d) { return d.statut === 'Déclaration stockée'; } },

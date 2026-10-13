@@ -724,6 +724,7 @@
     ecrireDemo('compteurs', 'fac', prochainNumeroFacture);
     return n;
   }
+  function numeroFactureSuivant() { return prochainNumeroFacture; }
   function marquerLue(id) { notifications.forEach(function (n) { if (n.id === id) n.lue = true; }); ecrireDemo('notifications', id, true); }
   function nonLues() { return notifications.filter(function (n) { return !n.lue; }).length; }
   /* Facture d'un dossier (CDC §10) : dès le BAS, le dossier est « En facturation » tant que la facture n'est pas émise */
@@ -813,7 +814,7 @@
     notifications: notifications, messages: messages, historique: historique,
     navigation: navigation, acces: acces, emailsNonLus: emailsNonLus, documentsTransport: documentsTransport,
     sauverDossier: sauverDossier, sauverOT: sauverOT, sauverTransporteur: sauverTransporteur,
-    reserverNumeroOT: reserverNumeroOT, reserverNumeroFacture: reserverNumeroFacture, marquerLue: marquerLue, nonLues: nonLues,
+    reserverNumeroOT: reserverNumeroOT, reserverNumeroFacture: reserverNumeroFacture, numeroFactureSuivant: numeroFactureSuivant, marquerLue: marquerLue, nonLues: nonLues,
     facture: facture, typesNotification: typesNotification,
     statutPublic: statutPublic, etapesPubliques: etapesPubliques, actionsClient: actionsClient, recevoirDocumentClient: recevoirDocumentClient, reinitialiserDemo: reinitialiserDemo, otsTransporteur: otsTransporteur,
     fmt: { date: fmtDate, dateCourte: fmtDateCourte, heure: fmtHeure, dateHeure: fmtDateHeure, nombre: fmtNombre, montant: fmtMontant, poids: fmtPoids },

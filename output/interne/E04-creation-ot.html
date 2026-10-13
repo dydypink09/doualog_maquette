@@ -9,6 +9,7 @@
 <script src="../assets/icons.js"></script>
 <script src="../assets/data.js"></script>
 <script src="../assets/shell.js"></script>
+<script src="../assets/demo.js"></script>
 </head>
 <body>
 <!-- E04 · Création d'un ordre de transport et envoi de l'offre · US-28, 29 (P4)
@@ -81,7 +82,7 @@
 
         <div class="c-alert c-alert--info" id="info-aucun" hidden>
           <svg class="c-icon" aria-hidden="true"><use href="#i-info"></use></svg>
-          <div><div class="c-alert__title">Aucune offre ne sera envoyée</div><div>Le transport du dossier passera au statut « Pas de livraison ». Le dossier pourra être clôturé dès le règlement de la facture (D16).</div></div>
+          <div><div class="c-alert__title">Aucune offre ne sera envoyée</div><div>Le transport du dossier passera au statut « Pas de livraison ». Le dossier pourra être clôturé dès le règlement de la facture.</div></div>
         </div>
       </div>
       <div class="c-card__foot">
@@ -92,7 +93,7 @@
 
     <!-- ══ Étape 2 : transporteurs + aperçu de l'email ══ -->
     <section class="c-card" id="etape-2" hidden>
-      <div class="c-card__head"><h3>2 · Transporteurs sollicités</h3><span class="c-field__help">La première acceptation attribue l'ordre de transport et clôt l'offre pour les autres (C7)</span></div>
+      <div class="c-card__head"><h3>2 · Transporteurs sollicités</h3><span class="c-field__help">La première acceptation attribue l'ordre de transport et clôt l'offre pour les autres</span></div>
       <div class="c-card__body">
         <div class="c-dgrid c-dgrid--split">
           <div class="u-stack">
@@ -165,7 +166,7 @@
   }
   if (d.transport && d.transport.ot) { bloquer('Un ordre de transport existe déjà pour ce dossier', d.transport.ot + ' · transport : ' + d.transport.statut + '. Le suivi se fait dans le dossier.', 'info'); return; }
   if (d.transport && d.transport.statut === 'Pas de livraison') { bloquer('Pas de livraison pour ce dossier', 'Le transport a été marqué « Pas de livraison ».', 'info'); return; }
-  if (!d.bae) { bloquer('Ordre de transport disponible après le BAE', 'Le bon à enlever n\'est pas encore obtenu pour ce dossier (C5).', 'warning'); return; }
+  if (!d.bae) { bloquer('Ordre de transport disponible après le BAE', 'Le bon à enlever n\'est pas encore obtenu pour ce dossier.', 'warning'); return; }
 
   /* Pré-remplissage depuis le dossier (US-28) */
   var portOuAero = d.mode === 'Aérien' ? 'Magasin de fret, ' + D.config.aeroport : 'Terminal à conteneurs du ' + D.config.port;

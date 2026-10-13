@@ -158,6 +158,11 @@ output/
 - Langage client centralisé dans `data.js` : `statutPublic(d)`, `etapesPubliques(d)`, `actionsClient(d)`, `recevoirDocumentClient(d, cle)`.
 - Tous les boutons d'emails pointent vers X03 / X04 avec le bon dossier (vérifié : aucun lien vers une page inexistante).
 
+## Sommaire et démo guidée (étape 8)
+- `output/index.html` : sommaire pour le client (français clair, sans jargon), écrans par parcours + « Ce que voient le client et le transporteur ».
+- `assets/demo.js` (chargé par toutes les pages) : barre fixe « Étape X / 13 » seulement avec `?demo=N` ; `&demo-reset=1` remet la mémoire de démo à zéro.
+- Aucun code interne (C5, D7, US-…, À VALIDER) dans un texte visible à l'écran : seulement en commentaire (sauf références US discrètes du sommaire).
+
 ## Emails (X01, X02, X07, X08, X09…)
 - HTML d'email réaliste : 600 px, tableaux, **styles en ligne** (couleurs en dur reprises de tokens.css, les messageries
   ne lisent pas les variables CSS), police Inter avec repli Arial. En-tête de messagerie (objet, De, À, date) au-dessus de l'email.

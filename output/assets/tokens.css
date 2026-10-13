@@ -140,6 +140,7 @@
   --stat-value: 20px;
   --stat-label: 9px;
   --stat-gap: 2px;
+  --demobar-h: 72px;      /* barre de démo guidée */
   --stat-icon: calc(var(--stat-value) + var(--stat-gap) + 2 * 1.2 * var(--stat-label));
   /* Séparation menu / zone de travail : reflet clair + ombre (demande client) */
   --nav-edge-light: rgba(255, 255, 255, .07);

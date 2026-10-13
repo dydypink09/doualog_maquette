@@ -80,10 +80,11 @@
     /* Email facture (X07) : montants et dates de la facture du dossier */
     var fac = D.facture(d);
     if (fac) {
-      v.factureNum = fac.num || '(à générer)'; v.factureTTC = F.montant(fac.ttc); v.factureHT = F.montant(fac.ht);
+      /* Facture pas encore émise (démo) : on montre ce que le client recevra à l'émission */
+      v.factureNum = fac.num || D.numeroFactureSuivant(); v.factureTTC = F.montant(fac.ttc); v.factureHT = F.montant(fac.ht);
       v.factureTVA = F.montant(fac.tva); v.factureDebours = F.montant(fac.debours); v.factureReste = F.montant(fac.reste);
-      v.factureEmise = fac.emise ? F.date(fac.emise) : F.date(D.config.aujourdhui); v.factureEcheance = fac.echeance ? F.date(fac.echeance) : '—';
-      v.facturePdf = 'Facture_' + (fac.num || 'DOUALOG') + '_' + d.id + '.pdf'; v.tvaLibelle = D.config.tvaLibelle;
+      v.factureEmise = fac.emise ? F.date(fac.emise) : F.date(D.config.aujourdhui); v.factureEcheance = F.date(fac.echeance || new Date(new Date(D.config.aujourdhui).getTime() + D.config.delaiPaiementJours * 864e5).toISOString().slice(0, 10));
+      v.facturePdf = 'Facture_' + v.factureNum + '_' + d.id + '.pdf'; v.tvaLibelle = D.config.tvaLibelle;
       v.dateBAS = F.date(fac.dateBAS); v.conteneur = d.conteneur || '—';
       v.envoiFacture = fac.emise ? F.date(fac.emise) : F.date(D.config.aujourdhui);
     }

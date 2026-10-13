@@ -7,6 +7,7 @@
 <link rel="stylesheet" href="../assets/tokens.css">
 <link rel="stylesheet" href="../assets/components.css">
 <script src="../assets/icons.js"></script>
+<script src="../assets/demo.js"></script>
 </head>
 <body>
 <!-- E00 · Connexion · US-45 — maquette : le bouton mène au tableau de bord sans contrôle -->
@@ -36,8 +37,9 @@
     <div class="c-auth__row">
       <label class="c-check"><input type="checkbox" checked> Rester connecté</label>
       <!-- À VALIDER : procédure de réinitialisation du mot de passe non décrite dans les specs (lien inactif) -->
-      <a href="#" aria-disabled="true" onclick="return false">Mot de passe oublié&nbsp;?</a>
+      <a href="#" id="oubli">Mot de passe oublié&nbsp;?</a>
     </div>
+    <p class="c-field__help" id="oubli-aide" hidden>Contactez le responsable de l'outil chez DOUALOG : il vous enverra un lien pour choisir un nouveau mot de passe.</p>
 
     <button class="c-btn c-btn--primary" type="submit">Se connecter</button>
   </form>
@@ -50,6 +52,7 @@
 </main>
 <script src="../assets/data.js"></script>
 <script>
+  document.getElementById('oubli').addEventListener('click', function (e) { e.preventDefault(); document.getElementById('oubli-aide').hidden = false; });
   /* Accueil selon le profil choisi en dernier (E07 pour Manager et Direction) */
   document.getElementById('connexion').addEventListener('submit', function (e) {
     var r = null; try { r = localStorage.getItem('doualog-role'); } catch (x) {}

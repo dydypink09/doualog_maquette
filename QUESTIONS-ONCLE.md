@@ -1,200 +1,175 @@
-# Questions pour l'appel de dimanche
+# Questions pour DOUALOG
 
-Ces questions viennent des documents du projet : ils ne disent pas tout. Pour chaque point, la maquette montre déjà une proposition. Il suffit de répondre « oui, c'est bien ça » ou de dire ce qui est différent.
+Les maquettes montrent déjà, pour chaque point, une proposition. Il suffit de répondre « oui, c'est bien ça » ou d'expliquer ce qui est différent.
 
 ---
 
-## 1. Informations de base
+## Les 5 questions les plus importantes
 
-**1.1 Dans quel pays travaille DOUALOG, et avec quel port et quel aéroport ?**
-**Réglé :** Sénégal, Port autonome de Dakar, aéroport AIBD.
+Ce sont celles qui changent le plus la façon de construire l'outil. Merci d'y répondre en priorité.
 
-**1.1 bis — Sur vos documents, quel numéro d'identification de l'entreprise cliente utilisez-vous ?**
-Le cahier des charges parle de « N° IFU ». Au Sénégal, on parle plutôt du NINEA. La maquette garde le libellé « N° IFU » avec un numéro au format NINEA.
+**1. Qui a le droit de voir et de faire quoi ?**
+Les maquettes proposent :
+- Déclarant douane : le tableau de bord, les dossiers, les notifications ;
+- Opérateur transit et service transport : en plus, les transports ;
+- Service facturation : en plus, la facturation ;
+- Manager : tout, y compris les rapports ;
+- Direction : tout, mais en consultation seulement, sans rien pouvoir modifier.
+
+Tout le monde voit tous les dossiers. Faut-il qu'un déclarant ne voie que les siens ? Qui peut valider un BAE ou un BAS, émettre une facture, désactiver un lien ?
 Réponse : ……………………………………
 
-**1.2 En quelle monnaie sont faites les factures ?**
-**Réglé :** FCFA (XOF).
-
-**1.3 Quel taux de TVA appliquez-vous sur vos prestations ?**
-La maquette calcule avec 18 % (taux normal au Sénégal).
+**2. Les dossiers sont-ils créés uniquement à partir des emails ?**
+Aujourd'hui, chaque email reçu avec des pièces jointes crée un dossier. Votre image montre aussi un bouton « Nouveau dossier ». Faut-il pouvoir créer un dossier à la main, par exemple pour un client qui passe au bureau ?
 Réponse : ……………………………………
 
-**1.4 Qu'est-ce que vous facturez à un client sur un dossier ?**
-La maquette utilise cette liste. Qu'est-ce qui manque, qu'est-ce qui est en trop ?
+**3. Que facturez-vous, et à quel prix ?**
+Les maquettes utilisent cette liste ; qu'est-ce qui manque, qu'est-ce qui est en trop, et quels sont les prix habituels ?
 - Ouverture et suivi du dossier
 - Établissement de la déclaration en douane
 - Honoraires de transit
-- Assistance pendant la visite de la douane (contrôle physique)
-- Frais de magasinage (stockage au port)
+- Assistance pendant la visite de la douane
+- Frais de magasinage au port
 - Transport jusqu'au client
 - Droits et taxes de douane payés pour le compte du client (refacturés sans TVA)
 - Frais du port et de manutention payés pour le compte du client (refacturés sans TVA)
 
+La TVA est calculée à 18 % sur les prestations. Est-ce le bon taux ?
 Réponse : ……………………………………
 
-**1.5 Si le client ne dit pas quelles prestations il veut dans son email, qui les remplit dans le dossier ?**
+**4. Que se passe-t-il quand la douane déclare la marchandise « non conforme » ?**
+Les maquettes permettent de choisir ce résultat, mais ne montrent pas la suite (pénalité, nouvelle déclaration, saisie…).
 Réponse : ……………………………………
 
----
-
-## 2. Organisation de l'équipe
-
-**2.1 Qui choisit la personne responsable d'un dossier, et à quel moment ?**
-La maquette suppose que le responsable est le déclarant du dossier, et que c'est le Manager qui l'attribue à l'arrivée du dossier.
-Réponse : ……………………………………
-
-**2.2 Qui voit quoi dans l'outil ?**
-Tout le monde voit le menu complet de votre image ; ce qu'un profil ne peut pas ouvrir apparaît en gris. La maquette propose :
-- Déclarant douane : Tableau de bord, Dossiers, Notifications
-- Opérateur transit et Service transport : en plus, Transport
-- Service facturation : en plus, Facturation
-- Manager : tout, y compris Rapports
-- Direction : tout, mais en lecture seule (sans rien pouvoir modifier)
-
-Tout le monde voit la liste complète des dossiers. Faut-il au contraire qu'un déclarant ne voie que ses propres dossiers ?
-Réponse : ……………………………………
-
-**2.3 Dans la liste des dossiers, qu'est-ce qui doit apparaître en premier ?**
-La maquette classe les dossiers du plus urgent au moins urgent : d'abord ceux où la douane attend une information, puis ceux en contrôle, puis ceux en cours de dédouanement, puis ceux à facturer, et les dossiers terminés en dernier.
-Réponse : ……………………………………
-
-**2.4 À quoi sert le bouton « Nouveau dossier » de votre image ?**
-D'après le cahier des charges, chaque dossier est créé automatiquement quand un email avec pièces jointes arrive sur la boîte DOUALOG. Faut-il aussi pouvoir créer un dossier à la main (par exemple pour un client qui passe au bureau) ? Pour l'instant, le bouton affiche un simple message.
-Réponse : ……………………………………
-
-**2.5 Où met-on la Facturation dans le menu ?**
-Votre image ne montre pas d'entrée « Facturation ». La maquette l'ajoute juste après « Transport ». Est-ce le bon endroit ?
-Réponse : ……………………………………
-
-**2.6 Que comptent exactement les 8 indicateurs en haut du tableau de bord ?**
-La maquette compte les dossiers qui sont à cette étape aujourd'hui (par exemple « BAE obtenus » = dossiers dont le BAE est obtenu mais pas encore le BAS). Préférez-vous un total sur une période (par exemple le mois en cours) ?
+**5. Comment le client signe-t-il le mandat ?**
+Les maquettes proposent : il télécharge le modèle, le fait signer avec le cachet, puis le renvoie depuis son lien personnel, en confirmant avec un code reçu par email. Préférez-vous une vraie signature en ligne ? Le code par email est-il aussi utile pour l'envoi de documents ?
 Réponse : ……………………………………
 
 ---
 
-## 3. Le suivi par le client
+## Général
 
-**3.1 Comment un client qui exporte retrouve-t-il son dossier sur la page de suivi ?**
-Normalement, le client tape son numéro de dossier DOUALOG et son numéro de connaissement (BL) ou de lettre de transport aérien. Mais à l'export, ce document n'existe pas toujours au début.
-La maquette propose : numéro de dossier + numéro de réservation chez la compagnie (booking).
+**Qui choisit le responsable d'un dossier, et quand ?**
+Les maquettes supposent que c'est le Manager qui attribue chaque nouveau dossier à un déclarant.
 Réponse : ……………………………………
 
-**3.2 Combien de temps le lien envoyé par email au client reste-t-il valable ?**
-La maquette affiche 30 jours, ou jusqu'à la fin du dossier.
-Pour le transporteur, le lien s'arrête quand la livraison est confirmée.
+**Dans la liste des dossiers, qu'est-ce qui doit apparaître en premier ?**
+Les maquettes classent du plus urgent au moins urgent : information demandée par la douane, contrôles en cours, dédouanement en cours, à facturer, puis terminés.
 Réponse : ……………………………………
 
-**3.3 Faut-il un code reçu par email pour que le client envoie un document ou signe le mandat ?**
-La maquette demande un code dans les deux cas, pour éviter qu'une autre personne agisse à sa place.
+**Que doivent compter les chiffres en haut du tableau de bord ?**
+Les maquettes comptent les dossiers qui en sont à cette étape aujourd'hui. Dans le tableau de pilotage, les BAE, les BAS et les livraisons sont comptés sur la semaine ou le mois choisis. Est-ce ce que vous voulez suivre ?
 Réponse : ……………………………………
 
-**3.4 Le client signe-t-il le mandat directement en ligne, ou renvoie-t-il le mandat signé (scan) ?**
-La maquette montre : il télécharge le modèle, puis le renvoie signé avec un code de confirmation.
+**La place de « Facturation » dans le menu vous convient-elle ?**
+Votre image n'a pas d'entrée Facturation ; les maquettes l'ont placée entre « Documents » et « Messagerie ».
 Réponse : ……………………………………
 
-**3.5 Quand le client n'a pas envoyé d'instruction douane, que doit-il nous dire ?**
-La maquette lui propose un petit formulaire à la place du document : le régime douanier (mise à la consommation, admission temporaire, transit ; à l'export : exportation définitive, réexportation), la position tarifaire s'il la connaît, et des observations libres.
-Est-ce suffisant, ou faut-il toujours le document signé ?
-Réponse : ……………………………………
-
-**3.6 Que voit le client sur la page de suivi publique ?**
-La maquette affiche seulement l'étape en cours et les dates, sans document, montant ni nom de personne. Si un document est attendu, elle dit simplement « Un document est attendu de votre part ».
+**Quelles coordonnées de DOUALOG faire figurer sur les emails et les factures ?**
+Il nous manque : l'adresse, le téléphone, le NINEA, le RCCM et les coordonnées de paiement (banque, RIB, numéro de paiement mobile).
 Réponse : ……………………………………
 
 ---
 
-## 4. La douane
+## Douane
 
-**4.1 En aérien, qu'est-ce qui permet de dire qu'un dossier est « anticipé » ?**
-En maritime, c'est la date d'arrivée du navire + le numéro du conteneur. En aérien, il n'y a pas de conteneur.
-La maquette propose : date d'arrivée du vol + numéro de lettre de transport aérien (LTA).
+**En aérien, qu'est-ce qui permet de dire qu'un dossier est « anticipé » ?**
+En maritime : la date d'arrivée du navire et le numéro du conteneur. Les maquettes proposent, en aérien : la date d'arrivée du vol et le numéro de LTA.
 Réponse : ……………………………………
 
-**4.2 Que se passe-t-il quand la douane dit que la marchandise n'est « pas conforme » ?**
-La maquette permet de choisir ce résultat, mais ne montre pas la suite.
+**Quand la douane demande une information, quel nom donner à l'état du dossier ?**
+Les maquettes affichent « Info manquante ».
 Réponse : ……………………………………
 
-**4.3 Quand la douane demande une information, quel nom donne-t-on à l'état du dossier ?**
-La maquette affiche « Info manquante » (l'autre nom possible était « En attente de réponse »).
+**Qu'est-ce qui déclenche l'alerte « Modification de déclaration en attente » ?**
+Elle figure dans le cahier des charges sans explication.
 Réponse : ……………………………………
 
-**4.4 Qu'est-ce qui déclenche l'alerte « Modification de déclaration en attente » ?**
-Elle est citée dans le cahier des charges, mais sans explication.
+**Peut-on enregistrer le BAE si la douane n'a encore rien dit sur un éventuel contrôle ?**
+Les maquettes l'autorisent dès que la déclaration est déposée, sauf pendant un contrôle ou une demande d'information.
 Réponse : ……………………………………
 
-**4.5 Peut-on enregistrer le BAE si la douane n'a encore rien dit sur un éventuel contrôle ?**
-La maquette autorise le bouton « BAE obtenu » dès que la déclaration est anticipée, sauf si un contrôle est en cours ou si une information est demandée au client.
-Réponse : ……………………………………
-
----
-
-## 5. Le transport
-
-**5.1 Peut-on commander le camion dès que la douane autorise l'enlèvement (BAE), ou seulement après le bon à sortir (BAS) ?**
-La maquette permet de le faire dès le BAE.
-Réponse : ……………………………………
-
-**5.2 Si l'offre est envoyée à plusieurs transporteurs, le premier qui accepte gagne-t-il la course ?**
-La maquette : oui, les autres reçoivent « Offre déjà attribuée ».
-Réponse : ……………………………………
-
-**5.3 Si un transporteur refuse, que fait le service transport ?**
-La maquette affiche un bouton « Solliciter un autre transporteur », pour l'instant inactif.
-Réponse : ……………………………………
-
-**5.4 Dans quel ordre se passent « Chargement » et « En route » ?**
-La maquette : d'abord Chargement, puis En route.
-Réponse : ……………………………………
-
-**5.5 Quelles informations voulez-vous garder sur chaque transporteur ?**
-La maquette garde : nom de la société, personne à contacter, email, téléphone.
-Faut-il aussi les types de camions, les zones desservies, autre chose ?
-Réponse : ……………………………………
-
-**5.6 L'offre envoyée aux transporteurs doit-elle indiquer un prix ?**
-La maquette envoie le détail du transport (marchandise, poids, adresses, date) sans prix : le transporteur accepte ou refuse.
-Le prix est-il fixé à l'avance avec chaque transporteur, ou faut-il lui demander un tarif ?
-Réponse : ……………………………………
-
-**5.7 Combien de temps un transporteur a-t-il pour répondre à une offre ?**
-La maquette ne fixe pas de délai.
-Réponse : ……………………………………
-
-**5.8 Le transporteur doit-il déposer le bon de livraison signé pour confirmer la livraison ?**
-La maquette l'exige : le bouton « Confirmer la livraison » reste grisé tant que le bon de livraison signé n'est pas déposé.
+**Combien de temps le client a-t-il pour répondre à une demande de la douane ?**
+Les maquettes n'affichent pas de délai.
 Réponse : ……………………………………
 
 ---
 
-## 6. Factures et fin du dossier
+## Transport
 
-**6.1 Quand un dossier est-il terminé (« clôturé ») s'il n'y a pas de livraison à faire ?**
-La maquette : dès que la facture est entièrement payée.
+**Peut-on commander le camion dès le BAE, ou seulement après le BAS ?**
+Les maquettes le permettent dès le BAE.
 Réponse : ……………………………………
 
-**6.2 Un dossier peut être livré et facturé en même temps : quel état afficher ?**
-La maquette affiche l'état de la facture (« Facturé ») et montre la livraison dans une colonne à part.
+**L'offre envoyée au transporteur doit-elle indiquer un prix ?**
+Les maquettes envoient seulement le détail du transport. Le prix est-il fixé à l'avance avec chaque transporteur ?
 Réponse : ……………………………………
 
-**6.3 À quelle fréquence relancer automatiquement ?**
-- un client à qui il manque des documents : ……………………………………
-- un client qui n'a pas payé sa facture à l'échéance : ……………………………………
-
-La maquette affiche « prochaine relance dans 2 jours », à titre d'exemple.
-
-**6.4 Quelle couleur pour les états de facture ?**
-La maquette : facture envoyée en bleu, payée en partie en orange, payée en vert.
+**Combien de temps un transporteur a-t-il pour répondre à une offre ?**
+Les maquettes ne fixent pas de délai.
 Réponse : ……………………………………
 
-**6.5 Sous combien de jours vos clients doivent-ils payer une facture ?**
-La maquette met l'échéance à 30 jours après l'émission.
+**Si tous les transporteurs refusent, que fait le service transport ?**
+Les maquettes affichent un bouton « Solliciter un autre transporteur », sans suite pour l'instant.
 Réponse : ……………………………………
 
-**6.6 Quelles informations doivent figurer sur vos factures ?**
-La maquette prévoit la place pour : votre NINEA, votre RCCM, votre adresse, et vos coordonnées de paiement (banque, RIB, numéro de paiement mobile). Pouvez-vous nous les communiquer ?
+**Le transporteur doit-il déposer le bon de livraison signé pour confirmer la livraison ?**
+Les maquettes l'exigent.
 Réponse : ……………………………………
 
-**6.7 Un dossier payé mais pas encore livré : on le clôture tout de suite ?**
-La maquette attend la confirmation de la livraison pour clôturer le dossier.
+**Quelles informations garder sur chaque transporteur ?**
+Les maquettes gardent le nom de la société, le contact, l'email et le téléphone. Faut-il aussi les types de camions, les zones desservies ?
 Réponse : ……………………………………
+
+---
+
+## Facturation
+
+**Sous combien de jours vos clients doivent-ils payer ?**
+Les maquettes mettent l'échéance à 30 jours.
+Réponse : ……………………………………
+
+**Sur la facture, quel numéro d'identification du client utilisez-vous ?**
+Le cahier des charges parle de « N° IFU » ; au Sénégal, on parle plutôt du NINEA.
+Réponse : ……………………………………
+
+**Si le client n'indique pas les prestations voulues, qui les remplit dans le dossier ?**
+Réponse : ……………………………………
+
+**Quand un dossier est-il terminé ?**
+Les maquettes le clôturent quand la facture est entièrement payée et la livraison confirmée (ou sans livraison prévue). Un dossier payé mais pas encore livré reste ouvert.
+Réponse : ……………………………………
+
+**À quelle fréquence relancer automatiquement ?**
+- un client à qui il manque des documents (les maquettes : tous les 2 jours) : ……………………………………
+- un client qui n'a pas payé à l'échéance : ……………………………………
+
+---
+
+## Client
+
+**Comment un client qui exporte retrouve-t-il son dossier sur la page de suivi ?**
+Le BL n'existe pas toujours au début d'un export. Les maquettes proposent : numéro de dossier et numéro de réservation (booking).
+Réponse : ……………………………………
+
+**Combien de temps le lien personnel du client reste-t-il valable ?**
+Les maquettes : 30 jours. Pour le transporteur, le lien se ferme à la livraison.
+Réponse : ……………………………………
+
+**Quand le client n'a pas envoyé d'instruction douane, un petit formulaire suffit-il ?**
+Les maquettes lui demandent le régime douanier, la position tarifaire s'il la connaît et ses observations, à la place du document.
+Réponse : ……………………………………
+
+**Les mots utilisés pour le client vous conviennent-ils ?**
+Sur ses pages, le client voit par exemple : « Documents attendus », « Contrôle de la douane en cours », « Enlèvement autorisé », « Livraison en cours », « Dossier terminé ». La page de suivi publique ne montre ni document, ni montant, ni nom.
+Réponse : ……………………………………
+
+---
+
+## Déjà décidé
+
+- Pays : Sénégal — Port autonome de Dakar, aéroport AIBD.
+- Monnaie des factures : FCFA.
+- Une offre envoyée à plusieurs transporteurs revient au premier qui l'accepte ; les autres sont prévenus.
+- Ordre du transport : chargement, puis en route, puis livré.
+- Un dossier livré et facturé affiche l'état de la facture ; la livraison se lit dans la colonne Transport.

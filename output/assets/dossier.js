@@ -119,7 +119,7 @@
       return '<li class="c-doc ' + (ok ? 'c-doc--ok' : 'c-doc--missing') + '"><span class="c-doc__state">' + icon(ok ? 'check' : 'x') + '</span>' +
         '<span class="c-doc__name">' + D.documents[k].libelle + note + '</span>' +
         '<span class="c-doc__actions">' + (ok
-          ? '<button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" type="button" aria-label="Télécharger ' + D.documents[k].libelle + '">' + icon('download', 'c-icon--sm') + '</button>'
+          ? '<button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" type="button" data-d="telecharger" aria-label="Télécharger ' + D.documents[k].libelle + '">' + icon('download', 'c-icon--sm') + '</button>'
           : '<button class="c-btn c-btn--sm" type="button" data-d="document" data-doc="' + k + '">' + icon('upload', 'c-icon--sm') + 'Ajouter</button>') + '</span></li>';
     }).join('');
     var titre = 'Documents' + (manquants ? ' <span class="c-count c-count--alert" title="' + manquants + ' manquant(s)">' + manquants + '</span>' : '');
@@ -148,7 +148,7 @@
         '<div><div class="c-alert__title">Demande envoyée au client le ' + F.date(c.demandeEnvoyee) + ' à ' + F.heure(c.demandeEnvoyee) + '</div>' +
         '<div>' + esc(c.commentaire) + ' <a href="../externe/X08-email-demande-information.html?id=' + d.id + '">Voir l\'email</a></div></div></div>';
     }
-    return carte('Déclaration / Contrôle', kv(rows) + encart);
+    return carte('Déclaration / Contrôle', kv(rows) + encart, '', '', ' id="bloc-controle"');
   }
 
   /* ── Blocs BAE et BAS (US-25, 26, 34) ────────────────────── */
@@ -280,7 +280,7 @@
         return '<li class="c-doc ' + (depot ? 'c-doc--ok' : 'c-doc--optional') + '"><span class="c-doc__state">' + icon(depot ? 'check' : 'clock') + '</span>' +
           '<span><span class="c-doc__name">' + D.documentsTransport[k].libelle + '</span><br><span class="c-field__help">' +
           (depot ? esc(depot.nom) + ' · déposé le ' + dh(depot.date) : 'Attendu du transporteur à la livraison') + '</span></span>' +
-          (depot ? '<span class="c-doc__actions"><button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" type="button" aria-label="Télécharger">' + icon('download', 'c-icon--sm') + '</button></span>' : '') + '</li>';
+          (depot ? '<span class="c-doc__actions"><button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" type="button" data-d="telecharger" aria-label="Télécharger">' + icon('download', 'c-icon--sm') + '</button></span>' : '') + '</li>';
       }).join('') + '</ul>';
     }
     return carte('Suivi transport', '<ol class="c-wf" aria-label="Suivi du transport">' + etapes.join('') + '</ol>' + docs);
@@ -404,7 +404,9 @@
     clearTimeout(p._entree);
     p._entree = setTimeout(function () { p.classList.remove('is-entering'); }, 1400);
     p.classList.add('is-open');
-    var focus = p.querySelector('[data-focus]');
+    /* ?bloc=controle (démo guidée) ou bloc Documents d'un dossier en salle d'attente */
+    var bloc = new URLSearchParams(location.search).get('bloc');
+    var focus = bloc ? p.querySelector('#bloc-' + bloc) : p.querySelector('[data-focus]');
     if (focus) {
       focus.classList.add('is-focus');
       setTimeout(function () { focus.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 500);
@@ -459,7 +461,7 @@
       corps = '<div class="c-field"><label class="c-field__label" for="m-a">À</label><input class="c-input" id="m-a" value="' + esc(D.client(d).email) + '"></div>' +
         '<div class="c-field"><label class="c-field__label" for="m-objet">Objet</label><input class="c-input" id="m-objet" value="[' + d.id + '] "><span class="c-field__help">Le N° de dossier en objet permet de rattacher la réponse automatiquement.</span></div>' +
         '<div class="c-field"><label class="c-field__label" for="m-corps">Message</label><textarea class="c-textarea" id="m-corps">Madame, Monsieur,\n\n</textarea></div>' +
-        '<button class="c-btn c-btn--ghost c-btn--sm u-self-start" type="button">' + icon('paperclip', 'c-icon--sm') + 'Joindre un document du dossier</button>';
+        '<p class="c-field__help">' + icon('paperclip', 'c-icon--sm') + ' Les pièces jointes du dossier pourront être ajoutées ici (prévu dans une prochaine version).</p>';
     }
     $('dossier-modale-titre').textContent = titre;
     $('dossier-modale-corps').innerHTML = corps;
@@ -524,10 +526,11 @@
     if (a === 'drawer-fermer') $('dossier-drawer').classList.remove('is-open');
     if (a === 'document') enAttenteDoc = t.dataset.doc || null;
     if (a === 'message' || a === 'bae' || a === 'bas' || a === 'document' || a === 'lien-off') modale(a);
-    if (a === 'solliciter') info('Solliciter un autre transporteur — fonction à préciser avec DOUALOG (D5).');
+    if (a === 'solliciter') info('Solliciter un autre transporteur — fonction à préciser avec DOUALOG.');
     if (a === 'simuler') recevoir(D.dossier(ouvert), D.documentsManquants(D.dossier(ouvert)), 'client');
     if (a === 'modale-fermer') $('dossier-modale').hidden = true;
     if (a === 'modale-valider') valider();
+    if (a === 'telecharger') info('Téléchargement — dans la maquette, aucun fichier n\x27est téléchargé.');
     if (a === 'pdf') info('Export PDF du dossier — prévu dans une prochaine version.');   // D13
   });
   document.addEventListener('keydown', function (e) {
