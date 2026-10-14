@@ -9,7 +9,7 @@ Toutes les données sont fictives.
 2. Cliquez sur **« Lancer la démo »** pour suivre pas à pas le dossier DLG-2026-0412, de l'email du client jusqu'à la facture.
    Ou ouvrez n'importe quel écran depuis le sommaire.
 
-Une **connexion internet** est nécessaire pour afficher la police Roboto. Sans connexion, les écrans restent utilisables
+Une **connexion internet** est nécessaire pour afficher la police Inter. Sans connexion, les écrans restent utilisables
 avec une police de remplacement.
 
 Les actions faites pendant une démonstration (facture émise, document déposé…) sont gardées tant que l'onglet est ouvert.

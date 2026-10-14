@@ -1,50 +1,46 @@
 /* ══════════════════════════════════════════════════════════════
    DOUALOG Control Tower — Tokens
-   Sources, par priorité : 1. references/vision-client.jpeg (visuel attendu par le client)
-   2. charte-graphique/index.html (statuts, formes, icônes — à réaligner sur l'image plus tard)
-   3. CDC §15 (bleu nuit, ligne orange, accent orange).
+   Style : skill apple-design (référence principale) · garde-fous anti-ai-generic-design · règles métier b2b-saas-ui.
+   Identité et structure : references/vision-client.jpeg (bleu nuit, orange #F97316, logo).
    Aucune valeur en dur dans les pages : tout passe par ces variables.
    ══════════════════════════════════════════════════════════════ */
-@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+/* Police : Inter (choix du client après comparaison avec Roboto et Geist), axe de taille optique */
+@import url('https://fonts.googleapis.com/css2?family=Inter:opsz,wght@14..32,400..700&display=swap');
 
 :root {
   color-scheme: light;
 
-  /* — Bleu nuit (image + CDC §15) — */
-  --night-950: #123259;       /* menu latéral, en-tête des pages externes : bleu marine franc (plus le quasi-noir #0A1628) */
-  --night-app: #091427;       /* réserve (ancien fond sombre de la zone de travail) */
-  --gray-app:  #F4F5F7;       /* fond de la zone de travail : gris très clair (refonte sobre, demande client) */
-  --night-900: #0B1F3A;       /* réserve (plus utilisé par le menu) */
-  --night-850: #10243F;       /* bandeau d'indicateurs */
-  --night-800: #1C406E;       /* survol sur le menu */
+  /* — Bleu nuit (identité : menu, en-têtes des pages externes, emails) — */
+  --night-950: #123259;       /* menu latéral, en-tête des pages externes */
+  --gray-app:  #F4F5F7;       /* fond de la zone de travail */
+  --night-800: #1C406E;
   --night-line: rgba(255, 255, 255, .10);
-  --blue-600:  #1F5FD6;       /* élément actif du menu (bloc bleu plein, image) — relevé sur l'image, à valider */
 
-  /* — Orange (image + CDC §15) — */
-  --orange-500: #F97316;      /* CTA, ligne sous le header, éléments actifs */
-  --orange-600: #EA580C;      /* survol CTA */
-  --orange-700: #C2410C;      /* texte orange sur fond clair (contraste AA) */
-  --orange-50:  #FFF1E6;      /* surlignage, sélection, halo de focus */
+  /* — Orange (identité) — */
+  --orange-500: #F97316;      /* accent DOUALOG : repère du menu, étape en cours, logo, focus */
+  --orange-650: #CC4A0E;      /* fond des boutons principaux : texte blanc à 4,6:1 (AA) */
+  --orange-700: #B23F0B;      /* survol des boutons principaux, texte orange sur fond clair */
+  --orange-50:  #FFF1E6;
 
-  /* — Titres (charte) — */
-  --navy-500: #0C2C5E;        /* bleu marine Doualog — titres, références */
+  /* — Bleu marine (titres, liens, éléments actifs) — */
+  --navy-500: #0C2C5E;
 
-  /* — Neutres froids (cartes blanches de l'image) — */
+  /* — Neutres froids — */
   --neutral-0:   #FFFFFF;
-  --neutral-50:  #F9FAFB;     /* ligne alternée */
-  --neutral-100: #F3F4F6;     /* en-tête de tableau, fond de bloc */
-  --neutral-200: #E5E7EB;     /* bordure */
-  --neutral-300: #D1D5DB;     /* bordure forte, contour bouton */
-  --neutral-400: #9CA3AF;     /* « — », à venir */
-  --neutral-600: #6B7280;     /* texte secondaire */
-  --neutral-700: #374151;     /* texte courant (CDC §15) */
-  --neutral-900: #111827;     /* texte fort */
+  --neutral-50:  #F8F9FB;     /* survol de ligne */
+  --neutral-100: #F1F3F6;     /* fond de champ discret, piste de graphique */
+  --neutral-200: #E4E7EC;     /* filet */
+  --neutral-300: #D0D5DD;     /* bordure de contrôle */
+  --neutral-400: #98A2B3;     /* « — », à venir */
+  --neutral-600: #5D6676;     /* texte secondaire (AA sur blanc et sur gris clair) */
+  --neutral-700: #344054;     /* texte courant */
+  --neutral-900: #101828;     /* texte fort */
 
   --on-dark:        #F1F5F9;
-  --on-dark-muted:  rgba(241, 245, 249, .62);
+  --on-dark-muted:  rgba(241, 245, 249, .68);
   --on-dark-line:   var(--night-line);
 
-  /* — Icônes des indicateurs (comme l'image) : teintes vives lisibles sur bleu nuit — à valider — */
+  /* — Icônes des indicateurs (une teinte par indicateur, demande du client) — */
   --kpi-blue:    #3B82F6;
   --kpi-violet:  #8B5CF6;
   --kpi-magenta: #D946EF;
@@ -60,25 +56,31 @@
   --tone-special: #6A4FD1;    /* violet — anticipé, facturation */
   --tone-neutral: #5B564A;
 
-  --status-success-bg: #E0ECE3; --status-success-fg: #23683A;
-  --status-info-bg:    #E0E8F3; --status-info-fg:    #2F63AE;
-  --status-warning-bg: #F3E4DD; --status-warning-fg: #B04B1B;
-  --status-danger-bg:  #F3E0DF; --status-danger-fg:  #B23327;
-  --status-special-bg: #E9E5F8; --status-special-fg: #6A4FD1;
-  --status-neutral-bg: #E8E8E6; --status-neutral-fg: #5B564A;
+  --status-success-bg: #E3F1E7; --status-success-fg: #1F6435;
+  --status-info-bg:    #E5EDF8; --status-info-fg:    #2A5A9E;
+  --status-warning-bg: #FBEBE2; --status-warning-fg: #A3441A;
+  --status-danger-bg:  #FBE6E4; --status-danger-fg:  #A82F24;
+  --status-special-bg: #EEEAFB; --status-special-fg: #5E44C4;
+  --status-neutral-bg: #EEEFF1; --status-neutral-fg: #4F5662;
 
   /* — Sémantique : surfaces & texte — */
-  --bg-app:         var(--gray-app);    /* zone de travail claire, cartes blanches à bordure fine */
+  --bg-app:         var(--gray-app);
   --bg-surface:     var(--neutral-0);
   --bg-subtle:      var(--neutral-50);
   --bg-muted:       var(--neutral-100);
-  --bg-chrome:      var(--night-950);   /* infobulle, en-tête des pages externes */
-  --bg-topbar:      var(--neutral-0);   /* header de l'application : blanc */
+  --bg-chrome:      var(--night-950);
+  --bg-topbar:      rgba(255, 255, 255, .82);   /* matière translucide : le contenu défile dessous */
   --bg-nav:         var(--night-950);
-  --bg-nav-hover:   var(--night-800);
-  --bg-nav-active:  rgba(255, 255, 255, .08);   /* entrée active : fond discret + trait orange à gauche */
-  --bg-tile:        var(--neutral-0);   /* bandeau d'indicateurs : blanc */
-  --bg-overlay:     rgba(10, 22, 40, .6);
+  --bg-nav-hover:   rgba(255, 255, 255, .06);
+  --bg-nav-active:  rgba(255, 255, 255, .11);
+  --bg-tile:        var(--neutral-0);
+  --bg-overlay:     rgba(16, 24, 40, .38);
+  --bg-chrome-glass: rgba(18, 50, 89, .9);    /* bleu nuit translucide (barre de démo) */
+  --on-dark-fill:   rgba(255, 255, 255, .06); /* bouton sur fond sombre */
+  --on-dark-fill-hover: rgba(255, 255, 255, .12);
+  --on-dark-border: rgba(255, 255, 255, .16);
+  --blur-chrome:    saturate(180%) blur(14px);
+  --blur-overlay:   blur(3px);
   --border:         var(--neutral-200);
   --border-strong:  var(--neutral-300);
   --border-ink:     var(--neutral-300);
@@ -90,65 +92,64 @@
   --text-link:      var(--navy-500);
 
   /* — Sémantique : actions — */
-  --action-primary:       var(--orange-500);
-  --action-primary-hover: var(--orange-600);
-  --action-on-primary:    var(--neutral-0);   /* texte blanc, comme l'image — contraste 2,8:1, à valider */
-  --action-active:        var(--navy-500);    /* onglet, filtre actifs : bleu marine — l'orange reste aux boutons d'action */
+  --action-primary:       var(--orange-650);
+  --action-primary-hover: var(--orange-700);
+  --action-on-primary:    var(--neutral-0);
+  --action-accent:        var(--orange-500);   /* repères d'identité (menu actif, étape en cours) */
+  --action-active:        var(--navy-500);
   --action-active-text:   var(--navy-500);
-  --action-active-bg:     #EDF1F7;            /* fond d'un filtre actif, d'une ligne sélectionnée */
+  --action-active-bg:     #EAF0F8;
   --focus-ring:           var(--orange-500);
-  --focus-halo:           var(--orange-50);
+  --focus-halo:           rgba(249, 115, 22, .18);
 
-  /* — Typographie : Roboto (police d'Odoo : neutre, sérieuse, très lisible sur chiffres et tableaux) — */
-  --font-sans: 'Roboto', 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
-  --fs-2xs: 10px;   /* libellé KPI, slogan */
-  --fs-xs:  11px;   /* en-têtes de colonnes, libellés majuscules */
-  --fs-sm:  12px;   /* métadonnées, badges, titres de blocs */
+  /* — Typographie : Inter (sobre, très lisible en petite taille, chiffres nets) — */
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
+  --fs-2xs: 10px;
+  --fs-xs:  11px;   /* notes, axes de graphiques */
+  --fs-sm:  12px;   /* métadonnées, badges, en-têtes de colonnes */
   --fs-md:  13px;   /* corps applicatif, tableaux */
-  --fs-base:14px;   /* corps de formulaire */
-  --fs-lg:  15px;   /* corps de page externe */
-  --fs-xl:  17px;   /* titre du header */
+  --fs-base:14px;   /* titres de blocs, formulaires */
+  --fs-xl:  17px;   /* référence du dossier ouvert */
   --fs-2xl: 22px;   /* titre de page */
-  --fs-3xl: 26px;   /* chiffre KPI */
-  --fw-regular: 400; --fw-medium: 500; --fw-semibold: 500; --fw-bold: 700;   /* Roboto : pas de 600, le semi-gras est rendu en 500 */
+  --fw-regular: 400; --fw-medium: 500; --fw-semibold: 600; --fw-bold: 700;
   --lh-tight: 1.2; --lh-normal: 1.5; --lh-relaxed: 1.6;
-  --ls-label: .05em;   /* majuscules : titres de blocs, en-têtes de colonnes */
-  --ls-wide:  .22em;   /* slogan du header */
+  /* Approche (tracking) selon la taille : serrée sur les grands titres, neutre sur le corps */
+  --ls-title: -.02em;
+  --ls-heading: -.01em;
+  --ls-body: -.006em;   /* Inter : très légère approche négative au corps 13–14 px */
+  --ls-label: .05em;   /* rares libellés en majuscules (facture, démo) */
 
   /* — Espacements (base 4) — */
   --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px; --sp-4: 16px;
   --sp-5: 20px; --sp-6: 24px; --sp-8: 32px; --sp-12: 48px;
 
-  /* — Formes (charte : 6 px, pilule pour les badges, pas d'ombre) — */
-  --radius-sm: 4px;
-  --radius-md: 4px;   /* boutons, champs */
-  --radius-lg: 6px;      /* cartes de la zone de travail */
-  --radius-pill: 999px;
+  /* — Formes — */
+  --radius-sm: 6px;      /* éléments internes (entrées de menu, cases) */
+  --radius-md: 8px;      /* boutons, champs, filtres */
+  --radius-lg: 12px;     /* cartes */
+  --radius-xl: 16px;     /* modales */
+  --radius-pill: 999px;  /* statuts, compteurs */
   --border-w: 1px;
   --border-w-strong: 1.5px;
-  --shadow: none;
+
+  /* — Profondeur : ombres douces et courtes (plus la surface est haute, plus l'ombre est diffuse) — */
+  --shadow-xs: 0 1px 2px rgba(16, 24, 40, .05);
+  --shadow-md: 0 2px 4px -2px rgba(16, 24, 40, .05), 0 6px 14px -4px rgba(16, 24, 40, .09);
+  --shadow-lg: 0 4px 8px -4px rgba(16, 24, 40, .06), 0 16px 36px -8px rgba(16, 24, 40, .18);
+  --shadow-btn: 0 1px 2px rgba(16, 24, 40, .06);
+  --shadow-btn-primary: inset 0 1px 0 rgba(255, 255, 255, .16), 0 1px 2px rgba(146, 52, 9, .35);
 
   /* — Icônes — */
   --icon-sm: 14px; --icon-md: 16px; --icon-lg: 20px;
-  --icon-stroke: 1.8;
 
   /* — Layout — */
-  --sidebar-w: 200px;
-  --topbar-h: 64px;
-  --topbar-line: 1px;     /* fine ligne orange sous le header */
-  --row-h: 36px;
+  --sidebar-w: 216px;
+  --topbar-h: 60px;
+  --topbar-line: 1px;
+  --row-h: 40px;
   --control-h: 36px;
   --control-h-sm: 30px;
-  /* Indicateurs : l'icône a la hauteur du bloc chiffre + libellé (2 lignes) */
-  --stat-value: 20px;
-  --stat-label: 9px;
-  --stat-gap: 2px;
-  --demobar-h: 72px;      /* barre de démo guidée */
-  --stat-icon: calc(var(--stat-value) + var(--stat-gap) + 2 * 1.2 * var(--stat-label));
-  /* Séparation menu / zone de travail : reflet clair + ombre (demande client) */
-  --nav-edge-light: rgba(255, 255, 255, .07);
-  --nav-edge-shadow: 6px 0 18px rgba(0, 0, 0, .45);
-  --content-max: 1680px;
+  --demobar-h: 72px;
   --external-max: 640px;
 
   /* — Couches — */
@@ -158,18 +159,32 @@
   --z-modal: 50;
   --z-tooltip: 60;
 
-  /* — Mouvement — */
-  --dur-fast: 120ms;
-  --dur-base: 200ms;
+  /* — Mouvement : court (90–240 ms), sans rebond, interrompable (transitions CSS repartant de l'état courant) — */
+  --dur-press: 90ms;     /* pression d'un bouton */
+  --dur-fast: 120ms;     /* survols, couleurs */
+  --dur-base: 180ms;     /* onglets, menus, infobulles */
+  --dur-enter: 240ms;    /* panneau dossier, modale, panneau latéral */
+  --dur-exit: 180ms;
+  --dur-stagger: 18ms;
   --ease: cubic-bezier(.2, .7, .2, 1);
-  /* Panneau dossier : entrée ample et douce, sortie plus rapide */
-  --dur-enter: 460ms;
-  --dur-exit: 260ms;
-  --dur-stagger: 45ms;
-  --ease-out: cubic-bezier(.16, 1, .3, 1);
-  --ease-in: cubic-bezier(.55, 0, .9, .4);
+  --ease-out: cubic-bezier(.32, .72, 0, 1);    /* courbe des feuilles iOS : départ vif, arrivée douce */
+  --ease-in: cubic-bezier(1, 0, .68, .28);     /* miroir, pour la sortie (même chemin, sens inverse) */
+  /* Distances de mouvement (mises à 0 si l'utilisateur demande moins d'animations) */
+  --move-sheet: 28px;    /* montée du panneau dossier */
+  --move-rise: 6px;      /* apparition d'un bloc, d'un menu */
+  --press-scale: .97;
 }
 
+
+/* Accessibilité : moins de mouvement → fondus courts, sans déplacement ni échelle */
 @media (prefers-reduced-motion: reduce) {
-  :root { --dur-fast: 0ms; --dur-base: 0ms; --dur-enter: 0ms; --dur-exit: 0ms; --dur-stagger: 0ms; }
+  :root { --move-sheet: 0px; --move-rise: 0px; --press-scale: 1; --dur-stagger: 0ms; }
+}
+/* Moins de transparence → matières opaques */
+@media (prefers-reduced-transparency: reduce) {
+  :root { --bg-topbar: var(--neutral-0); --blur-chrome: none; --blur-overlay: none; --bg-overlay: rgba(16, 24, 40, .55); }
+}
+/* Contraste renforcé → filets et textes secondaires plus marqués */
+@media (prefers-contrast: more) {
+  :root { --border: var(--neutral-400); --border-strong: var(--neutral-600); --text-secondary: var(--neutral-700); --bg-topbar: var(--neutral-0); }
 }

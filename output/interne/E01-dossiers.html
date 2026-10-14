@@ -370,9 +370,9 @@
       var cls = !d.docs.mandat ? 'is-alert' : (r.nombre >= 2 ? 'is-warning' : '');   // mandat absent = bloquant · 2 relances sans réponse = vigilance
       return '<tr class="' + cls + '" data-ligne="' + d.id + '"><td><a class="c-ref" data-ouvrir="' + d.id + '" href="' + lien + '">' + d.id + '</a></td>' +
         '<td>' + B('type', d.type) + '</td>' +
-        '<td>' + esc(c.nom) + '</td>' +
+        '<td class="is-wrap">' + esc(c.nom) + '</td>' +
         '<td class="u-num">' + dateHeure(d.reception) + '</td>' +
-        '<td>' + (manquants || DASH) + '</td>' +
+        '<td class="is-wrap">' + (manquants || DASH) + '</td>' +
         '<td>' + relances + '</td>' +
         '<td>' + mandat + '</td>' +
         '<td class="u-num">' + anciennete(d) + '</td>' +

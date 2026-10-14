@@ -7,7 +7,7 @@
    ══════════════════════════════════════════════════════════════ */
 (function () {
   var D = window.DOUALOG, F = D.fmt, esc = D.esc;
-  var C = { navy: '#0C2C5E', texte: '#374151', gris: '#6B7280', bord: '#E5E7EB', fond: '#F3F4F6', vert: '#23683A', vertFond: '#E0ECE3', rouge: '#B23327', rougeFond: '#F3E0DF' };
+  var C = { navy: '#0C2C5E', texte: '#344054', gris: '#5D6676', bord: '#E4E7EC', fond: '#F8F9FB', vert: '#1F6435', vertFond: '#E3F1E7', rouge: '#A82F24', rougeFond: '#FBE6E4' };
 
   function remplir() {
     var p = new URLSearchParams(location.search);

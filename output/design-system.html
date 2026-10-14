@@ -44,6 +44,8 @@
   .ds-note { font-size: var(--fs-sm); color: var(--text-secondary); margin-top: var(--sp-2); }
   .ds-panel-demo { position: relative; height: 380px; overflow: hidden; border: var(--border-w) solid var(--border); border-radius: var(--radius-md); background: var(--bg-app); }
   .ds-panel-demo .c-panel { position: absolute; left: 0; top: 0; }
+  .ds-motion { display: grid; grid-template-columns: auto 1fr; gap: var(--sp-1) var(--sp-4); font-size: var(--fs-sm); }
+  .ds-motion code { color: var(--text-strong); }
   @media (max-width: 760px) { .ds-two { grid-template-columns: 1fr; } }
 </style>
 </head>
@@ -54,7 +56,7 @@
     <img src="assets/img/logo.png" alt="DOUALOG — Douane & Logistique">
     <div>
       <h1>Design system — Control Tower</h1>
-      <p>Référence visuelle des maquettes V1 · d'après references/vision-client.jpeg, puis la charte graphique · tokens.css, components.css, icons.js, data.js, shell.js</p>
+      <p>Référence visuelle des maquettes V1 · style : skill apple-design ; identité et structure : references/vision-client.jpeg · tokens.css, components.css, icons.js, data.js, shell.js</p>
     </div>
   </header>
   <nav class="ds-toc" aria-label="Sommaire">
@@ -62,49 +64,60 @@
     <a href="#statuts">Statuts</a><a href="#boutons">Boutons</a><a href="#champs">Champs</a><a href="#shell">Shell</a><a href="#indicateurs">Indicateurs</a><a href="#graphiques">Graphiques</a>
     <a href="#tableau">Tableau</a><a href="#onglets">Onglets</a><a href="#workflow">Workflow</a><a href="#bandeau">Bandeau</a>
     <a href="#panneau">Panneau &amp; modale</a><a href="#blocs">Blocs du dossier</a><a href="#timeline">Timeline</a><a href="#documents">Documents</a>
-    <a href="#alertes">Alertes</a><a href="#vide">État vide</a><a href="#kpi">KPI</a><a href="#depot">Dépôt</a><a href="#connexion">Connexion</a><a href="#externe">Pages externes</a><a href="#facture">Facture</a>
+    <a href="#alertes">Alertes</a><a href="#vide">État vide</a><a href="#depot">Dépôt</a><a href="#connexion">Connexion</a><a href="#externe">Pages externes</a><a href="#facture">Facture</a>
   </nav>
 
   <!-- ══ COULEURS ══ -->
   <section class="ds-sec" id="couleurs">
     <h2>Couleurs</h2>
-    <p class="ds-intro">Version sobre (refonte « entreprise », demande du client) : menu bleu nuit, header blanc, zone de travail gris très clair, cartes blanches à bordure fine. L'orange est réservé aux boutons d'action principaux et au repère de l'entrée active du menu ; bleu marine pour les onglets, filtres et étapes actifs. Les teintes de statut restent celles de la charte, en fond très léger.</p>
+    <p class="ds-intro">Menu bleu nuit, header blanc translucide, zone de travail gris très clair, cartes blanches à bordure fine et ombre très légère. Orange DOUALOG <code>#F97316</code> pour les repères d'identité (entrée active du menu, étape en cours, focus) ; les boutons principaux prennent un orange plus profond (<code>#CC4A0E</code>) pour que le texte blanc soit lisible (contraste AA). Bleu marine pour les onglets et filtres actifs. Teintes de statut de la charte, en fond très léger.</p>
     <p class="u-label ds-cap">Identité &amp; surfaces</p>
     <div class="ds-grid" id="sw-base"></div>
     <p class="u-label ds-cap" style="margin-top: var(--sp-6)">Six teintes de statut — paires fond / texte (contraste ≥ 4,5:1)</p>
     <div class="ds-grid" id="sw-tones"></div>
-    <p class="ds-note">Le texte vert des badges est assombri (<code>#23683A</code>) pour atteindre le contraste AA. Texte blanc sur orange (comme l'image) : contraste 2,8:1, sous le seuil AA — à valider.</p>
+    <p class="ds-note">Tous les textes de badges atteignent le contraste AA sur leur fond. Bouton principal : texte blanc sur <code>#CC4A0E</code>, 4,6:1 (blanc sur <code>#F97316</code> ne donnait que 2,8:1).</p>
   </section>
 
   <!-- ══ TYPOGRAPHIE ══ -->
   <section class="ds-sec" id="typo">
     <h2>Typographie — Inter</h2>
-    <p class="ds-intro">Roboto partout (police d'Odoo, neutre et lisible ; semi-gras rendu en 500). Angles 4 px (boutons, champs), 6 px (cartes), statuts et compteurs en pilule. Titres de blocs, libellés et en-têtes de colonnes en casse normale (pas de majuscules), semi-gras ; chiffres des indicateurs grands, en semi-gras.</p>
+    <p class="ds-intro">Inter partout (taille optique automatique). Titres serrés (approche −1 à −2 %), corps à −0,6 %, 2 graisses principales (normal / semi-gras 600, moyen 500 pour les valeurs). Chiffres tabulaires seulement pour les contenus purement numériques (dates, montants, compteurs, colonnes <code>.is-num</code>) : avec Inter, ils élargiraient aussi les traits d'union des références et des noms. Casse normale partout (pas de majuscules) pour titres de blocs, libellés et en-têtes de colonnes.</p>
     <div class="ds-box ds-box--flush">
       <table class="ds-scale" style="width:100%;border-collapse:collapse">
-        <tr><td class="u-label">Chiffre indicateur · 26 / 700</td><td style="font-size:var(--fs-3xl);font-weight:var(--fw-bold);color:var(--text-heading)" class="u-num">17</td></tr>
+        <tr><td class="u-label">Chiffre indicateur · 22 / 600, approche −2 %</td><td><span class="c-stat__value">17</span></td></tr>
         <tr><td class="u-label">Titre de bloc · 14 / 600</td><td><span class="c-block-title">Liste des dossiers</span></td></tr>
-        <tr><td class="u-label">Titre de page · 22 / 700</td><td><h1>Tableau de bord</h1></td></tr>
+        <tr><td class="u-label">Titre de page · 22 / 600, approche −2 %</td><td><h1>Tableau de bord</h1></td></tr>
         <tr><td class="u-label">Sous-titre · 17 / 600</td><td><h2>Contrôle douane</h2></td></tr>
         <tr><td class="u-label">Corps formulaire · 14 / 400</td><td style="font-size:var(--fs-base)">Vérification du poids et du marquage des sacs : conforme au manifeste.</td></tr>
         <tr><td class="u-label">Corps application · 13 / 400</td><td>Déclaration stockée, en attente de contrôle.</td></tr>
         <tr><td class="u-label">Métadonnée · 12 / 400</td><td style="font-size:var(--fs-sm)" class="u-muted">Reçu le 29/09/2026 · 09:14</td></tr>
         <tr><td class="u-label">Libellé de section · 12 / 600</td><td><span class="u-label">N° dossier</span></td></tr>
-        <tr><td class="u-label">Référence · 13 / 500 tabulaire</td><td><span class="c-ref">DLG-2026-0412</span> · <a class="c-ref" href="#">DLG-2026-0412</a> (lien)</td></tr>
+        <tr><td class="u-label">Référence · 13 / 500</td><td><span class="c-ref">DLG-2026-0412</span> · <a class="c-ref" href="#">DLG-2026-0412</a> (lien)</td></tr>
       </table>
     </div>
   </section>
 
   <!-- ══ ESPACEMENTS ══ -->
   <section class="ds-sec" id="espaces">
-    <h2>Espacements, angles, ombre</h2>
+    <h2>Espacements, angles, profondeur, mouvement</h2>
     <div class="ds-two">
       <div class="ds-box" id="spaces"></div>
       <div class="ds-box">
-        <p>Rayon <b>6 px</b> pour boutons et champs, <b>8 px</b> pour les cartes et tuiles. Badges en <b>pilule</b>.</p>
-        <p style="margin-top:var(--sp-2)"><b>Aucune ombre portée</b> : la séparation se fait par la bordure fine et l'espacement.</p>
-        <p style="margin-top:var(--sp-2)">Hauteurs : champ / bouton 36 px (30 px en petit) · ligne de tableau 36 px · header 64 px + ligne orange 1 px · menu 200 px.</p>
+        <p>Angles : <b>6 px</b> (entrées de menu), <b>8 px</b> (boutons, champs), <b>12 px</b> (cartes), <b>16 px</b> (modales). Statuts, compteurs et filtres en <b>pilule</b>.</p>
+        <p style="margin-top:var(--sp-2)"><b>Profondeur</b> : ombres très douces, plus diffuses quand la surface est plus haute — cartes <code>--shadow-xs</code>, menus, infobulles, panneaux et modales <code>--shadow-lg</code>. Header et bandeau du dossier en <b>matière translucide</b> (flou) : le contenu défile dessous. Voile des modales légèrement flouté.</p>
+        <p style="margin-top:var(--sp-2)">Hauteurs : champ / bouton 36 px (30 px en petit) · ligne de tableau 40 px · header 60 px · menu 216 px.</p>
       </div>
+    </div>
+    <div class="ds-box">
+      <p class="u-label ds-cap">Mouvement — court, sans rebond, interrompable</p>
+      <div class="ds-motion">
+        <code>90 ms</code><span>pression d'un bouton ou d'un filtre (léger enfoncement, dès l'appui, pas au relâchement)</span>
+        <code>120 ms</code><span>survols, changements de couleur</span>
+        <code>180 ms</code><span>onglets, menu « … » (naît du bouton qui l'ouvre), infobulles, apparition des lignes du tableau (fondu en cascade)</span>
+        <code>240 ms</code><span>ouverture du dossier (montée courte + fondu, blocs en cascade), panneau latéral, modale, barres des graphiques</span>
+        <code>180 ms</code><span>fermeture : même chemin que l'ouverture, en sens inverse, plus vite</span>
+      </div>
+      <p class="ds-note">Courbe d'entrée <code>--ease-out</code> (celle des feuilles iOS), sortie en miroir <code>--ease-in</code>. Transitions CSS : fermer pendant l'ouverture repart de la position affichée, sans saut. « Moins d'animations » (système) : fondus seuls, sans déplacement ; « moins de transparence » : header opaque ; « contraste renforcé » : filets et textes secondaires plus marqués.</p>
     </div>
   </section>
 
@@ -139,7 +152,7 @@
   <!-- ══ BOUTONS ══ -->
   <section class="ds-sec" id="boutons">
     <h2>Boutons</h2>
-    <p class="ds-intro">Un seul bouton primaire (orange) par zone. Les autres actions : secondaire (fond blanc, contour gris fin), discret ou danger.</p>
+    <p class="ds-intro">Un seul bouton primaire (orange) par zone. Les autres actions : secondaire (fond blanc, contour fin, ombre très légère), discret ou danger. Tous s'enfoncent légèrement dès l'appui.</p>
     <div class="ds-box u-stack">
       <div class="u-row">
         <button class="c-btn c-btn--primary"><svg class="c-icon" aria-hidden="true"><use href="#i-check"></use></svg>BAS obtenu</button>
@@ -168,7 +181,7 @@
     <p class="ds-intro">Libellé au-dessus, jamais en placeholder seul. Obligatoire marqué *. Erreur sous le champ, en langage clair.</p>
     <div class="ds-box">
       <div class="c-form-grid">
-        <div class="c-field"><label class="c-field__label" for="f1">N° de BAE <span class="is-required">*</span></label><input class="c-input u-num" id="f1" value="2026-BAE-048213"></div>
+        <div class="c-field"><label class="c-field__label" for="f1">N° de BAE <span class="is-required">*</span></label><input class="c-input" id="f1" value="2026-BAE-048213"></div>
         <div class="c-field"><label class="c-field__label" for="f2">Type de contrôle</label>
           <select class="c-select" id="f2"><option>Aucun</option><option selected>Physique</option><option>Documentaire</option></select></div>
         <div class="c-field"><label class="c-field__label" for="f3">Date de contrôle</label><input class="c-input" id="f3" type="date" value="2026-10-07"></div>
@@ -192,7 +205,7 @@
   <!-- ══ SHELL ══ -->
   <section class="ds-sec" id="shell">
     <h2>Shell applicatif</h2>
-    <p class="ds-intro">Version sobre (refonte « entreprise ») : menu bleu nuit pleine hauteur avec le logo en tête (monogramme sur pastille, DOUA blanc, LOG orange) ; header blanc à filet gris : recherche, notifications (compteur rouge), emails, utilisateur. Entrée active du menu : fond discret et trait orange à gauche ; entrées hors V1 ou hors droits du profil grisées ; Déconnexion en bas. Rendu par <code>shell.js</code> (<code>.c-sidebar__brand</code>).</p>
+    <p class="ds-intro">Menu bleu nuit pleine hauteur avec le logo en tête (monogramme sur pastille, DOUA blanc, LOG orange) ; header blanc translucide à filet gris : recherche (champ gris sans contour, blanc au focus), notifications (compteur rouge), emails, utilisateur. Entrée active du menu : fond discret et repère orange arrondi à gauche ; entrées hors V1 ou hors droits du profil grisées ; Déconnexion en bas. Rendu par <code>shell.js</code> (<code>.c-sidebar__brand</code>).</p>
     <div class="ds-shell">
       <div class="c-app">
         <header class="c-topbar">
@@ -222,7 +235,7 @@
   <!-- ══ BANDEAU D'INDICATEURS ══ -->
   <section class="ds-sec" id="indicateurs">
     <h2>Bandeau d'indicateurs (tableau de bord)</h2>
-    <p class="ds-intro">Un bandeau blanc découpé par des filets fins, au-dessus de la liste. Chaque indicateur : libellé court, puis le chiffre. Pas d'icône colorée (<code>__icon</code> reste dans le HTML mais est masquée). Sur écran étroit (1366 px), 2 lignes de 4 (requête de conteneur <code>stats</code>) ; libellé abrégé si l'indicateur est trop étroit (<code>.is-long</code> / <code>.is-short</code>). Un clic filtre la liste ; l'indicateur actif porte un trait bleu marine en bas. <code>.c-stats</code>, <code>.c-stats__group</code>, <code>.c-stat</code>, <code>__in</code>, <code>__value</code>, <code>__label</code>.</p>
+    <p class="ds-intro">Un bandeau blanc découpé par des filets fins (tableau de bord E09). Chaque indicateur : icône de couleur sur carré teinté (elle grossit à peine au survol), libellé court, puis le chiffre. Sur écran étroit (1366 px), 2 lignes de 4 (requête de conteneur <code>stats</code>) ; libellé abrégé si l'indicateur est trop étroit (<code>.is-long</code> / <code>.is-short</code>). Un clic ouvre la liste filtrée ; un indicateur actif porte un trait bleu marine en bas. <code>.c-stats</code>, <code>.c-stats__group</code>, <code>.c-stat</code>, <code>__in</code>, <code>__value</code>, <code>__label</code>.</p>
     <div class="ds-box" style="background:var(--bg-app)">
       <div class="c-stats">
         <div class="c-stats__group">
@@ -263,7 +276,7 @@
   <!-- ══ TABLEAU ══ -->
   <section class="ds-sec" id="tableau">
     <h2>Carte de liste, filtres rapides et tableau</h2>
-    <p class="ds-intro">Dans l'application, la liste est une carte blanche <code>.c-list</code> : titre, onglets, actions Filtres / Exporter à droite, puis barre de filtres, et le tableau dans son propre cadre bordé, en retrait des bords de la carte. Colonne Contrôle en texte coloré + date (<code>.c-ctrl</code>), comme l'image : <span class="c-ctrl c-ctrl--warning"><span class="c-ctrl__type">Physique · en cours</span><span class="c-ctrl__date">16/10/2026</span></span> · <span class="c-ctrl c-ctrl--success"><span class="c-ctrl__type">Aucun contrôle</span></span>.<br>Tableau pleine largeur, en-têtes sur bande grise, en-têtes triables. Exceptions marquées par un filet à gauche (rouge : bloquant, rouille : vigilance), ligne sélectionnée surlignée. Survol des dates « Stockée » et « Anticipé » : détail en infobulle.<br>
+    <p class="ds-intro">Dans l'application, la liste est une carte blanche <code>.c-list</code> : titre, onglets, actions Filtres / Exporter à droite, puis barre de filtres, et le tableau dans son propre cadre bordé, en retrait des bords de la carte. Colonne Contrôle en texte coloré + date (<code>.c-ctrl</code>), comme l'image : <span class="c-ctrl c-ctrl--warning"><span class="c-ctrl__type">Physique · en cours</span><span class="c-ctrl__date">16/10/2026</span></span> · <span class="c-ctrl c-ctrl--success"><span class="c-ctrl__type">Aucun contrôle</span></span>.<br>Tableau pleine largeur, lignes de 40 px, en-têtes sur bande gris très clair, triables. Les lignes apparaissent par un fondu court en cascade à chaque filtrage ; l'œil reste discret jusqu'au survol de la ligne. Filtres rapides en pilule, le filtre actif est plein bleu marine. Exceptions marquées par un filet à gauche (rouge : bloquant, rouille : vigilance), ligne sélectionnée surlignée. Survol des dates « Stockée » et « Anticipé » : détail en infobulle.<br>
       <code>.c-table--sticky</code> : tableau plus large que l'écran, 1re colonne (N° dossier) et dernière (actions) collantes pendant le défilement horizontal. <code>.c-tip--below</code> : bulle sous l'élément, pour les premières lignes d'un tableau défilant.</p>
     <div class="c-toolbar">
       <div class="c-input-icon c-toolbar__search"><svg class="c-icon" aria-hidden="true"><use href="#i-search"></use></svg><input class="c-input" placeholder="Rechercher"></div>
@@ -321,8 +334,8 @@
 
   <!-- ══ PANNEAU & MODALE ══ -->
   <section class="ds-sec" id="panneau">
-    <h2>Panneau bas de page, panneau latéral, modale</h2>
-    <p class="ds-intro">Le dossier monte du bas et occupe toute la hauteur sous le header (fond gris clair, blocs blancs) ; à la fermeture on retrouve la liste à la ligne du dossier. Entrée ample et douce, blocs en cascade ; sortie plus rapide (<code>--dur-enter</code>, <code>--dur-exit</code>, <code>--ease-out</code>, <code>--ease-in</code>). Pas d'onglets : tous les blocs sont visibles en grille. Panneau latéral pour l'historique, la messagerie complète ou une fiche annuaire. Modale réservée aux confirmations (BAE, BAS) et saisies courtes (nouveau message).</p>
+    <h2>Panneau dossier, panneau latéral, modale</h2>
+    <p class="ds-intro">Le dossier occupe toute la hauteur sous le header (fond gris clair, blocs blancs, bandeau translucide) ; à la fermeture on retrouve la liste à la ligne du dossier. Entrée : montée courte + fondu, blocs en cascade ; sortie par le même chemin, plus vite (<code>--dur-enter</code>, <code>--dur-exit</code>, <code>--ease-out</code>, <code>--ease-in</code>). Pas d'onglets : tous les blocs sont visibles en grille. Panneau latéral pour l'historique, la messagerie complète ou une fiche annuaire. Modale réservée aux confirmations (BAE, BAS) et saisies courtes (nouveau message).</p>
     <div class="u-row" style="margin-bottom:var(--sp-3)">
       <button class="c-btn" data-toggle="panel-demo">Ouvrir / fermer le panneau</button>
       <button class="c-btn" data-toggle="drawer-demo">Ouvrir le panneau latéral</button>
@@ -358,7 +371,7 @@
           <button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" aria-label="Fermer" data-close="modal-demo"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></button></div>
         <div class="c-modal__body">
           <p>Le dossier <b class="c-ref">DLG-2026-0412</b> passera automatiquement <b>en facturation</b> et le Service facturation sera notifié.</p>
-          <div class="c-field"><label class="c-field__label" for="m1">N° de BAS <span class="is-required">*</span></label><input class="c-input u-num" id="m1" value="2026-BAS-051907"></div>
+          <div class="c-field"><label class="c-field__label" for="m1">N° de BAS <span class="is-required">*</span></label><input class="c-input" id="m1" value="2026-BAS-051907"></div>
           <div class="c-field"><label class="c-field__label" for="m2">Date du BAS</label><input class="c-input" id="m2" type="date" value="2026-10-12"><span class="c-field__help">Date du jour par défaut, modifiable.</span></div>
         </div>
         <div class="c-modal__foot"><button class="c-btn c-btn--ghost" data-close="modal-demo">Annuler</button><button class="c-btn c-btn--primary" data-close="modal-demo">Valider le BAS</button></div>
@@ -441,12 +454,6 @@
     </div>
   </section>
 
-  <!-- ══ KPI ══ -->
-  <section class="ds-sec" id="kpi">
-    <h2>Indicateurs (KPI)</h2>
-    <p class="ds-intro">Sobres : valeur, libellé, période. Le filet supérieur reprend la teinte du statut concerné. Chaque indicateur ouvre la liste filtrée.</p>
-    <div class="c-kpis" id="kpi-demo"></div>
-  </section>
 
   <!-- ══ DÉPÔT ══ -->
   <section class="ds-sec" id="depot">
@@ -460,7 +467,7 @@
   <!-- ══ PAGES EXTERNES ══ -->
   <section class="ds-sec" id="externe">
     <h2>Pages externes (client, transporteur)</h2>
-    <p class="ds-intro">Registre simple, mobile-first, sans navigation applicative : bandeau bleu nuit avec logo et contexte (N° OT ou DLG), contenu sur 640 px maximum, cartes blanches, un seul bouton principal pleine largeur (<code>.c-btn--block</code>), cibles tactiles de 44 px, frise qui se resserre sur mobile. <code>.c-ext</code>, <code>__top</code>, <code>__top-in</code>, <code>__ctx</code>, <code>__main</code>, <code>__lead</code>, <code>__foot</code>. Côté client (X03, X04) : frise verticale <code>.c-timeline</code> avec <code>--success</code> (fait), <code>--current</code> (en cours, orange), <code>--todo</code> (à venir, pointillés) ; code de confirmation à 6 chiffres <code>.c-input.c-code</code>. Écrans internes : <code>.c-fieldset</code> (groupe de choix sans cadre), <code>.c-dgrid--split</code> (deux colonnes égales), <code>.c-email-preview</code> (aperçu d'un email dans E04).</p>
+    <p class="ds-intro">Registre simple, mobile-first (vérifié à 375 px), sans navigation applicative : bandeau bleu nuit collant avec logo, contexte (N° OT ou DLG) et ligne orange, contenu sur 640 px maximum qui apparaît en fondu montant, cartes blanches, un seul bouton principal pleine largeur (<code>.c-btn--block</code>), cibles tactiles de 44 px, frise qui se resserre sur mobile. <code>.c-ext</code>, <code>__top</code>, <code>__top-in</code>, <code>__ctx</code>, <code>__main</code>, <code>__lead</code>, <code>__foot</code>. Côté client (X03, X04) : frise verticale <code>.c-timeline</code> avec <code>--success</code> (fait), <code>--current</code> (en cours, orange), <code>--todo</code> (à venir, pointillés) ; code de confirmation à 6 chiffres <code>.c-input.c-code</code>. Écrans internes : <code>.c-fieldset</code> (groupe de choix sans cadre), <code>.c-dgrid--split</code> (deux colonnes égales), <code>.c-email-preview</code> (aperçu d'un email dans E04).</p>
     <div class="ds-box ds-box--flush">
       <div class="c-ext" style="min-height:0">
         <header class="c-ext__top"><div class="c-ext__top-in">
@@ -473,6 +480,8 @@
         <footer class="c-ext__foot">Service transport DOUALOG · dossiers@doualog.sn</footer>
       </div>
     </div>
+    <p class="ds-note"><b>Emails</b> (X01, X02, X05, X07, X08, X09) : même esprit dans les limites du HTML d'email (ni animation, ni flou, ni variable CSS : valeurs reprises de tokens.css en styles en ligne). Police système (Inter si installée, sinon celle de l'appareil), carte de 600 px aux angles de 12 px, bandeau bleu nuit + ligne orange, N° de dossier dans un encadré gris très clair, libellés en casse normale, bouton <code>#CC4A0E</code> aux angles de 8 px.<br>
+      <b>Barre de démo guidée</b> (<code>.c-demobar</code>, avec <code>?demo=N</code>) : panneau flottant bleu nuit translucide détaché des bords, étape en pastille orange, boutons <code>.c-btn--on-dark</code>.</p>
   </section>
 
   <!-- ══ FACTURE ══ -->
@@ -495,7 +504,7 @@
   <!-- ══ CONNEXION ══ -->
   <section class="ds-sec" id="connexion">
     <h2>Connexion</h2>
-    <p class="ds-intro">Écran hors shell (E00). Sur fond bleu nuit : carte blanche à trait orange, logo complet, mention d'accès réservé entre deux filets, un seul bouton primaire pleine largeur. <code>.c-auth</code>, <code>__card</code>, <code>__logo</code>, <code>__lead</code>, <code>__note</code>, <code>__row</code>, <code>__foot</code>.</p>
+    <p class="ds-intro">Écran hors shell (E00). Sur le fond de travail clair : carte blanche aux angles de 16 px, ombre douce, qui apparaît en montant légèrement ; logo complet, mention d'accès réservé sur fond gris très clair, un seul bouton primaire pleine largeur. <code>.c-auth</code>, <code>__card</code>, <code>__logo</code>, <code>__lead</code>, <code>__note</code>, <code>__row</code>, <code>__foot</code>.</p>
     <div class="c-auth" style="min-height:0">
       <div class="c-auth__card">
         <div><img class="c-auth__logo" src="assets/img/logo.png" alt=""><h1>Connexion</h1><p class="c-auth__lead">Control Tower — suivi des dossiers de transit et de dédouanement</p></div>
@@ -519,15 +528,17 @@
   var base = [
     ['Bleu nuit', '--night-950', '#123259', 'Menu latéral, en-tête des pages externes'],
     ['Fond de travail', '--gray-app', '#F4F5F7', 'Zone de travail, sous les cartes blanches'],
-    ['Orange', '--orange-500', '#F97316', 'Boutons d\'action principaux, repère du menu actif'],
-    ['Orange texte', '--orange-700', '#C2410C', 'Texte orange sur fond clair'],
-    ['Bleu marine', '--navy-500', '#0C2C5E', 'Titres, onglets, filtres et étapes actifs'],
-    ['Fond actif', '--action-active-bg', '#EDF1F7', 'Filtre actif, ligne sélectionnée'],
+    ['Orange DOUALOG', '--orange-500', '#F97316', 'Repère du menu actif, étape en cours, focus, logo'],
+    ['Orange bouton', '--orange-650', '#CC4A0E', 'Boutons d\'action principaux (texte blanc AA)'],
+    ['Orange survol', '--orange-700', '#B23F0B', 'Survol des boutons principaux'],
+    ['Bleu marine', '--navy-500', '#0C2C5E', 'Liens, onglets et filtres actifs'],
+    ['Fond actif', '--action-active-bg', '#EAF0F8', 'Indicateur actif, ligne sélectionnée'],
     ['Blanc', '--neutral-0', '#FFFFFF', 'Cartes, liste, champs'],
-    ['Gris en-tête', '--neutral-100', '#F3F4F6', 'En-têtes de tableau'],
-    ['Texte courant', '--neutral-700', '#374151', 'Texte des tableaux'],
-    ['Texte secondaire', '--neutral-600', '#6B7280', 'Libellés, métadonnées'],
-    ['Bordure', '--neutral-200', '#E5E7EB', 'Bordures fines']
+    ['Gris en-tête', '--neutral-50', '#F8F9FB', 'En-têtes et survol de tableau'],
+    ['Texte fort', '--neutral-900', '#101828', 'Titres, valeurs'],
+    ['Texte courant', '--neutral-700', '#344054', 'Texte des tableaux'],
+    ['Texte secondaire', '--neutral-600', '#5D6676', 'Libellés, métadonnées'],
+    ['Bordure', '--neutral-200', '#E4E7EC', 'Filets fins']
   ];
   $('sw-base').innerHTML = base.map(function (c) {
     return '<div class="ds-swatch"><div class="ds-swatch__c" style="background:var(' + c[1] + ')"></div><div class="ds-swatch__i"><b>' + c[0] + '</b><br><code>' + c[2] + ' · ' + c[1] + '</code><br>' + c[3] + '</div></div>';
@@ -613,19 +624,6 @@
     return '<li class="c-timeline__item' + tone + '"><span class="c-timeline__icon">' + icon(ico[h.type] || 'info') + '</span><div><div class="c-timeline__time">' + F.dateHeure(h.date) + '</div><div class="c-timeline__text">' + h.texte + '</div><div class="c-timeline__actor">' + h.acteur + '</div></div></li>';
   }).join('');
 
-  /* KPI (CDC §14) calculés sur le jeu de données */
-  var all = D.dossiers, cnt = function (f) { return all.filter(f).length; };
-  var kpis = [
-    ['info', cnt(function (x) { return !D.enSalleAttente(x) && x.statut !== 'Clôturé'; }), 'Dossiers actifs'],
-    ['warning', cnt(function (x) { return x.statut.indexOf('Contrôle') === 0; }), 'Contrôles en cours'],
-    ['danger', cnt(function (x) { return x.statut === 'Info manquante'; }), 'Info manquante'],
-    ['success', cnt(function (x) { return x.bae && x.bae.date >= '2026-10-01'; }), 'BAE obtenus en octobre'],
-    ['special', cnt(function (x) { return x.statut === 'En facturation'; }), 'En facturation'],
-    ['warning', D.salleAttente().length, 'En attente de documents']
-  ];
-  $('kpi-demo').innerHTML = kpis.map(function (k) {
-    return '<a class="c-kpi c-kpi--' + k[0] + '" href="#"><span class="c-kpi__value">' + k[1] + '</span><span class="c-kpi__label">' + k[2] + '</span><span class="c-kpi__delta">au 16/10/2026</span></a>';
-  }).join('');
 
   /* Interactions de démonstration (JS minimal : panneau, onglets, modale) */
   document.addEventListener('click', function (e) {

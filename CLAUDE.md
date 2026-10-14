@@ -6,11 +6,17 @@ pour une présentation au client (dirigeant de DOUALOG, profil non technique) **
 Ce ne sont pas des écrans de production : pas de backend, pas de framework, JS minimal.
 
 ## Visuel (ordre de priorité)
-1. **`references/vision-client.jpeg` — vision du client, source n°1 pour tout le visuel.** Reproduire au plus près :
-   structure, ambiance, densité, couleurs, typographie. En cas de doute, l'image l'emporte.
-2. `charte-graphique/index.html` — pour ce que l'image ne montre pas (teintes de statut, formes, icônes, règles du logo).
-   La charte sera réalignée sur l'image plus tard.
-3. CDC §15 — en dernier.
+1. **Style : skill `apple-design` — référence principale** pour l'exécution visuelle (espacements, angles, profondeur,
+   matières, typographie, micro-interactions et transitions). Objectif : moderne, haut de gamme, niveau Linear / Stripe / Apple ;
+   ni vieux logiciel métier, ni template généré par IA.
+2. **`references/vision-client.jpeg` — référence pour l'identité et la structure** (bleu nuit, orange `#F97316`, logo ;
+   header, menu, indicateurs, liste pleine largeur, dossier ouvert en panneau pleine hauteur avec blocs en grille sans onglets,
+   workflow horizontal des 9 étapes). Contenu, libellés métier et couleurs de sens des statuts : inchangés.
+3. `charte-graphique/index.html` — pour ce que l'image ne montre pas (teintes de statut, icônes, règles du logo).
+4. CDC §15 — en dernier.
+
+Lisibilité métier d'abord : un déclarant passe 8 h par jour sur l'outil. Tableau dense et lisible, aucun effet ne gêne
+la lecture des données, contraste AA minimum.
 
 ## Sources métier (ordre de priorité en cas de contradiction)
 1. `specs/User_Flows_DOUALOG_v0.2.docx.md` — parcours, enchaînement des écrans, statuts. **Source la plus à jour.**
@@ -34,17 +40,36 @@ Les fichiers `.md` de specs contiennent une image encodée en base64 (logo de co
   Le menu de l'image reste toujours visible ; ce que le profil ne peut pas ouvrir est grisé.
 
 ## Skills à appliquer (ordre de priorité)
-1. Image `references/vision-client.jpeg`, puis charte `charte-graphique/index.html`
-2. `ui-design-system` — tokens + composants, aucune valeur en dur
-3. `b2b-saas-ui` — patterns d'écrans métier
-4. `anti-ai-generic-design` — checklist avant de livrer chaque écran
+1. `apple-design` — **skill de style principal**
+2. Image `references/vision-client.jpeg` (identité, structure), puis charte `charte-graphique/index.html`
+3. `anti-ai-generic-design` — garde-fou, checklist avant de livrer chaque écran
+4. `b2b-saas-ui` — règles métier : densité, tableaux, statuts
+5. `ui-design-system` — tokens + composants, aucune valeur en dur
 
 Ne pas utiliser `ui-design-dydy` ni d'autre skill d'esthétique sur ce projet.
 
-## Refonte sobre « entreprise » (après l'étape 8 — prioritaire sur ce qui suit)
+## Refonte apple-design (appliquée à tous les écrans — prioritaire sur les sections suivantes)
+**Méthode suivie** : pilote sur **E09, E01, E02** + tokens, composants et design system, **validé à 100 % par le client**, puis
+application à tous les écrans (internes, externes, emails, sommaire, démo) uniquement par tokens et composants, aucun style local dans les pages.
+- **Police : Inter partout** (choisie par le client après comparaison avec Roboto et Geist ; sélecteur et comparatif retirés).
+  Chiffres tabulaires **seulement** sur les contenus purement numériques (dates, montants, compteurs, `.is-num`) : avec Inter, ils élargissent aussi les traits d'union (DLG-2026-…, Agro-Industries).
+  Semi-gras 600. Approche négative sur les titres (`--ls-title`), −0,6 % sur le corps (`--ls-body`).
+- **Couleurs inchangées** : menu bleu nuit `#123259`, zone de travail claire `#F4F5F7`. Orange `#F97316` = repères d'identité
+  (`--action-accent` : menu actif, étape en cours, focus) ; **boutons principaux en `#CC4A0E`** (`--action-primary`) pour un
+  texte blanc AA (4,6:1 ; blanc sur `#F97316` = 2,8:1).
+- **Angles** 6 / 8 / 12 / 16 px (menu, contrôles, cartes, modales), pilule pour statuts, compteurs, filtres.
+- **Profondeur** : ombres douces `--shadow-xs` (cartes) à `--shadow-lg` (menus, panneaux, modales) ; header et bandeau du dossier
+  **translucides** (flou), voile de modale légèrement flouté. Titres de cartes sans filet (filet gardé au-dessus d'un tableau).
+- **Mouvement** court (90–240 ms), sans rebond, courbe des feuilles iOS (`--ease-out`), sortie en miroir par le même chemin ;
+  pression des boutons dès l'appui ; lignes du tableau en fondu en cascade ; menu « … » qui naît de son bouton ; barres des
+  graphiques qui poussent. Distances dans les tokens (`--move-*`) : à 0 si « moins d'animations » ; matières opaques si
+  « moins de transparence » ; filets renforcés si « contraste renforcé ».
+- Tableau : lignes de 40 px, en-têtes gris très clair, œil discret jusqu'au survol. Filtre actif plein bleu marine.
+
+## Refonte sobre « entreprise » (après l'étape 8 — complétée par la refonte apple-design ci-dessus)
 Le client trouvait le rendu « trop IA, projet scolaire ». Direction choisie : **sobre, menu sombre**.
-- **Police : Roboto** (celle d'Odoo ; Inter puis IBM Plex jugées « gamines ») ; semi-gras = 500. Références en chiffres tabulaires, sans police à chasse fixe.
-  **Angles : 4 px** (boutons, champs), **6 px** (cartes) ; **statuts et compteurs en pilule**. Emails : Arial (comme un vrai email).
+- ~~**Police : Roboto**~~ (à choisir, voir la refonte apple-design) (celle d'Odoo ; Inter puis IBM Plex jugées « gamines ») ; semi-gras = 500. Références en chiffres tabulaires, sans police à chasse fixe.
+  ~~**Angles : 4 px** (boutons, champs), **6 px** (cartes)~~ → 8 / 12 px ; **statuts et compteurs en pilule**. Emails : police système (Inter si installée), voir « Emails ».
 - Menu **bleu marine franc `#123259`** (plus le quasi-noir `#0A1628`, aussi dans les emails et pages externes) **pleine hauteur avec le logo en tête** ; **header blanc** à filet gris (recherche, cloche à compteur rouge, emails, utilisateur).
 - Zone de travail **gris très clair** `#F4F5F7` (`--gray-app`), cartes blanches à bordure fine. Plus de fond sombre ni d'ombre du menu.
 - Entrée active du menu : fond discret + **trait orange à gauche**. Orange réservé aux boutons d'action principaux.
@@ -179,7 +204,7 @@ output/
 
 ## Emails (X01, X02, X07, X08, X09…)
 - HTML d'email réaliste : 600 px, tableaux, **styles en ligne** (couleurs en dur reprises de tokens.css, les messageries
-  ne lisent pas les variables CSS), police Arial (refonte). En-tête de messagerie (objet, De, À, date) au-dessus de l'email.
+  ne lisent pas les variables CSS), police système `Inter, -apple-system, Segoe UI, Roboto, Arial` ; carte 12 px, bouton `#CC4A0E` 8 px, N° de dossier en encadré gris clair, libellés sans majuscules (refonte apple-design). En-tête de messagerie (objet, De, À, date) au-dessus de l'email.
 - Bandeau bleu nuit + ligne orange, logo (monogramme + DOUA**LOG**), N° DLG mis en avant, bouton orange, pied « Connecter • Sécuriser • Livrer ».
 - Contenu rempli par `assets/email.js` depuis `data.js` (`?id=DLG-…`, défaut dans `data-defaut`) : `[data-f]`, `[data-href]`, `[data-liste]`, `[data-si]`.
 - Variante relance : `X02-email-documents-manquants.html?relance=n` (`X02-email-relance.html` = relance n°2 de DLG-2026-0426).

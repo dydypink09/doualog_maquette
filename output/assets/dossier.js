@@ -402,14 +402,14 @@
     /* Cascade d'apparition des blocs : seulement à l'ouverture, pas quand on met à jour le dossier (BAE, BAS, message) */
     p.classList.add('is-entering');
     clearTimeout(p._entree);
-    p._entree = setTimeout(function () { p.classList.remove('is-entering'); }, 1400);
+    p._entree = setTimeout(function () { p.classList.remove('is-entering'); }, 800);
     p.classList.add('is-open');
     /* ?bloc=controle (démo guidée) ou bloc Documents d'un dossier en salle d'attente */
     var bloc = new URLSearchParams(location.search).get('bloc');
     var focus = bloc ? p.querySelector('#bloc-' + bloc) : p.querySelector('[data-focus]');
     if (focus) {
       focus.classList.add('is-focus');
-      setTimeout(function () { focus.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 500);
+      setTimeout(function () { focus.scrollIntoView({ block: 'center', behavior: 'smooth' }); }, 300);
     }
     document.body.classList.add('has-panel-open');
     signaler(D.dossier(id));
@@ -436,13 +436,13 @@
     if (action === 'bae') {
       titre = 'Valider le BAE ?'; ok = 'Valider le BAE';
       corps = '<p>Le dossier <b class="c-ref">' + d.id + '</b> passera au statut <b>BAE obtenu</b>. Le client verra l\'étape validée sur son lien de suivi.</p>' +
-        '<div class="c-field"><label class="c-field__label" for="m-num">N° de BAE <span class="is-required">*</span></label><input class="c-input u-num" id="m-num" value="2026-BAE-049316"></div>' +
+        '<div class="c-field"><label class="c-field__label" for="m-num">N° de BAE <span class="is-required">*</span></label><input class="c-input" id="m-num" value="2026-BAE-049316"></div>' +
         '<div class="c-field"><label class="c-field__label" for="m-date">Date du BAE</label><input class="c-input" id="m-date" type="date" value="' + auj + '"><span class="c-field__help">Date du jour par défaut, modifiable.</span></div>';
     } else if (action === 'bas') {
       titre = 'Valider le BAS ?'; ok = 'Valider le BAS';
       corps = '<div class="c-alert c-alert--warning">' + icon('facture') + '<div><div class="c-alert__title">Le BAS déclenche la facturation</div>' +
         '<div>Le dossier <b class="c-ref">' + d.id + '</b> passera automatiquement en facturation et le service facturation sera notifié.</div></div></div>' +
-        '<div class="c-field"><label class="c-field__label" for="m-num">N° de BAS <span class="is-required">*</span></label><input class="c-input u-num" id="m-num" value="2026-BAS-052780"></div>' +
+        '<div class="c-field"><label class="c-field__label" for="m-num">N° de BAS <span class="is-required">*</span></label><input class="c-input" id="m-num" value="2026-BAS-052780"></div>' +
         '<div class="c-field"><label class="c-field__label" for="m-date">Date du BAS</label><input class="c-input" id="m-date" type="date" value="' + auj + '"><span class="c-field__help">Date du jour par défaut, modifiable.</span></div>';
     } else if (action === 'lien-off') {
       var t = d.transport;
