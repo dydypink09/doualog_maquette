@@ -1,0 +1,273 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tableau de bord — DOUALOG Control Tower</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<script src="../assets/icons.js"></script>
+<script src="../assets/data.js"></script>
+<script src="../assets/shell.js"></script>
+<script src="../assets/demo.js"></script>
+</head>
+<body>
+<!-- E09 · Tableau de bord — page d'accueil de tous les profils (séparée de la liste Dossiers E01).
+     Indicateurs du jour (clic → E01 filtrée), graphiques SVG dessinés ici depuis data.js, priorités du jour, facturation.
+     Semaines 35 à 38 : historique fictif (data.js > statsAnterieures) ; à partir de la semaine 39, calcul sur les dossiers. -->
+<!-- À VALIDER : indicateurs et graphiques à garder (QUESTIONS-ONCLE §Général) · délai de dédouanement mesuré de la réception au BAS -->
+<div class="c-app">
+  <header class="c-topbar" id="topbar"></header>
+  <nav class="c-sidebar" id="sidebar" aria-label="Navigation principale"></nav>
+
+  <main class="c-main">
+    <div class="c-page-head">
+      <div class="c-page-head__title"><h1>Tableau de bord</h1><span class="c-page-head__meta u-num" id="date-jour"></span></div>
+      <div class="c-page-head__actions"><a class="c-btn" href="E01-dossiers.html">Voir tous les dossiers</a></div>
+    </div>
+
+    <div class="c-stats">
+      <div class="c-stats__group" id="stats" role="group" aria-label="Indicateurs du jour — un clic ouvre les dossiers concernés"></div>
+    </div>
+
+    <div class="c-dash">
+      <section class="c-card c-dash__w8" aria-labelledby="t-semaines">
+        <div class="c-card__head"><h3 id="t-semaines">Dossiers reçus par semaine</h3>
+          <ul class="c-legend"><li class="is-s-blue">Import</li><li class="is-s-orange">Export</li></ul>
+          <span class="c-card__note" id="note-semaines"></span></div>
+        <div class="c-card__body" id="g-semaines"></div>
+      </section>
+
+      <section class="c-card c-dash__w4" aria-labelledby="t-repartition">
+        <div class="c-card__head"><h3 id="t-repartition">Dossiers en cours</h3><span class="c-card__note">répartition à date</span></div>
+        <div class="c-card__body" id="g-repartition"></div>
+      </section>
+
+      <section class="c-card c-dash__w6" aria-labelledby="t-etapes">
+        <div class="c-card__head"><h3 id="t-etapes">Où en sont les dossiers</h3><span class="c-card__note">un clic ouvre la liste</span></div>
+        <div class="c-card__body"><ul class="c-hbars" id="g-etapes"></ul></div>
+      </section>
+
+      <section class="c-card c-dash__w6" aria-labelledby="t-delai">
+        <div class="c-card__head"><h3 id="t-delai">Délai moyen de dédouanement</h3><span class="c-card__note" id="note-delai"></span></div>
+        <div class="c-card__body" id="g-delai"></div>
+      </section>
+
+      <section class="c-card c-dash__w8" aria-labelledby="t-todo">
+        <div class="c-card__head"><h3 id="t-todo">À traiter en priorité</h3><span class="c-count c-count--alert" id="n-todo"></span>
+          <a class="c-card__note" href="E08-notifications.html">Toutes les notifications</a></div>
+        <div class="c-card__body"><ul class="c-todo" id="todo"></ul></div>
+      </section>
+
+      <section class="c-card c-dash__w4" aria-labelledby="t-fact">
+        <div class="c-card__head"><h3 id="t-fact">Facturation</h3><span class="c-card__note">octobre 2026</span></div>
+        <div class="c-card__body u-stack">
+          <div class="c-figures" id="g-fact"></div>
+          <div id="g-fact-bar"></div>
+          <ul class="c-legend" id="g-fact-legende"></ul>
+        </div>
+        <div class="c-card__foot"><a class="c-btn c-btn--sm" href="E06-facturation.html">Ouvrir la facturation</a></div>
+      </section>
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  var D = window.DOUALOG, F = D.fmt, esc = D.esc;
+  function $(id) { return document.getElementById(id); }
+  function icon(n, cls) { return '<svg class="c-icon' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#i-' + n + '"></use></svg>'; }
+  var AUJ = D.config.aujourdhui, auj = AUJ.slice(0, 10);
+  function jours(a, b) { return (new Date(b.slice(0, 10) + 'T00:00') - new Date(a.slice(0, 10) + 'T00:00')) / 864e5; }
+  function age(iso) {
+    var h = Math.floor((new Date(AUJ) - new Date(iso.length === 10 ? iso + 'T00:00' : iso)) / 36e5);
+    return h < 24 ? h + ' h' : Math.floor(h / 24) + ' j';
+  }
+  function nb(x) { return String(x).replace('.', ','); }
+  function lienIds(ids, titre) { return 'E01-dossiers.html?ids=' + ids.join(',') + '&titre=' + encodeURIComponent(titre); }
+
+  window.DOUALOG_SHELL.init({ actif: 'tableau' });
+  var jour = new Date(AUJ).toLocaleDateString('fr-FR', { weekday: 'long' });
+  $('date-jour').textContent = jour.charAt(0).toUpperCase() + jour.slice(1) + ' ' + F.date(AUJ) + ' · ' + F.heure(AUJ);
+
+  var liste = D.tableauDeBord(), actifs = liste.filter(function (d) { return d.statut !== 'Clôturé'; });
+
+  /* ── 1. Indicateurs du jour (mêmes définitions que la liste E01 : un clic l'ouvre filtrée) ── */
+  var EN_COURS_TRANSPORT = ['Confirmé', 'Camion affecté', 'Chargement', 'En route'];
+  var KPIS = [
+    { id: 'actifs',     label: 'Dossiers actifs',         icone: 'dossiers',  ton: 'blue',    f: function (d) { return d.statut !== 'Clôturé'; } },
+    { id: 'stockees',   label: 'Déclarations stockées',   icone: 'document',  ton: 'blue',    f: function (d) { return d.statut === 'Déclaration stockée'; } },
+    { id: 'anticipees', label: 'Déclarations anticipées', icone: 'clock',     ton: 'violet',  f: function (d) { return d.statut === 'Déclaration anticipée'; } },
+    { id: 'controles',  label: 'Contrôles en cours',      icone: 'controle',  ton: 'magenta', f: function (d) { return d.statut.indexOf('Contrôle') === 0; } },
+    { id: 'bae',        label: 'BAE obtenus',             icone: 'valide',    ton: 'green',   f: function (d) { return d.statut === 'BAE obtenu'; } },
+    { id: 'bas',        label: 'BAS obtenus',             icone: 'package',   ton: 'orange',  f: function (d) { return d.statut === 'BAS obtenu'; } },
+    { id: 'transport',  label: 'Transport en cours',      icone: 'transport', ton: 'red',     f: function (d) { return d.transport && EN_COURS_TRANSPORT.indexOf(d.transport.statut) >= 0; } },
+    { id: 'livres',     label: 'Livrés',                  icone: 'check',     ton: 'green',   f: function (d) { return d.transport && d.transport.statut === 'Livré'; } }
+  ];
+  $('stats').innerHTML = KPIS.map(function (k) {
+    return '<a class="c-stat c-stat--' + k.ton + '" href="E01-dossiers.html?kpi=' + k.id + '" title="' + k.label + ' — ouvrir la liste">' +
+      '<span class="c-stat__in"><span class="c-stat__icon">' + icon(k.icone) + '</span><span class="c-stat__value">' + liste.filter(k.f).length + '</span>' +
+      '<span class="c-stat__label">' + k.label + '</span></span></a>';
+  }).join('');
+
+  /* ── 2. Dossiers reçus par semaine (8 semaines, import / export empilés) ── */
+  function plusJours(iso, n) { var t = new Date(Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10) + n)); return t.toISOString().slice(0, 10); }   // sans décalage de fuseau
+  var lundis = D.statsAnterieures.map(function (s) { return s.lundi; });
+  for (var i = 0; i < 4; i++) lundis.push(plusJours('2026-09-21', 7 * i));
+  function finSemaine(l) { return plusJours(l, 7); }
+  var semaines = lundis.map(function (l, i) {
+    var connue = D.statsAnterieures[i];
+    if (connue) return { lundi: l, import: connue.import, export: connue.export, delai: connue.delai };
+    var recus = D.dossiers.filter(function (d) { return d.reception.slice(0, 10) >= l && d.reception.slice(0, 10) < finSemaine(l); });
+    var bas = D.dossiers.filter(function (d) { return d.bas && d.bas.date >= l && d.bas.date < finSemaine(l); });
+    var delai = bas.length ? Math.round(bas.reduce(function (s, d) { return s + jours(d.reception, d.bas.date); }, 0) / bas.length * 10) / 10 : null;
+    return { lundi: l, import: recus.filter(function (d) { return d.type === 'Import'; }).length, export: recus.filter(function (d) { return d.type === 'Export'; }).length, delai: delai, ids: recus.map(function (d) { return d.id; }) };
+  });
+  var enCours = semaines[semaines.length - 1];
+
+  var W = 640, H = 210, G = 30, B = 26, T = 18;   // largeur, hauteur, marge gauche, bas, haut
+  function axeY(max, pas) {
+    var s = '';
+    for (var v = 0; v <= max; v += pas) {
+      var y = H - B - (H - B - T) * v / max;
+      s += '<line class="c-chart__grid" x1="' + G + '" x2="' + W + '" y1="' + y + '" y2="' + y + '"/><text class="c-chart__axis" x="' + (G - 8) + '" y="' + (y + 4) + '" text-anchor="end">' + v + '</text>';
+    }
+    return s;
+  }
+  (function () {
+    var max = Math.max.apply(null, semaines.map(function (s) { return s.import + s.export; }));
+    max = Math.ceil((max + 1) / 2) * 2;
+    var slot = (W - G) / semaines.length, bw = slot * 0.46, svg = axeY(max, 2);
+    function hauteur(v) { return (H - B - T) * v / max; }
+    semaines.forEach(function (s, i) {
+      var x = G + slot * i + (slot - bw) / 2, hi = hauteur(s.import), he = hauteur(s.export), base = H - B, partiel = s === enCours ? ' c-chart__bar--partiel' : '';
+      var titre = 'Semaine du ' + F.dateCourte(s.lundi) + (partiel ? ' (en cours)' : '') + ' : ' + s.import + ' import, ' + s.export + ' export';
+      var barres = '<title>' + titre + '</title>' +
+        '<rect class="c-chart__bar c-chart__bar--import' + partiel + '" x="' + x + '" y="' + (base - hi) + '" width="' + bw + '" height="' + hi + '"/>' +
+        '<rect class="c-chart__bar c-chart__bar--export' + partiel + '" x="' + x + '" y="' + (base - hi - he) + '" width="' + bw + '" height="' + he + '"/>' +
+        '<text class="c-chart__value" x="' + (x + bw / 2) + '" y="' + (base - hi - he - 6) + '" text-anchor="middle">' + (s.import + s.export) + '</text>';
+      svg += s.ids && s.ids.length ? '<a href="' + lienIds(s.ids, 'reçus la semaine du ' + F.dateCourte(s.lundi)) + '">' + barres + '</a>' : '<g>' + barres + '</g>';
+      svg += '<text class="c-chart__axis" x="' + (x + bw / 2) + '" y="' + (H - 8) + '" text-anchor="middle">' + F.dateCourte(s.lundi) + (partiel ? '*' : '') + '</text>';
+    });
+    svg += '<line class="c-chart__base" x1="' + G + '" x2="' + W + '" y1="' + (H - B) + '" y2="' + (H - B) + '"/>';
+    $('g-semaines').innerHTML = '<svg class="c-chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Dossiers reçus par semaine, 8 dernières semaines">' + svg + '</svg>';
+    var total = semaines.reduce(function (s, x) { return s + x.import + x.export; }, 0);
+    $('note-semaines').textContent = total + ' dossiers sur 8 semaines · * semaine en cours';
+  })();
+
+  /* ── 3. Répartition des dossiers en cours (anneaux) ── */
+  function anneau(parts, total, legende) {
+    var r = 46, c = 2 * Math.PI * r, debut = 0, segs = '';
+    parts.forEach(function (p) {
+      var l = total ? c * p.n / total : 0;
+      if (l) segs += '<circle class="c-donut__seg ' + p.cls + '" cx="60" cy="60" r="' + r + '" stroke-width="16" stroke-dasharray="' + l + ' ' + (c - l) + '" stroke-dashoffset="' + (-debut) + '" transform="rotate(-90 60 60)"><title>' + p.label + ' : ' + p.n + '</title></circle>';
+      debut += l;
+    });
+    return '<div class="c-donut-row"><svg class="c-chart" viewBox="0 0 120 120" role="img" aria-label="' + legende + '">' +
+      '<circle class="c-donut__track" cx="60" cy="60" r="' + r + '" stroke-width="16"/>' + segs +
+      '<text class="c-donut__total" x="60" y="62" text-anchor="middle">' + total + '</text><text class="c-donut__label" x="60" y="78" text-anchor="middle">' + legende + '</text></svg>' +
+      '<ul class="c-legend c-legend--col">' + parts.map(function (p) { return '<li class="' + p.cls + '">' + p.label + '<b>' + p.n + ' · ' + (total ? Math.round(100 * p.n / total) : 0) + ' %</b></li>'; }).join('') + '</ul></div>';
+  }
+  function compte(f) { return actifs.filter(f).length; }
+  $('g-repartition').innerHTML =
+    anneau([{ label: 'Maritime', n: compte(function (d) { return d.mode === 'Maritime'; }), cls: 'is-s-navy' },
+            { label: 'Aérien', n: compte(function (d) { return d.mode === 'Aérien'; }), cls: 'is-s-blue' }], actifs.length, 'par mode') +
+    anneau([{ label: 'Import', n: compte(function (d) { return d.type === 'Import'; }), cls: 'is-s-blue' },
+            { label: 'Export', n: compte(function (d) { return d.type === 'Export'; }), cls: 'is-s-orange' }], actifs.length, 'par sens');
+
+  /* ── 4. Où en sont les dossiers (barres horizontales cliquables) ── */
+  var ETAPES = [
+    { label: 'Documents incomplets', cls: 'is-s-gray',    attente: true },
+    { label: 'Déclaration en cours', cls: 'is-s-blue',    f: function (d) { return ['En cours de traitement', 'Déclaration stockée', 'Déclaration anticipée'].indexOf(d.statut) >= 0; } },
+    { label: 'Contrôle douane',      cls: 'is-s-magenta', f: function (d) { return d.statut.indexOf('Contrôle') === 0; } },
+    { label: 'Info manquante',       cls: 'is-s-red',     f: function (d) { return d.statut === 'Info manquante'; } },
+    { label: 'BAE ou BAS obtenu',    cls: 'is-s-green',   f: function (d) { return d.statut === 'BAE obtenu' || d.statut === 'BAS obtenu'; } },
+    { label: 'En facturation',       cls: 'is-s-violet',  f: function (d) { return d.statut === 'En facturation'; } },
+    { label: 'Livré ou facturé',     cls: 'is-s-orange',  f: function (d) { return d.statut === 'Livré' || d.statut === 'Facturé'; } }
+  ];
+  var lignesEtapes = ETAPES.map(function (e) {
+    var ids = e.attente ? D.salleAttente().map(function (d) { return d.id; }) : actifs.filter(e.f).map(function (d) { return d.id; });
+    return { e: e, ids: ids, href: e.attente ? 'E01-dossiers.html#salle-attente' : lienIds(ids, e.label.toLowerCase()) };
+  });
+  var maxEtape = Math.max.apply(null, lignesEtapes.map(function (l) { return l.ids.length; })) || 1;
+  $('g-etapes').innerHTML = lignesEtapes.map(function (l) {
+    var pct = Math.round(100 * l.ids.length / maxEtape);
+    return '<li><a class="c-hbar ' + l.e.cls + '" href="' + l.href + '"><span>' + l.e.label + '</span>' +
+      '<span class="c-hbar__track"><svg viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><rect class="c-hbar__bg" width="100" height="10" rx="2"/>' +
+      (pct ? '<rect class="c-hbar__fill" width="' + pct + '" height="10" rx="2"/>' : '') + '</svg></span>' +
+      '<span class="c-hbar__val">' + l.ids.length + '</span></a></li>';
+  }).join('');
+
+  /* ── 5. Délai moyen de dédouanement (réception → BAS, en jours) ── */
+  (function () {
+    var pts = semaines.map(function (s, i) { return { i: i, v: s.delai, s: s }; }).filter(function (p) { return p.v !== null; });
+    var max = Math.ceil(Math.max.apply(null, pts.map(function (p) { return p.v; })) + 1);
+    max = Math.ceil(max / 4) * 4;
+    var slot = (W - G) / semaines.length;
+    function xy(p) { return [G + slot * p.i + slot / 2, H - B - (H - B - T) * p.v / max]; }
+    var chemin = pts.map(function (p, k) { var c = xy(p); return (k ? 'L' : 'M') + c[0].toFixed(1) + ' ' + c[1].toFixed(1); }).join(' ');
+    var aire = chemin + ' L' + xy(pts[pts.length - 1])[0].toFixed(1) + ' ' + (H - B) + ' L' + xy(pts[0])[0].toFixed(1) + ' ' + (H - B) + ' Z';
+    var svg = axeY(max, max > 12 ? 4 : 2) + '<path class="c-chart__area" d="' + aire + '"/><path class="c-chart__line" d="' + chemin + '"/>';
+    pts.forEach(function (p) {
+      var c = xy(p);
+      svg += '<circle class="c-chart__dot" cx="' + c[0] + '" cy="' + c[1] + '" r="4"><title>Semaine du ' + F.dateCourte(p.s.lundi) + ' : ' + nb(p.v) + ' jours</title></circle>' +
+        '<text class="c-chart__value" x="' + c[0] + '" y="' + (c[1] - 10) + '" text-anchor="middle">' + nb(p.v) + ' j</text>';
+    });
+    semaines.forEach(function (s, i) { svg += '<text class="c-chart__axis" x="' + (G + slot * i + slot / 2) + '" y="' + (H - 8) + '" text-anchor="middle">' + F.dateCourte(s.lundi) + '</text>'; });
+    svg += '<line class="c-chart__base" x1="' + G + '" x2="' + W + '" y1="' + (H - B) + '" y2="' + (H - B) + '"/>';
+    $('g-delai').innerHTML = '<svg class="c-chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Délai moyen entre la réception et le BAS, en jours, par semaine">' + svg + '</svg>';
+    var moy = Math.round(pts.reduce(function (s, p) { return s + p.v; }, 0) / pts.length * 10) / 10;
+    $('note-delai').textContent = 'réception → BAS · moyenne ' + nb(moy) + ' j';
+  })();
+
+  /* ── 6. À traiter en priorité (les exceptions, de la plus grave à la moins grave) ── */
+  var todo = [];
+  function ajoute(gravite, d, motif, depuis) { todo.push({ g: gravite, d: d, motif: motif, depuis: depuis }); }
+  D.dossiers.forEach(function (d) {
+    var c = D.client(d).nom;
+    if (d.statut === 'Info manquante') ajoute('danger', d, '<b>Information demandée par la douane</b> · ' + esc(c), d.controle.demandeEnvoyee || d.controle.notification);
+    if (D.enSalleAttente(d) && !d.docs.mandat) ajoute('danger', d, '<b>Mandat absent</b> · ' + esc(c), d.reception);
+    else if (D.enSalleAttente(d)) { var nr = D.relances(d).nombre; ajoute('warning', d, '<b>Documents manquants</b>' + (nr ? ', ' + nr + ' relance' + (nr > 1 ? 's' : '') : ', demande envoyée') + ' · ' + esc(c), d.reception); }
+    if (d.statut.indexOf('Contrôle') === 0) ajoute('warning', d, '<b>Contrôle ' + d.controle.type.toLowerCase() + ' en cours</b> · ' + esc(c), d.controle.notification);
+    if (d.transport && d.transport.statut === 'À confirmer') ajoute('warning', d, '<b>Offre de transport sans réponse</b> · ' + esc(c), d.transport.envoi || d.bae.date);
+    var f = D.facture(d);
+    if (f && !f.emise) ajoute('info', d, '<b>Facture à émettre</b> · ' + esc(c), f.dateBAS);
+    if (f && f.emise && f.statut !== 'Réglé' && f.echeance < auj) ajoute('danger', d, '<b>Facture échue</b> ' + f.num + ' · ' + esc(c), f.echeance);
+  });
+  var ORDRE = { danger: 0, warning: 1, info: 2 };
+  todo.sort(function (a, b) { return (ORDRE[a.g] - ORDRE[b.g]) || (a.depuis < b.depuis ? -1 : 1); });
+  $('n-todo').textContent = todo.length;
+  $('todo').innerHTML = todo.slice(0, 6).map(function (t) {
+    var lien = t.motif.indexOf('Facture') >= 0 ? 'E06-facturation.html?id=' + t.d.id : 'E01-dossiers.html?id=' + t.d.id;
+    return '<li class="c-todo__item c-todo__item--' + t.g + '"><a class="c-ref" href="' + lien + '">' + t.d.id + '</a>' +
+      '<span class="c-todo__motif">' + t.motif + '</span><span class="c-todo__age">depuis ' + age(t.depuis) + '</span>' +
+      '<a class="c-btn c-btn--sm" href="' + lien + '">Ouvrir</a></li>';
+  }).join('') + (todo.length > 6 ? '<li class="c-todo__item c-todo__item--more"><span></span><span class="c-todo__motif"><a href="E01-dossiers.html?rapide=alertes">et ' + (todo.length - 6) + ' autre(s)</a></span></li>' : '');
+
+  /* ── 7. Facturation du mois ── */
+  (function () {
+    var mois = '2026-10', emis = 0, encaisse = 0, reste = 0, aEmettre = 0, nAEmettre = 0;
+    D.dossiers.forEach(function (d) {
+      var f = D.facture(d);
+      if (!f) return;
+      if (!f.emise) { aEmettre += f.ttc; nAEmettre++; return; }
+      if (f.emise.slice(0, 7) === mois) emis += f.ttc;
+      f.paiements.forEach(function (p) { if (p.date.slice(0, 7) === mois) encaisse += p.montant; });
+      reste += f.reste;
+    });
+    function fig(label, v, cls) { return '<div><div class="c-figure__label">' + label + '</div><div class="c-figure__value' + (cls ? ' ' + cls : '') + '">' + F.nombre(v) + ' <small>FCFA</small></div></div>'; }
+    $('g-fact').innerHTML = fig('Facturé en octobre', emis) + fig('Encaissé en octobre', encaisse, 'is-success') +
+      fig('Reste à encaisser', reste, 'is-warning') + fig(nAEmettre + ' facture(s) à émettre', aEmettre);
+    var tot = encaisse + reste + aEmettre || 1, x = 0, bar = '';
+    [[encaisse, 'is-s-green', 'Encaissé'], [reste, 'is-s-orange', 'Reste à encaisser'], [aEmettre, 'is-s-gray', 'À émettre']].forEach(function (p) {
+      var w = 100 * p[0] / tot;
+      if (w) bar += '<rect class="c-hbar__fill ' + p[1] + '" x="' + x + '" width="' + w + '" height="10"><title>' + p[2] + ' : ' + F.nombre(p[0]) + ' FCFA</title></rect>';
+      x += w;
+    });
+    $('g-fact-bar').innerHTML = '<span class="c-hbar__track"><svg viewBox="0 0 100 10" preserveAspectRatio="none" role="img" aria-label="Encaissé, reste à encaisser et à émettre">' + bar + '</svg></span>';
+    $('g-fact-legende').innerHTML = '<li class="is-s-green">Encaissé</li><li class="is-s-orange">Reste à encaisser</li><li class="is-s-gray">À émettre</li>';
+  })();
+})();
+</script>
+</body>
+</html>

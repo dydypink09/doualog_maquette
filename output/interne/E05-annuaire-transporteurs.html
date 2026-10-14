@@ -111,7 +111,7 @@
     document.querySelectorAll('#fiche .c-field').forEach(function (c) { c.classList.remove('is-error'); var e = c.querySelector('.c-field__error'); if (e) e.remove(); });
     var ots = t ? D.otsTransporteur(t) : [];
     $('fiche-ots').innerHTML = t ? '<p class="c-field__label">Ordres de transport confiés (' + ots.length + ')</p>' + (ots.length ? '<ul class="c-doclist c-doclist--compact">' + ots.map(function (o) {
-      return '<li class="c-doc c-doc--optional"><span class="c-doc__state">' + icon('transport') + '</span><span class="c-doc__name">' + o.ot + '</span><span class="c-doc__actions"><a href="E01-tableau-de-bord.html?id=' + o.dossier + '">' + o.dossier + '</a></span></li>';
+      return '<li class="c-doc c-doc--optional"><span class="c-doc__state">' + icon('transport') + '</span><span class="c-doc__name">' + o.ot + '</span><span class="c-doc__actions"><a href="E01-dossiers.html?id=' + o.dossier + '">' + o.dossier + '</a></span></li>';
     }).join('') + '</ul>' : '<p class="c-field__help">Aucun pour l\'instant.</p>') : '';
     $('fiche').classList.add('is-open');
     $('t-nom').focus();

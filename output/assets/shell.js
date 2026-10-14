@@ -19,15 +19,12 @@
   }
   function ecrireRole(r) { try { localStorage.setItem(KEY, r); } catch (e) {} }
   function nonLues() { return D.nonLues(); }
-  /* Page d'accueil du profil : E07 pour Manager et Direction, E01 sinon */
-  function accueil(role) { return D.acces[role].accueil || 'E01-tableau-de-bord.html'; }
+  /* Page d'accueil : le tableau de bord (E09) pour tous les profils, sauf accueil propre déclaré dans data.js */
+  function accueil(role) { return D.acces[role].accueil || 'E09-tableau-de-bord.html'; }
 
   function renderTopbar(role) {
     var notif = nonLues(), mails = D.emailsNonLus.length;
     $('topbar').innerHTML =
-      '<a class="c-brand" id="shell-accueil" href="' + accueil(role) + '" aria-label="DOUALOG — Accueil">' +
-        '<span class="c-brand__mark"><img src="../assets/img/logo-monogramme.png" alt=""></span>' +
-        '<span><span class="c-brand__name">DOUA<em>LOG</em></span><span class="c-brand__sub">Control Tower</span></span></a>' +
       '<div class="c-topbar__search c-input-icon">' + icon('search') +
         '<input class="c-input" id="shell-search" type="search" placeholder="Rechercher un dossier, un BL, un conteneur, un client…" aria-label="Recherche globale"></div>' +
       '<div class="c-topbar__right">' +
@@ -53,9 +50,13 @@
       '<span class="c-count"' + (e.id === 'notifications' ? ' id="shell-nav-notif"' : '') + (n ? '' : ' data-zero') + '>' + (n || '') + '</span></a></li>';
   }
 
-  function renderSidebar() {
+  /* Le logo est en tête du menu (menu bleu nuit pleine hauteur, header blanc) */
+  function renderSidebar(role) {
     var n = { notifications: nonLues() };
     $('sidebar').innerHTML =
+      '<div class="c-sidebar__brand"><a class="c-brand" id="shell-accueil" href="' + accueil(role) + '" aria-label="DOUALOG — Accueil">' +
+        '<span class="c-brand__mark"><img src="../assets/img/logo-monogramme.png" alt=""></span>' +
+        '<span><span class="c-brand__name">DOUA<em>LOG</em></span><span class="c-brand__sub">Control Tower</span></span></a></div>' +
       '<ul class="c-nav">' + D.navigation.map(function (e) { return item(e, n[e.id]); }).join('') + '</ul>' +
       '<ul class="c-nav c-nav--bottom"><li><a class="c-nav__item" href="E00-connexion.html">' + icon('logout') + 'Déconnexion</a></li></ul>';
   }
@@ -88,22 +89,20 @@
     opts = o || {};
     var role = lireRole();
     renderTopbar(role);
-    renderSidebar();
+    renderSidebar(role);
     setActive(opts.actif);
     appliquerRole(role);
 
     $('shell-role').addEventListener('change', function () {
       ecrireRole(this.value);
-      /* Changement de profil depuis une page d'accueil : on bascule sur l'accueil du nouveau profil */
-      var page = location.pathname.split('/').pop(), dest = accueil(this.value);
-      if (!location.search && (page === 'E01-tableau-de-bord.html' || page === 'E07-dashboard-manager.html') && page !== dest) { location.href = dest; return; }
+      var dest = accueil(this.value);
       $('shell-accueil').href = dest;
       appliquerRole(this.value);
     });
     var s = $('shell-search');
     s.addEventListener('input', function () { if (opts.onSearch) opts.onSearch(s.value); });
     s.addEventListener('keydown', function (e) {
-      if (e.key === 'Enter' && !opts.onSearch) location.href = 'E01-tableau-de-bord.html?q=' + encodeURIComponent(s.value);
+      if (e.key === 'Enter' && !opts.onSearch) location.href = 'E01-dossiers.html?q=' + encodeURIComponent(s.value);
     });
   }
 

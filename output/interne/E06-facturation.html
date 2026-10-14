@@ -126,7 +126,7 @@
       var f = D.facture(d), c = D.client(d);
       var cls = d.id === etat.ouvert || (!etat.ouvert && d.filRouge) ? 'is-selected' : (echue(f) ? 'is-alert' : '');
       return '<tr class="' + cls + '" data-ligne="' + d.id + '">' +
-        '<td><a class="c-ref" href="E01-tableau-de-bord.html?id=' + d.id + '" title="Ouvrir le dossier">' + d.id + '</a></td>' +
+        '<td><a class="c-ref" href="E01-dossiers.html?id=' + d.id + '" title="Ouvrir le dossier">' + d.id + '</a></td>' +
         '<td>' + esc(c.nom) + '</td>' +
         '<td class="u-num">' + F.date(f.dateBAS) + '</td>' +
         '<td>' + (f.num ? '<span class="c-ref">' + f.num + '</span>' : '<span class="c-field__help">à générer</span>') + '</td>' +

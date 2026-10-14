@@ -59,7 +59,7 @@
   </header>
   <nav class="ds-toc" aria-label="Sommaire">
     <a href="#couleurs">Couleurs</a><a href="#typo">Typographie</a><a href="#espaces">Espacements</a><a href="#icones">Icônes</a>
-    <a href="#statuts">Statuts</a><a href="#boutons">Boutons</a><a href="#champs">Champs</a><a href="#shell">Shell</a><a href="#indicateurs">Indicateurs</a>
+    <a href="#statuts">Statuts</a><a href="#boutons">Boutons</a><a href="#champs">Champs</a><a href="#shell">Shell</a><a href="#indicateurs">Indicateurs</a><a href="#graphiques">Graphiques</a>
     <a href="#tableau">Tableau</a><a href="#onglets">Onglets</a><a href="#workflow">Workflow</a><a href="#bandeau">Bandeau</a>
     <a href="#panneau">Panneau &amp; modale</a><a href="#blocs">Blocs du dossier</a><a href="#timeline">Timeline</a><a href="#documents">Documents</a>
     <a href="#alertes">Alertes</a><a href="#vide">État vide</a><a href="#kpi">KPI</a><a href="#depot">Dépôt</a><a href="#connexion">Connexion</a><a href="#externe">Pages externes</a><a href="#facture">Facture</a>
@@ -68,7 +68,7 @@
   <!-- ══ COULEURS ══ -->
   <section class="ds-sec" id="couleurs">
     <h2>Couleurs</h2>
-    <p class="ds-intro">Source n°1 : l'image du client. Bleu nuit pour le header, le menu et le fond de travail ; cartes blanches posées dessus ; orange pour les boutons d'action, les éléments actifs et la ligne sous le header ; bloc bleu plein pour l'entrée active du menu. Les teintes de statut restent celles de la charte.</p>
+    <p class="ds-intro">Version sobre (refonte « entreprise », demande du client) : menu bleu nuit, header blanc, zone de travail gris très clair, cartes blanches à bordure fine. L'orange est réservé aux boutons d'action principaux et au repère de l'entrée active du menu ; bleu marine pour les onglets, filtres et étapes actifs. Les teintes de statut restent celles de la charte, en fond très léger.</p>
     <p class="u-label ds-cap">Identité &amp; surfaces</p>
     <div class="ds-grid" id="sw-base"></div>
     <p class="u-label ds-cap" style="margin-top: var(--sp-6)">Six teintes de statut — paires fond / texte (contraste ≥ 4,5:1)</p>
@@ -79,17 +79,17 @@
   <!-- ══ TYPOGRAPHIE ══ -->
   <section class="ds-sec" id="typo">
     <h2>Typographie — Inter</h2>
-    <p class="ds-intro">Inter partout, une seule police. Comme sur l'image : titres de blocs et en-têtes de colonnes en majuscules, semi-gras, petite taille, légèrement espacés ; chiffres des indicateurs grands et gras ; logo seul à gauche du header, sans titre centré.</p>
+    <p class="ds-intro">Roboto partout (police d'Odoo, neutre et lisible ; semi-gras rendu en 500). Angles 4 px (boutons, champs), 6 px (cartes), statuts et compteurs en pilule. Titres de blocs, libellés et en-têtes de colonnes en casse normale (pas de majuscules), semi-gras ; chiffres des indicateurs grands, en semi-gras.</p>
     <div class="ds-box ds-box--flush">
       <table class="ds-scale" style="width:100%;border-collapse:collapse">
         <tr><td class="u-label">Chiffre indicateur · 26 / 700</td><td style="font-size:var(--fs-3xl);font-weight:var(--fw-bold);color:var(--text-heading)" class="u-num">17</td></tr>
-        <tr><td class="u-label">Titre de bloc · 12 / 600 majuscules</td><td><span class="c-block-title">Liste des dossiers</span></td></tr>
+        <tr><td class="u-label">Titre de bloc · 14 / 600</td><td><span class="c-block-title">Liste des dossiers</span></td></tr>
         <tr><td class="u-label">Titre de page · 22 / 700</td><td><h1>Tableau de bord</h1></td></tr>
         <tr><td class="u-label">Sous-titre · 17 / 600</td><td><h2>Contrôle douane</h2></td></tr>
         <tr><td class="u-label">Corps formulaire · 14 / 400</td><td style="font-size:var(--fs-base)">Vérification du poids et du marquage des sacs : conforme au manifeste.</td></tr>
         <tr><td class="u-label">Corps application · 13 / 400</td><td>Déclaration stockée, en attente de contrôle.</td></tr>
         <tr><td class="u-label">Métadonnée · 12 / 400</td><td style="font-size:var(--fs-sm)" class="u-muted">Reçu le 29/09/2026 · 09:14</td></tr>
-        <tr><td class="u-label">Libellé · 11 / 600 majuscules</td><td><span class="u-label">N° dossier</span></td></tr>
+        <tr><td class="u-label">Libellé de section · 12 / 600</td><td><span class="u-label">N° dossier</span></td></tr>
         <tr><td class="u-label">Référence · 13 / 500 tabulaire</td><td><span class="c-ref">DLG-2026-0412</span> · <a class="c-ref" href="#">DLG-2026-0412</a> (lien)</td></tr>
       </table>
     </div>
@@ -192,12 +192,10 @@
   <!-- ══ SHELL ══ -->
   <section class="ds-sec" id="shell">
     <h2>Shell applicatif</h2>
-    <p class="ds-intro">Header bleu nuit en 3 zones, sobre : logo avec « Control Tower » en sous-titre (le nom DOUALOG n'apparaît qu'une fois) · recherche large alignée sur la zone de travail · notifications, emails, utilisateur, fine ligne orange dessous. Pas de logo blanc : monogramme sur pastille et nom en texte (DOUA blanc, LOG orange). Menu bleu nuit dans l'ordre de l'image, séparé de la zone de travail par un reflet clair et une ombre (demande du client), entrée active en bloc bleu plein, entrées hors V1 ou hors droits du profil grisées, Déconnexion en bas. Rendu par <code>shell.js</code>.</p>
+    <p class="ds-intro">Version sobre (refonte « entreprise ») : menu bleu nuit pleine hauteur avec le logo en tête (monogramme sur pastille, DOUA blanc, LOG orange) ; header blanc à filet gris : recherche, notifications (compteur rouge), emails, utilisateur. Entrée active du menu : fond discret et trait orange à gauche ; entrées hors V1 ou hors droits du profil grisées ; Déconnexion en bas. Rendu par <code>shell.js</code> (<code>.c-sidebar__brand</code>).</p>
     <div class="ds-shell">
       <div class="c-app">
         <header class="c-topbar">
-          <a class="c-brand" href="#"><span class="c-brand__mark"><img src="assets/img/logo-monogramme.png" alt=""></span>
-            <span><span class="c-brand__name">DOUA<em>LOG</em></span><span class="c-brand__sub">Control Tower</span></span></a>
           <div class="c-topbar__search c-input-icon"><svg class="c-icon" aria-hidden="true"><use href="#i-search"></use></svg><input class="c-input" placeholder="Rechercher un dossier, un BL, un conteneur, un client…"></div>
           <div class="c-topbar__right">
             <a class="c-btn c-btn--icon c-btn--ghost c-topbar__icon" href="#" aria-label="Notifications"><svg class="c-icon c-icon--lg" aria-hidden="true"><use href="#i-bell"></use></svg><span class="c-count c-count--accent" id="bell-count"></span></a>
@@ -206,6 +204,8 @@
           </div>
         </header>
         <nav class="c-sidebar" aria-label="Navigation (exemple)">
+          <div class="c-sidebar__brand"><a class="c-brand" href="#"><span class="c-brand__mark"><img src="assets/img/logo-monogramme.png" alt=""></span>
+            <span><span class="c-brand__name">DOUA<em>LOG</em></span><span class="c-brand__sub">Control Tower</span></span></a></div>
           <ul class="c-nav">
             <li><a class="c-nav__item is-active" href="#"><svg class="c-icon" aria-hidden="true"><use href="#i-dashboard"></use></svg>Tableau de bord</a></li>
             <li><a class="c-nav__item" href="#"><svg class="c-icon" aria-hidden="true"><use href="#i-dossiers"></use></svg>Dossiers</a></li>
@@ -222,7 +222,7 @@
   <!-- ══ BANDEAU D'INDICATEURS ══ -->
   <section class="ds-sec" id="indicateurs">
     <h2>Bandeau d'indicateurs (tableau de bord)</h2>
-    <p class="ds-intro">Un seul bandeau sombre découpé par des filets fins, au-dessus de la liste. Chaque indicateur, à la demande du client : icône à gauche, grand chiffre à droite, libellé en petites majuscules sous le chiffre. Icône de la hauteur du bloc chiffre + libellé, de couleur, une teinte par indicateur comme sur l'image (<code>--blue / --violet / --magenta / --green / --orange / --red</code>), sur carré légèrement teinté. Sur écran étroit (1366 px), le bandeau passe sur 2 lignes de 4 (requête de conteneur <code>stats</code>). Si un indicateur reste trop étroit, le libellé passe en version abrégée (<code>.is-long</code> / <code>.is-short</code>, requête de conteneur). Un clic filtre la liste ; l'indicateur actif porte un trait orange en bas. <code>.c-stats</code>, <code>.c-stats__group</code>, <code>.c-stat</code>, <code>__in</code>, <code>__icon</code>, <code>__value</code>, <code>__label</code>.</p>
+    <p class="ds-intro">Un bandeau blanc découpé par des filets fins, au-dessus de la liste. Chaque indicateur : libellé court, puis le chiffre. Pas d'icône colorée (<code>__icon</code> reste dans le HTML mais est masquée). Sur écran étroit (1366 px), 2 lignes de 4 (requête de conteneur <code>stats</code>) ; libellé abrégé si l'indicateur est trop étroit (<code>.is-long</code> / <code>.is-short</code>). Un clic filtre la liste ; l'indicateur actif porte un trait bleu marine en bas. <code>.c-stats</code>, <code>.c-stats__group</code>, <code>.c-stat</code>, <code>__in</code>, <code>__value</code>, <code>__label</code>.</p>
     <div class="ds-box" style="background:var(--bg-app)">
       <div class="c-stats">
         <div class="c-stats__group">
@@ -237,10 +237,33 @@
     </div>
   </section>
 
+  <!-- ══ GRAPHIQUES (tableau de bord E09) ══ -->
+  <section class="ds-sec" id="graphiques">
+    <h2>Graphiques du tableau de bord</h2>
+    <p class="ds-intro">Grille <code>.c-dash</code> (12 colonnes, <code>__w4</code> à <code>__w12</code>, une colonne sous 900 px). Graphiques en SVG dessinés par la page (géométrie en attributs) ; couleurs par classes : <code>.c-chart__bar--import / --export</code>, <code>.c-chart__line</code>, <code>.c-donut__seg</code> + teinte <code>.is-s-blue / -orange / -green / -violet / -magenta / -red / -navy / -gray</code>. Légende <code>.c-legend</code>, barres horizontales cliquables <code>.c-hbars</code>, chiffres clés <code>.c-figures</code>, liste de priorités <code>.c-todo</code>.</p>
+    <div class="c-dash">
+      <section class="c-card c-dash__w6"><div class="c-card__head"><h3>Où en sont les dossiers</h3><span class="c-card__note">un clic ouvre la liste</span></div>
+        <div class="c-card__body"><ul class="c-hbars">
+          <li><a class="c-hbar is-s-blue" href="#"><span>Déclaration en cours</span><span class="c-hbar__track"><svg viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><rect class="c-hbar__bg" width="100" height="10" rx="2"/><rect class="c-hbar__fill" width="100" height="10" rx="2"/></svg></span><span class="c-hbar__val">4</span></a></li>
+          <li><a class="c-hbar is-s-magenta" href="#"><span>Contrôle douane</span><span class="c-hbar__track"><svg viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><rect class="c-hbar__bg" width="100" height="10" rx="2"/><rect class="c-hbar__fill" width="75" height="10" rx="2"/></svg></span><span class="c-hbar__val">3</span></a></li>
+          <li><a class="c-hbar is-s-red" href="#"><span>Info manquante</span><span class="c-hbar__track"><svg viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><rect class="c-hbar__bg" width="100" height="10" rx="2"/><rect class="c-hbar__fill" width="25" height="10" rx="2"/></svg></span><span class="c-hbar__val">1</span></a></li>
+        </ul>
+        <ul class="c-legend u-mt-3"><li class="is-s-blue">Import</li><li class="is-s-orange">Export</li><li class="is-s-green">Encaissé</li><li class="is-s-gray">À émettre</li></ul></div>
+      </section>
+      <section class="c-card c-dash__w6"><div class="c-card__head"><h3>À traiter en priorité</h3><span class="c-count c-count--alert">2</span></div>
+        <div class="c-card__body"><ul class="c-todo">
+          <li class="c-todo__item c-todo__item--danger"><a class="c-ref" href="#">DLG-2026-0416</a><span class="c-todo__motif"><b>Information demandée par la douane</b> · Bâtiments et Travaux du Cap-Vert</span><span class="c-todo__age">depuis 2 j</span><a class="c-btn c-btn--sm" href="#">Ouvrir</a></li>
+          <li class="c-todo__item c-todo__item--warning"><a class="c-ref" href="#">DLG-2026-0415</a><span class="c-todo__motif"><b>Contrôle physique en cours</b> · Pièces Auto Colobane</span><span class="c-todo__age">depuis 2 j</span><a class="c-btn c-btn--sm" href="#">Ouvrir</a></li>
+        </ul>
+        <div class="c-figures u-mt-3"><div><div class="c-figure__label">Encaissé en octobre</div><div class="c-figure__value is-success">5 184 650 <small>FCFA</small></div></div><div><div class="c-figure__label">Reste à encaisser</div><div class="c-figure__value is-warning">5 680 855 <small>FCFA</small></div></div></div></div>
+      </section>
+    </div>
+  </section>
+
   <!-- ══ TABLEAU ══ -->
   <section class="ds-sec" id="tableau">
     <h2>Carte de liste, filtres rapides et tableau</h2>
-    <p class="ds-intro">Dans l'application, la liste est une carte blanche <code>.c-list</code> : titre en majuscules, onglets, actions Filtres / Exporter à droite, puis barre de filtres, et le tableau dans son propre cadre bordé, en retrait des bords de la carte. Colonne Contrôle en texte coloré + date (<code>.c-ctrl</code>), comme l'image : <span class="c-ctrl c-ctrl--warning"><span class="c-ctrl__type">Physique · en cours</span><span class="c-ctrl__date">16/10/2026</span></span> · <span class="c-ctrl c-ctrl--success"><span class="c-ctrl__type">Aucun contrôle</span></span>.<br>Tableau pleine largeur, en-têtes en majuscules sur bande grise, lignes alternées, en-têtes triables. Exceptions marquées par un filet à gauche (rouge : bloquant, rouille : vigilance), ligne sélectionnée surlignée. Survol des dates « Stockée » et « Anticipé » : détail en infobulle.<br>
+    <p class="ds-intro">Dans l'application, la liste est une carte blanche <code>.c-list</code> : titre, onglets, actions Filtres / Exporter à droite, puis barre de filtres, et le tableau dans son propre cadre bordé, en retrait des bords de la carte. Colonne Contrôle en texte coloré + date (<code>.c-ctrl</code>), comme l'image : <span class="c-ctrl c-ctrl--warning"><span class="c-ctrl__type">Physique · en cours</span><span class="c-ctrl__date">16/10/2026</span></span> · <span class="c-ctrl c-ctrl--success"><span class="c-ctrl__type">Aucun contrôle</span></span>.<br>Tableau pleine largeur, en-têtes sur bande grise, en-têtes triables. Exceptions marquées par un filet à gauche (rouge : bloquant, rouille : vigilance), ligne sélectionnée surlignée. Survol des dates « Stockée » et « Anticipé » : détail en infobulle.<br>
       <code>.c-table--sticky</code> : tableau plus large que l'écran, 1re colonne (N° dossier) et dernière (actions) collantes pendant le défilement horizontal. <code>.c-tip--below</code> : bulle sous l'élément, pour les premières lignes d'un tableau défilant.</p>
     <div class="c-toolbar">
       <div class="c-input-icon c-toolbar__search"><svg class="c-icon" aria-hidden="true"><use href="#i-search"></use></svg><input class="c-input" placeholder="Rechercher"></div>
@@ -292,7 +315,7 @@
   <!-- ══ BANDEAU ══ -->
   <section class="ds-sec" id="bandeau">
     <h2>Bandeau dossier</h2>
-    <p class="ds-intro">Comme l'image : icône ronde, « DOSSIER DLG-… » en majuscules, badge de statut, puis les informations clés du CDC §6.1 en ligne (« Client : … »). À droite : Envoyer un email, Créer OT (inactif sans BAE ou si l'OT existe), Exporter PDF, menu « … » (<code>.c-menu</code> : historique, fermer) et chevron pour fermer. <code>.c-banner</code>, <code>__icon</code>, <code>__main</code>, <code>__top</code>, <code>__ref</code>, <code>__meta</code>, <code>__actions</code>.</p>
+    <p class="ds-intro">Bandeau blanc : « Dossier DLG-… », badge de statut, puis les informations clés du CDC §6.1 en ligne (« Client : … »). À droite : Envoyer un email, Créer OT (inactif sans BAE ou si l'OT existe), Exporter PDF, menu « … » (<code>.c-menu</code> : historique, fermer) et chevron pour fermer. <code>.c-banner</code>, <code>__main</code>, <code>__top</code>, <code>__ref</code>, <code>__meta</code>, <code>__actions</code>.</p>
     <div class="ds-box ds-box--flush" id="banner-demo"></div>
   </section>
 
@@ -494,13 +517,12 @@
 
   /* Couleurs */
   var base = [
-    ['Bleu nuit', '--night-950', '#0A1628', 'Header, menu latéral, bandeau dossier'],
-    ['Fond de travail', '--night-app', '#091427', 'Zone de travail (hors header et menu)'],
-    ['Bleu nuit bandeau', '--night-850', '#10243F', 'Bandeau d\'indicateurs'],
-    ['Bleu actif', '--blue-600', '#1F5FD6', 'Entrée active du menu'],
-    ['Orange', '--orange-500', '#F97316', 'Boutons d\'action, actif, ligne du header'],
+    ['Bleu nuit', '--night-950', '#123259', 'Menu latéral, en-tête des pages externes'],
+    ['Fond de travail', '--gray-app', '#F4F5F7', 'Zone de travail, sous les cartes blanches'],
+    ['Orange', '--orange-500', '#F97316', 'Boutons d\'action principaux, repère du menu actif'],
     ['Orange texte', '--orange-700', '#C2410C', 'Texte orange sur fond clair'],
-    ['Bleu marine', '--navy-500', '#0C2C5E', 'Titres, références'],
+    ['Bleu marine', '--navy-500', '#0C2C5E', 'Titres, onglets, filtres et étapes actifs'],
+    ['Fond actif', '--action-active-bg', '#EDF1F7', 'Filtre actif, ligne sélectionnée'],
     ['Blanc', '--neutral-0', '#FFFFFF', 'Cartes, liste, champs'],
     ['Gris en-tête', '--neutral-100', '#F3F4F6', 'En-têtes de tableau'],
     ['Texte courant', '--neutral-700', '#374151', 'Texte des tableaux'],

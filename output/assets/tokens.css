@@ -5,17 +5,18 @@
    3. CDC §15 (bleu nuit, ligne orange, accent orange).
    Aucune valeur en dur dans les pages : tout passe par ces variables.
    ══════════════════════════════════════════════════════════════ */
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
 
 :root {
   color-scheme: light;
 
   /* — Bleu nuit (image + CDC §15) — */
-  --night-950: #0A1628;       /* header, menu latéral */
-  --night-app: #091427;       /* fond de la zone de travail (hors header et menu) — demande client */
+  --night-950: #123259;       /* menu latéral, en-tête des pages externes : bleu marine franc (plus le quasi-noir #0A1628) */
+  --night-app: #091427;       /* réserve (ancien fond sombre de la zone de travail) */
+  --gray-app:  #F4F5F7;       /* fond de la zone de travail : gris très clair (refonte sobre, demande client) */
   --night-900: #0B1F3A;       /* réserve (plus utilisé par le menu) */
   --night-850: #10243F;       /* bandeau d'indicateurs */
-  --night-800: #16304F;       /* survol, champs sur fond sombre */
+  --night-800: #1C406E;       /* survol sur le menu */
   --night-line: rgba(255, 255, 255, .10);
   --blue-600:  #1F5FD6;       /* élément actif du menu (bloc bleu plein, image) — relevé sur l'image, à valider */
 
@@ -67,15 +68,16 @@
   --status-neutral-bg: #E8E8E6; --status-neutral-fg: #5B564A;
 
   /* — Sémantique : surfaces & texte — */
-  --bg-app:         var(--night-app);   /* zone de travail, cartes blanches posées dessus */
+  --bg-app:         var(--gray-app);    /* zone de travail claire, cartes blanches à bordure fine */
   --bg-surface:     var(--neutral-0);
   --bg-subtle:      var(--neutral-50);
   --bg-muted:       var(--neutral-100);
-  --bg-chrome:      var(--night-950);
-  --bg-nav:         var(--night-950);   /* même bleu que le header */
+  --bg-chrome:      var(--night-950);   /* infobulle, en-tête des pages externes */
+  --bg-topbar:      var(--neutral-0);   /* header de l'application : blanc */
+  --bg-nav:         var(--night-950);
   --bg-nav-hover:   var(--night-800);
-  --bg-nav-active:  var(--blue-600);
-  --bg-tile:        var(--night-850);   /* bandeau d'indicateurs */
+  --bg-nav-active:  rgba(255, 255, 255, .08);   /* entrée active : fond discret + trait orange à gauche */
+  --bg-tile:        var(--neutral-0);   /* bandeau d'indicateurs : blanc */
   --bg-overlay:     rgba(10, 22, 40, .6);
   --border:         var(--neutral-200);
   --border-strong:  var(--neutral-300);
@@ -91,13 +93,14 @@
   --action-primary:       var(--orange-500);
   --action-primary-hover: var(--orange-600);
   --action-on-primary:    var(--neutral-0);   /* texte blanc, comme l'image — contraste 2,8:1, à valider */
-  --action-active:        var(--orange-500);  /* onglet, filtre rapide, étape en cours */
-  --action-active-text:   var(--orange-700);
+  --action-active:        var(--navy-500);    /* onglet, filtre actifs : bleu marine — l'orange reste aux boutons d'action */
+  --action-active-text:   var(--navy-500);
+  --action-active-bg:     #EDF1F7;            /* fond d'un filtre actif, d'une ligne sélectionnée */
   --focus-ring:           var(--orange-500);
   --focus-halo:           var(--orange-50);
 
-  /* — Typographie : Inter partout (CDC §15, choix du client) — */
-  --font-sans: 'Inter', ui-sans-serif, system-ui, -apple-system, 'Segoe UI', sans-serif;
+  /* — Typographie : Roboto (police d'Odoo : neutre, sérieuse, très lisible sur chiffres et tableaux) — */
+  --font-sans: 'Roboto', 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
   --fs-2xs: 10px;   /* libellé KPI, slogan */
   --fs-xs:  11px;   /* en-têtes de colonnes, libellés majuscules */
   --fs-sm:  12px;   /* métadonnées, badges, titres de blocs */
@@ -107,7 +110,7 @@
   --fs-xl:  17px;   /* titre du header */
   --fs-2xl: 22px;   /* titre de page */
   --fs-3xl: 26px;   /* chiffre KPI */
-  --fw-regular: 400; --fw-medium: 500; --fw-semibold: 600; --fw-bold: 700;
+  --fw-regular: 400; --fw-medium: 500; --fw-semibold: 500; --fw-bold: 700;   /* Roboto : pas de 600, le semi-gras est rendu en 500 */
   --lh-tight: 1.2; --lh-normal: 1.5; --lh-relaxed: 1.6;
   --ls-label: .05em;   /* majuscules : titres de blocs, en-têtes de colonnes */
   --ls-wide:  .22em;   /* slogan du header */
@@ -118,8 +121,8 @@
 
   /* — Formes (charte : 6 px, pilule pour les badges, pas d'ombre) — */
   --radius-sm: 4px;
-  --radius-md: 6px;
-  --radius-lg: 8px;      /* tuiles KPI, cartes de la zone de travail */
+  --radius-md: 4px;   /* boutons, champs */
+  --radius-lg: 6px;      /* cartes de la zone de travail */
   --radius-pill: 999px;
   --border-w: 1px;
   --border-w-strong: 1.5px;

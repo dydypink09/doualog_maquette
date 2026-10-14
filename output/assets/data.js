@@ -534,12 +534,12 @@
   /* ── Navigation interne et accès par rôle (image client + CDC §02) ───────
      Entrées dans l'ordre de l'image. horsV1 : visibles mais inactives.
      À VALIDER : « Facturation » (E06, MUST) n'apparaît pas dans l'image — ajoutée entre Documents et Messagerie.
-     Accueil : E07 (Rapports) pour Manager et Direction, E01 pour les autres profils.
+     Accueil : E09 (tableau de bord graphique) pour tous les profils ; Dossiers = liste E01 ; Rapports = E07 (Manager, Direction).
      À VALIDER : pas de matrice des droits détaillée (US-45), répartition déduite du tableau §02.
      Direction = mêmes entrées que le Manager, en lecture seule. */
   var navigation = [
-    { id: 'tableau',       label: 'Tableau de bord', icone: 'dashboard', href: 'E01-tableau-de-bord.html' },
-    { id: 'dossiers',      label: 'Dossiers',        icone: 'dossiers',  href: 'E01-tableau-de-bord.html#liste' },
+    { id: 'tableau',       label: 'Tableau de bord', icone: 'dashboard', href: 'E09-tableau-de-bord.html' },
+    { id: 'dossiers',      label: 'Dossiers',        icone: 'dossiers',  href: 'E01-dossiers.html' },
     { id: 'transport',     label: 'Transport',       icone: 'transport', href: 'E05-annuaire-transporteurs.html' },
     { id: 'mandats',       label: 'Mandats',         icone: 'mandat',    horsV1: true },
     { id: 'clients',       label: 'Clients',         icone: 'clients',   horsV1: true },
@@ -550,14 +550,23 @@
     { id: 'rapports',      label: 'Rapports',        icone: 'rapport',   href: 'E07-dashboard-manager.html' },
     { id: 'parametres',    label: 'Paramètres',      icone: 'settings',  horsV1: true }
   ];
+  /* ── Historique fictif des semaines antérieures au jeu de données (tableau de bord E09) ──
+     Le jeu de données commence le 22/09 (semaine 39) : pour les semaines 35 à 38, seuls des totaux sont connus.
+     À partir de la semaine 39, tout est recalculé depuis les dossiers. delai = jours moyens réception → BAS. */
+  var statsAnterieures = [
+    { lundi: '2026-08-24', import: 4, export: 2, delai: 11.2 },
+    { lundi: '2026-08-31', import: 5, export: 1, delai: 12.4 },
+    { lundi: '2026-09-07', import: 3, export: 3, delai: 10.8 },
+    { lundi: '2026-09-14', import: 5, export: 2, delai: 11.6 }
+  ];
   var horsV1 = ['mandats', 'clients', 'documents', 'messagerie', 'parametres'];
   var acces = {
     declarant:   { nav: ['tableau', 'dossiers', 'notifications'].concat(horsV1), utilisateur: 'u1' },
     operateur:   { nav: ['tableau', 'dossiers', 'transport', 'notifications'].concat(horsV1), utilisateur: 'u3' },
     transport:   { nav: ['tableau', 'dossiers', 'transport', 'notifications'].concat(horsV1), utilisateur: 'u4' },
     facturation: { nav: ['tableau', 'dossiers', 'facturation', 'notifications'].concat(horsV1), utilisateur: 'u5' },
-    manager:     { nav: ['tableau', 'dossiers', 'transport', 'facturation', 'notifications', 'rapports'].concat(horsV1), utilisateur: 'u6', accueil: 'E07-dashboard-manager.html' },
-    direction:   { nav: ['tableau', 'dossiers', 'transport', 'facturation', 'notifications', 'rapports'].concat(horsV1), utilisateur: 'u7', lectureSeule: true, accueil: 'E07-dashboard-manager.html' }
+    manager:     { nav: ['tableau', 'dossiers', 'transport', 'facturation', 'notifications', 'rapports'].concat(horsV1), utilisateur: 'u6' },
+    direction:   { nav: ['tableau', 'dossiers', 'transport', 'facturation', 'notifications', 'rapports'].concat(horsV1), utilisateur: 'u7', lectureSeule: true }
   };
 
   /* Emails entrants pas encore lus dans la boîte DOUALOG (compteur « messages » du header) */
@@ -812,7 +821,7 @@
     documents: documents, documentsRequis: documentsRequis,
     dossiers: dossiers, ots: ots, grilles: grilles, prochainNumeroFacture: prochainNumeroFacture,
     notifications: notifications, messages: messages, historique: historique,
-    navigation: navigation, acces: acces, emailsNonLus: emailsNonLus, documentsTransport: documentsTransport,
+    navigation: navigation, acces: acces, statsAnterieures: statsAnterieures, emailsNonLus: emailsNonLus, documentsTransport: documentsTransport,
     sauverDossier: sauverDossier, sauverOT: sauverOT, sauverTransporteur: sauverTransporteur,
     reserverNumeroOT: reserverNumeroOT, reserverNumeroFacture: reserverNumeroFacture, numeroFactureSuivant: numeroFactureSuivant, marquerLue: marquerLue, nonLues: nonLues,
     facture: facture, typesNotification: typesNotification,

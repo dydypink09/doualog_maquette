@@ -141,7 +141,7 @@
   var D = window.DOUALOG, F = D.fmt, esc = D.esc;
   function $(id) { return document.getElementById(id); }
   var id = new URLSearchParams(location.search).get('id') || 'DLG-2026-0410';
-  var d = D.dossier(id), c = D.client(d), lienDossier = 'E01-tableau-de-bord.html?id=' + id;
+  var d = D.dossier(id), c = D.client(d), lienDossier = 'E01-dossiers.html?id=' + id;
   var choisis = [], etape = 1;
 
   window.DOUALOG_SHELL.init({ actif: 'transport' });

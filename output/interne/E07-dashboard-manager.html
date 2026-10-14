@@ -98,7 +98,7 @@
     $('stats').innerHTML = KPIS.map(function (k) {
       var ids = k.attente ? D.salleAttente().map(function (d) { return d.id; }) : liste().filter(k.f).map(function (d) { return d.id; });
       var titre = k.label + (k.periode ? ' du ' + F.dateCourte(b[0]) + ' au ' + F.dateCourte(b[1]) : '');
-      var href = k.attente ? 'E01-tableau-de-bord.html#salle-attente' : 'E01-tableau-de-bord.html?ids=' + ids.join(',') + '&titre=' + encodeURIComponent(titre);
+      var href = k.attente ? 'E01-dossiers.html#salle-attente' : 'E01-dossiers.html?ids=' + ids.join(',') + '&titre=' + encodeURIComponent(titre);
       return '<a class="c-stat c-stat--' + k.ton + '" href="' + href + '" title="' + titre + ' — ouvrir la liste">' +
         '<span class="c-stat__in"><span class="c-stat__icon">' + icon(k.icone) + '</span><span class="c-stat__value">' + ids.length + '</span>' +
         '<span class="c-stat__label">' + k.label + (k.periode ? ' · période' : '') + '</span></span></a>';
@@ -118,21 +118,21 @@
   function renderExceptions() {
     var info = D.dossiers.filter(function (d) { return d.statut === 'Info manquante'; }).map(function (d) {
       var c = d.controle;
-      return '<tr class="is-alert"><td><a class="c-ref" href="E01-tableau-de-bord.html?id=' + d.id + '">' + d.id + '</a></td><td class="is-wrap">' + esc(D.client(d).nom) + '</td>' +
-        '<td class="is-wrap">' + esc(c.commentaire) + '</td><td class="is-num u-num">' + age(c.demandeEnvoyee || c.notification) + '</td>' + ouvrir('E01-tableau-de-bord.html?id=' + d.id, d.id) + '</tr>';
+      return '<tr class="is-alert"><td><a class="c-ref" href="E01-dossiers.html?id=' + d.id + '">' + d.id + '</a></td><td class="is-wrap">' + esc(D.client(d).nom) + '</td>' +
+        '<td class="is-wrap">' + esc(c.commentaire) + '</td><td class="is-num u-num">' + age(c.demandeEnvoyee || c.notification) + '</td>' + ouvrir('E01-dossiers.html?id=' + d.id, d.id) + '</tr>';
     });
     var limite = new Date(new Date(D.config.aujourdhui) - 2 * 864e5).toISOString().slice(0, 10);
     var ctrl = D.dossiers.filter(function (d) { return d.statut.indexOf('Contrôle') === 0 && d.controle.notification <= limite; }).map(function (d) {
       var c = d.controle;
-      return '<tr class="is-warning"><td><a class="c-ref" href="E01-tableau-de-bord.html?id=' + d.id + '">' + d.id + '</a></td><td class="is-wrap">' + esc(D.client(d).nom) + '</td>' +
-        '<td>' + c.type + ' · ' + esc(c.inspecteur) + '</td><td class="is-num u-num">' + age(c.notification) + '</td>' + ouvrir('E01-tableau-de-bord.html?id=' + d.id, d.id) + '</tr>';
+      return '<tr class="is-warning"><td><a class="c-ref" href="E01-dossiers.html?id=' + d.id + '">' + d.id + '</a></td><td class="is-wrap">' + esc(D.client(d).nom) + '</td>' +
+        '<td>' + c.type + ' · ' + esc(c.inspecteur) + '</td><td class="is-num u-num">' + age(c.notification) + '</td>' + ouvrir('E01-dossiers.html?id=' + d.id, d.id) + '</tr>';
     });
     var offres = Object.keys(D.ots).filter(function (k) {
       var o = D.ots[k]; return !o.offres.some(function (x) { return x.reponse === 'Acceptée'; }) && o.offres.some(function (x) { return !x.reponse; });
     }).map(function (k) {
       var o = D.ots[k], attente = o.offres.filter(function (x) { return !x.reponse; });
-      return '<tr><td><a class="c-ref" href="E01-tableau-de-bord.html?id=' + o.dossier + '">' + o.dossier + '</a></td><td><span class="c-ref">' + k + '</span></td>' +
-        '<td class="is-wrap">' + attente.map(function (x) { return esc(D.transporteurs[x.transporteur].nom); }).join(', ') + '</td><td class="is-num u-num">' + age(attente[0].envoi) + '</td>' + ouvrir('E01-tableau-de-bord.html?id=' + o.dossier, o.dossier) + '</tr>';
+      return '<tr><td><a class="c-ref" href="E01-dossiers.html?id=' + o.dossier + '">' + o.dossier + '</a></td><td><span class="c-ref">' + k + '</span></td>' +
+        '<td class="is-wrap">' + attente.map(function (x) { return esc(D.transporteurs[x.transporteur].nom); }).join(', ') + '</td><td class="is-num u-num">' + age(attente[0].envoi) + '</td>' + ouvrir('E01-dossiers.html?id=' + o.dossier, o.dossier) + '</tr>';
     });
     var factures = D.dossiers.map(function (d) { return { d: d, f: D.facture(d) }; }).filter(function (x) { return x.f && x.f.emise && x.f.statut !== 'Réglé'; });
     var echues = factures.filter(function (x) { return x.f.echeance < auj; }).map(function (x) {
@@ -159,7 +159,7 @@
       var ids = actifs.map(function (d) { return d.id; }).join(',');
       return '<tr><td><b>' + esc(D.equipe[u].nom) + '</b></td><td class="is-num">' + actifs.length + '</td><td class="is-num">' + exc + '</td>' +
         '<td class="is-num">' + (siens.length - actifs.length) + '</td><td class="is-num">' + fact + '</td>' +
-        '<td class="is-center"><a class="c-btn c-btn--ghost c-btn--sm" href="E01-tableau-de-bord.html?ids=' + ids + '&titre=' + encodeURIComponent('dossiers de ' + D.equipe[u].nom) + '">Voir ses dossiers</a></td></tr>';
+        '<td class="is-center"><a class="c-btn c-btn--ghost c-btn--sm" href="E01-dossiers.html?ids=' + ids + '&titre=' + encodeURIComponent('dossiers de ' + D.equipe[u].nom) + '">Voir ses dossiers</a></td></tr>';
     }).join('');
   }
 

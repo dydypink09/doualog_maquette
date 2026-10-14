@@ -41,8 +41,21 @@ Les fichiers `.md` de specs contiennent une image encodée en base64 (logo de co
 
 Ne pas utiliser `ui-design-dydy` ni d'autre skill d'esthétique sur ce projet.
 
-## Style visuel (d'après `references/vision-client.jpeg`)
-- **Police : Inter partout** (CDC §15, choix du client — remplace Sora de la charte), 400 / 500 / 600 / 700.
+## Refonte sobre « entreprise » (après l'étape 8 — prioritaire sur ce qui suit)
+Le client trouvait le rendu « trop IA, projet scolaire ». Direction choisie : **sobre, menu sombre**.
+- **Police : Roboto** (celle d'Odoo ; Inter puis IBM Plex jugées « gamines ») ; semi-gras = 500. Références en chiffres tabulaires, sans police à chasse fixe.
+  **Angles : 4 px** (boutons, champs), **6 px** (cartes) ; **statuts et compteurs en pilule**. Emails : Arial (comme un vrai email).
+- Menu **bleu marine franc `#123259`** (plus le quasi-noir `#0A1628`, aussi dans les emails et pages externes) **pleine hauteur avec le logo en tête** ; **header blanc** à filet gris (recherche, cloche à compteur rouge, emails, utilisateur).
+- Zone de travail **gris très clair** `#F4F5F7` (`--gray-app`), cartes blanches à bordure fine. Plus de fond sombre ni d'ombre du menu.
+- Entrée active du menu : fond discret + **trait orange à gauche**. Orange réservé aux boutons d'action principaux.
+- Onglets, filtres, indicateur actif : **bleu marine** (`--action-active`). Frise : couleurs d'origine conservées (vert fait, violet anticipé, orange en cours) — le client aime les couleurs.
+- Indicateurs : **bandeau blanc, icônes de couleur conservées** (carré légèrement teinté à gauche, libellé puis chiffre). Bandeau dossier **blanc**.
+- **Pas de majuscules** pour titres de blocs, libellés, en-têtes de colonnes. Import / Export en texte simple.
+- Sommaire `index.html` : page claire, un tableau des écrans (Écran · Utilisé par · Contenu · Réf.), textes courts.
+- Les pages externes et les emails gardent leur en-tête bleu nuit + ligne orange.
+
+## Style visuel d'origine (d'après `references/vision-client.jpeg`) — remplacé en partie par la refonte ci-dessus
+- ~~Police : Inter partout~~ → **remplacée par Roboto** (voir la refonte ci-dessus).
   Comme sur l'image : titres de blocs et en-têtes de colonnes en **MAJUSCULES, semi-gras, petite taille, léger espacement
   des lettres** ; chiffres des indicateurs grands et gras ; titre du header « DOUALOG CONTROL TOWER » en gras majuscules,
   slogan « CONNECTER • SÉCURISER • LIVRER » plus petit et espacé dessous — **remplacé (demande client) : header sobre,
@@ -60,7 +73,7 @@ Ne pas utiliser `ui-design-dydy` ni d'autre skill d'esthétique sur ce projet.
 - Menu dans l'ordre de l'image : Tableau de bord, Dossiers, Transport, Mandats, Clients, Documents, Messagerie,
   Notifications (compteur), Rapports, Paramètres, Déconnexion en bas. Entrées hors V1 visibles mais inactives.
   Facturation (E06, MUST) ajoutée **entre Documents et Messagerie** — absente de l'image, À VALIDER.
-- **Accueil selon le profil** : E07 (Rapports) pour Manager et Direction, E01 pour les autres (connexion, logo, changement de profil).
+- **Accueil : E09 (Tableau de bord graphique) pour tous les profils** (connexion, logo). « Dossiers » = liste E01, « Rapports » = E07.
 - Logo : pas de version blanche → monogramme sur pastille blanche + nom en texte (DOUA blanc, LOG orange).
 - Rayon 6 px (boutons, champs), 8 px (cartes, tuiles), badges en pilule. Pas d'ombre portée.
 - Icônes : une seule famille, trait 1,8 px, sans remplissage (sprite `assets/icons.js`), aucun emoji.
@@ -84,7 +97,8 @@ Ne pas utiliser `ui-design-dydy` ni d'autre skill d'esthétique sur ce projet.
 | ID | Écran | Parcours | US |
 |---|---|---|---|
 | E00 | Connexion | — | US-45 |
-| E01 | Tableau de bord — liste des dossiers (pleine largeur, filtres, tri) | P1–P3 | US-10, 11, 16 |
+| E09 | **Tableau de bord** (`E09-tableau-de-bord.html`) — 8 indicateurs cliquables (→ E01 `?kpi=`), graphiques SVG (reçus par semaine, répartition, étapes, délai réception → BAS), priorités du jour, facturation du mois. Semaines 35–38 : `statsAnterieures` (fictif) | — | US-10, 48 |
+| E01 | **Dossiers** (`E01-dossiers.html` ; l'ancien `E01-tableau-de-bord.html` redirige) — liste des dossiers (pleine largeur, filtres, tri), sans bandeau d'indicateurs | P1–P3 | US-10, 11, 16 |
 | E02 | Dossier ouvert en panneau pleine hauteur sur E01 : bandeau + workflow horizontal + **grille de blocs, sans onglets** | P3 | US-13 à 16 |
 | E02e | Bloc Informations générales | P3 | US-17, 09 |
 | E02b | Bloc Documents (présent / manquant) | P2 | US-18 |
@@ -99,7 +113,7 @@ bandeau et le workflow : rangée 1 = Informations générales, Documents, Décla
 rangée 2 = Transport, Suivi transport, Notifications.
 **Réalisation (étape 3)** : le panneau vit dans E01 (`assets/dossier.js`) et occupe **toute la hauteur sous le header**
 (demande client, lisibilité), avec animation d'entrée / sortie ; l'œil ou le N° ouvre le dossier sans quitter la page,
-`E01-tableau-de-bord.html?id=DLG-…` l'ouvre au chargement ; `E02-dossier.html` redirige vers E01 avec le fil rouge.
+`E01-dossiers.html?id=DLG-…` l'ouvre au chargement ; `E02-dossier.html` redirige vers E01 avec le fil rouge.
 BAE et BAS s'empilent dans une colonne (côte à côte sur grand écran). Les actions BAE / BAS / nouveau message modifient
 les données en mémoire pour la démo (rechargement = retour à l'état initial).
 | E03 | Salle d'attente — dossiers incomplets (**onglet de la carte « Liste des dossiers » de E01** ; `E03-salle-attente.html` ouvre cet onglet) | P2 | US-04, 06 |
@@ -130,7 +144,7 @@ output/
 │          · email.js (remplit les emails X0x depuis data.js) · img/
 ├── design-system.html
 ├── index.html            ← sommaire groupé par parcours
-├── interne/E01-tableau-de-bord.html …
+├── interne/E01-dossiers.html …
 └── externe/X01-email-accuse-reception.html …
 ```
 
@@ -165,7 +179,7 @@ output/
 
 ## Emails (X01, X02, X07, X08, X09…)
 - HTML d'email réaliste : 600 px, tableaux, **styles en ligne** (couleurs en dur reprises de tokens.css, les messageries
-  ne lisent pas les variables CSS), police Inter avec repli Arial. En-tête de messagerie (objet, De, À, date) au-dessus de l'email.
+  ne lisent pas les variables CSS), police Arial (refonte). En-tête de messagerie (objet, De, À, date) au-dessus de l'email.
 - Bandeau bleu nuit + ligne orange, logo (monogramme + DOUA**LOG**), N° DLG mis en avant, bouton orange, pied « Connecter • Sécuriser • Livrer ».
 - Contenu rempli par `assets/email.js` depuis `data.js` (`?id=DLG-…`, défaut dans `data-defaut`) : `[data-f]`, `[data-href]`, `[data-liste]`, `[data-si]`.
 - Variante relance : `X02-email-documents-manquants.html?relance=n` (`X02-email-relance.html` = relance n°2 de DLG-2026-0426).

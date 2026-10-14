@@ -77,7 +77,7 @@
       return '<tr class="' + (x.lue ? '' : 'is-unread') + '">' +
         '<td><span class="c-ctrl c-ctrl--' + (t.ton === 'danger' ? 'danger' : t.ton === 'warning' ? 'warning' : t.ton === 'success' ? 'success' : 'neutral') + '">' +
           '<span class="c-ctrl__type">' + icon(t.icone, 'c-icon--sm') + ' ' + esc(x.type) + '</span></span>' + (x.lue ? '' : ' <span class="c-badge c-badge--info">Non lue</span>') + '</td>' +
-        '<td><a class="c-ref" href="E01-tableau-de-bord.html?id=' + x.dossier + '" data-lire="' + x.id + '">' + x.dossier + '</a></td>' +
+        '<td><a class="c-ref" href="E01-dossiers.html?id=' + x.dossier + '" data-lire="' + x.id + '">' + x.dossier + '</a></td>' +
         '<td class="is-wrap">' + esc(x.texte) + '</td>' +
         '<td class="u-num">' + F.date(x.date) + ' ' + F.heure(x.date) + '</td>' +
         '<td class="is-center">' + (x.lue ? '<span class="c-dash">—</span>' :
