@@ -16,8 +16,8 @@
      Tous les dossiers dont le BAS est obtenu (CDC §10.1). ?id=DLG-… ouvre directement l'aperçu (ex. fil rouge DLG-2026-0412).
      Parcours : En facturation → Générer la facture (N° séquentiel) → Émettre et envoyer (X07) → Enregistrer un paiement → Réglé.
      Les actions sont gardées pour la démo (mémoire de démo). -->
-<!-- À VALIDER : taux de TVA (18 %) · identifiant fiscal du client (IFU ou NINEA) · liste et prix des prestations · délai d'échéance (30 jours)
-     · mentions légales de DOUALOG (NINEA, RCCM, adresse) · coordonnées de paiement · clôture du dossier au règlement (si livré ou sans livraison) -->
+<!-- À VALIDER : taux de TVA (20 %) · identifiant du client (SIRET, EORI ; le CDC dit « IFU ») · liste et prix des prestations · délai d'échéance (30 jours)
+     · mentions légales de DOUALOG (SIRET, RCS, n° TVA intracommunautaire, adresse) · coordonnées de paiement · clôture du dossier au règlement (si livré ou sans livraison) -->
 <div class="c-app">
   <header class="c-topbar" id="topbar"></header>
   <nav class="c-sidebar" id="sidebar" aria-label="Navigation principale"></nav>
@@ -78,10 +78,10 @@
       <button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" type="button" data-fermer-modale aria-label="Fermer"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></button></div>
     <div class="c-modal__body">
       <p id="paiement-intro"></p>
-      <div class="c-field"><label class="c-field__label" for="p-montant">Montant reçu (FCFA) <span class="is-required">*</span></label><input class="c-input u-num" id="p-montant" inputmode="numeric"></div>
+      <div class="c-field"><label class="c-field__label" for="p-montant">Montant reçu (€) <span class="is-required">*</span></label><input class="c-input u-num" id="p-montant" inputmode="numeric"></div>
       <div class="c-field"><label class="c-field__label" for="p-date">Date du paiement <span class="is-required">*</span></label><input class="c-input" id="p-date" type="date"></div>
       <div class="c-field"><label class="c-field__label" for="p-mode">Mode de paiement</label>
-        <select class="c-select" id="p-mode"><option>Virement bancaire</option><option>Chèque</option><option>Espèces</option><option>Paiement mobile</option></select></div>
+        <select class="c-select" id="p-mode"><option>Virement bancaire</option><option>Chèque</option><option>Prélèvement</option><option>Carte bancaire</option></select></div>
     </div>
     <div class="c-modal__foot"><button class="c-btn c-btn--ghost" type="button" data-fermer-modale>Annuler</button><button class="c-btn c-btn--primary" type="button" id="paiement-ok">Enregistrer le paiement</button></div>
   </div>
@@ -148,17 +148,17 @@
     var prest = f.lignes.filter(function (l) { return D.prestations[l.prestation].tva; });
     var debours = f.lignes.filter(function (l) { return !D.prestations[l.prestation].tva; });
     function lignes(ls) { return ls.map(function (l) { return '<tr><td>' + D.prestations[l.prestation].libelle + '</td><td class="is-num">' + F.montant(l.montant) + '</td></tr>'; }).join(''); }
-    var adresse = c.adresse + (/Ziguinchor|Dakar/.test(c.adresse) ? '' : ', ' + D.config.ville);
+    var adresse = c.adresse + ', ' + c.cp + ' ' + c.ville, S = D.config.societe;   // coordonnées de DOUALOG : Paramètres (E14)
     var brouillon = !f.num;
     return '<div class="c-invoice' + (brouillon ? ' is-brouillon' : '') + '">' +
       '<div class="c-invoice__head"><div><img class="c-invoice__logo" src="../assets/img/logo.png" alt="DOUALOG — Douane &amp; Logistique">' +
         '<div class="c-invoice__emetteur"><b>DOUALOG — Douane &amp; Logistique</b><br>' + D.config.ville + ', ' + D.config.pays + ' · ' + D.config.boiteEmail +
-        '<br>NINEA : à compléter · RCCM : à compléter</div></div>' +   // À VALIDER : mentions légales de DOUALOG
+        '<br>SIRET : ' + (S.siret || 'à compléter') + ' · N° TVA intracommunautaire : ' + (S.tvaIntra || 'à compléter') + (S.rcs ? '<br>' + esc(S.rcs) : '') + '</div></div>' +   // À VALIDER : mentions légales de DOUALOG
       '<div><div class="c-invoice__title">Facture</div><div class="c-invoice__num">' + (f.num || 'N° attribué à la génération') + '</div>' +
         '<div class="c-invoice__dates">Date d\'émission : ' + (f.emise ? F.date(f.emise) : (f.generee ? F.date(f.generee) : '—')) +
         '<br>Échéance : ' + (f.echeance ? F.date(f.echeance) : 'à ' + D.config.delaiPaiementJours + ' jours') + '</div></div></div>' +
       '<div class="c-invoice__parties">' +
-        '<div><div class="c-invoice__bloc-titre">Facturé à</div><b>' + esc(c.nom) + '</b><br>' + esc(adresse) + '<br>N° IFU : ' + c.ifu + '<br>À l\'attention de ' + esc(c.contact) + '</div>' +
+        '<div><div class="c-invoice__bloc-titre">Facturé à</div><b>' + esc(c.nom) + '</b><br>' + esc(adresse) + '<br>SIRET : ' + c.siret + ' · EORI : ' + c.eori + '<br>À l\'attention de ' + esc(c.contact) + '</div>' +
         '<div><div class="c-invoice__bloc-titre">Références</div>Dossier <b>' + d.id + '</b><br>' + (D.refTransport(d) ? (d.lta ? 'LTA ' : d.bl ? 'BL ' : 'Booking ') + D.refTransport(d) : '') +
           (d.conteneur ? '<br>Conteneur ' + d.conteneur : '') + '<br>' + (d.mode === 'Aérien' ? 'Vol ' + d.vol : (k.nom || '') + ' · ' + (d.navire || '')) +
           '<br>' + esc(d.marchandise) + '<br>BAS du ' + F.date(f.dateBAS) + '</div></div>' +
@@ -172,7 +172,8 @@
         '<dt class="is-total">Total TTC</dt><dd class="is-total">' + F.montant(f.ttc) + '</dd>' +
         (f.regle ? '<dt>Déjà réglé</dt><dd>− ' + F.montant(f.regle) + '</dd><dt><b>Reste à payer</b></dt><dd><b>' + F.montant(f.reste) + '</b></dd>' : '') + '</dl>' +
       '<div class="c-invoice__mentions">Payable au plus tard le ' + (f.echeance ? F.date(f.echeance) : 'jour de l\'échéance') +
-        ', par virement bancaire, chèque ou paiement mobile. Coordonnées de paiement : à compléter.' +   // À VALIDER
+        ', par virement bancaire ou chèque. ' + (S.iban ? 'IBAN ' + esc(S.iban) + (S.bic ? ' · BIC ' + esc(S.bic) : '') + '.' : 'Coordonnées bancaires (IBAN) : à compléter.') +   // À VALIDER
+        ' En cas de retard : pénalités au taux légal et indemnité forfaitaire de 40 € pour frais de recouvrement.' +
         ' Merci de rappeler le numéro de facture et le N° DLG lors de votre règlement.</div></div>';
   }
   function ouvrir(id) {
@@ -221,12 +222,12 @@
   }
   function ouvrirPaiement(d, f) {
     $('paiement-intro').innerHTML = 'Facture <b class="c-ref">' + f.num + '</b> · ' + esc(D.client(d).nom) + '<br>Reste à payer : <b>' + F.montant(f.reste) + '</b>';
-    $('p-montant').value = f.reste; $('p-date').value = aujourdhui;
+    $('p-montant').value = F.montant(f.reste); $('p-date').value = aujourdhui;
     $('p-montant').closest('.c-field').classList.remove('is-error');
     $('modale-paiement').hidden = false; $('p-montant').focus();
   }
   $('paiement-ok').addEventListener('click', function () {
-    var d = D.dossier(etat.ouvert), f = D.facture(d), m = parseInt(String($('p-montant').value).replace(/\D/g, ''), 10);
+    var d = D.dossier(etat.ouvert), f = D.facture(d), m = Math.round(parseFloat(String($('p-montant').value).replace(/[\s\u00a0€]/g, '').replace(',', '.')) * 100) / 100;
     var champ = $('p-montant').closest('.c-field'), err = champ.querySelector('.c-field__error');
     if (err) err.remove();
     if (!m || m > f.reste) {
@@ -235,7 +236,7 @@
       return;
     }
     d.facture.paiements = (d.facture.paiements || []).concat([{ date: $('p-date').value, montant: m, mode: $('p-mode').value }]);
-    d.facture.regle = (d.facture.regle || 0) + m; d.facture.dateReglement = $('p-date').value;
+    d.facture.regle = Math.round(((d.facture.regle || 0) + m) * 100) / 100; d.facture.dateReglement = $('p-date').value;
     var solde = d.facture.regle >= f.ttc;
     d.facture.statut = solde ? 'Réglé' : 'Partiellement réglé';
     /* CDC §10.3 : réglé → clôture, si la livraison est faite ou s'il n'y en a pas (D16) */

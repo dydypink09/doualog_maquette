@@ -34,7 +34,7 @@ Les maquettes utilisent cette liste ; qu'est-ce qui manque, qu'est-ce qui est en
 - Droits et taxes de douane payés pour le compte du client (refacturés sans TVA)
 - Frais du port et de manutention payés pour le compte du client (refacturés sans TVA)
 
-La TVA est calculée à 18 % sur les prestations. Est-ce le bon taux ?
+La TVA est calculée à 20 % sur les prestations. Est-ce le bon taux ?
 Réponse : ……………………………………
 
 **4. Que se passe-t-il quand la douane déclare la marchandise « non conforme » ?**
@@ -48,6 +48,10 @@ Réponse : ……………………………………
 ---
 
 ## Général
+
+**Faut-il reprendre l'historique de vos dossiers des années passées ?**
+Le tableau de bord permet de remonter sur plusieurs années (par année, ou depuis le début) et de comparer avec l'année précédente. Pour cela, l'outil doit connaître vos anciens dossiers. Depuis quelle année les avez-vous (fichier Excel, logiciel, papier) ? Faut-il les reprendre, ou l'historique commence-t-il au lancement de l'outil ?
+Réponse : ……………………………………
 
 **Qui choisit le responsable d'un dossier, et quand ?**
 Les maquettes supposent que c'est le Manager qui attribue chaque nouveau dossier à un déclarant.
@@ -65,12 +69,24 @@ Réponse : ……………………………………
 Les maquettes montrent : les dossiers reçus par semaine (import / export), la répartition maritime / aérien, où en sont les dossiers, le délai moyen entre la réception et le bon à sortir, et la facturation du mois (facturé, encaissé, reste à encaisser).
 Réponse : ……………………………………
 
+**Une boîte de réception commune à toute l'équipe vous serait-elle utile ?**
+Le cahier des charges prévoit les emails dans chaque dossier. Les maquettes proposent en plus une messagerie centrale : tous les emails de dossiers@doualog.fr au même endroit, avec le numéro de dossier de chacun.
+Réponse : ……………………………………
+
+**Quand un email arrive sans numéro de dossier, que doit faire l'outil ?**
+Les maquettes proposent le dossier le plus probable (même client, même connaissement ou même conteneur) ; un membre de l'équipe confirme en un clic, crée un nouveau dossier ou ignore l'email. Qui a le droit de le faire ?
+Réponse : ……………………………………
+
+**Les clients et les emails doivent-ils être visibles par toute l'équipe ?**
+Les maquettes ouvrent les écrans « Clients » et « Messagerie » à tous les profils.
+Réponse : ……………………………………
+
 **La place de « Facturation » dans le menu vous convient-elle ?**
 Votre image n'a pas d'entrée Facturation ; les maquettes l'ont placée entre « Documents » et « Messagerie ».
 Réponse : ……………………………………
 
 **Quelles coordonnées de DOUALOG faire figurer sur les emails et les factures ?**
-Il nous manque : l'adresse, le téléphone, le NINEA, le RCCM et les coordonnées de paiement (banque, RIB, numéro de paiement mobile).
+Il nous manque : l'adresse, le téléphone, le SIRET, le RCS, le numéro de TVA intracommunautaire et les coordonnées bancaires (IBAN).
 Réponse : ……………………………………
 
 ---
@@ -110,7 +126,7 @@ Les maquettes envoient seulement le détail du transport. Le prix est-il fixé �
 Réponse : ……………………………………
 
 **Combien de temps un transporteur a-t-il pour répondre à une offre ?**
-Les maquettes ne fixent pas de délai.
+Les maquettes proposent 24 heures : au-delà, l'offre est signalée « sans réponse » au service transport.
 Réponse : ……………………………………
 
 **Si tous les transporteurs refusent, que fait le service transport ?**
@@ -134,7 +150,15 @@ Les maquettes mettent l'échéance à 30 jours.
 Réponse : ……………………………………
 
 **Sur la facture, quel numéro d'identification du client utilisez-vous ?**
-Le cahier des charges parle de « N° IFU » ; au Sénégal, on parle plutôt du NINEA.
+Le cahier des charges parle de « N° IFU ». En France, nous affichons le SIRET sur la facture et le numéro EORI dans le dossier.
+Réponse : ……………………………………
+
+**Avez-vous des prix convenus avec certains clients ?**
+La fiche client des maquettes affiche une grille de prix par client (ouverture du dossier, déclaration, honoraires de transit, transport…). Ces prix sont-ils fixés par client, ou les mêmes pour tous ?
+Réponse : ……………………………………
+
+**À partir de combien de jours avant la fin du mandat faut-il prévenir ?**
+Les maquettes signalent un mandat qui expire dans 30 jours ou moins.
 Réponse : ……………………………………
 
 **Si le client n'indique pas les prestations voulues, qui les remplit dans le dossier ?**
@@ -146,7 +170,8 @@ Réponse : ……………………………………
 
 **À quelle fréquence relancer automatiquement ?**
 - un client à qui il manque des documents (les maquettes : tous les 2 jours) : ……………………………………
-- un client qui n'a pas payé à l'échéance : ……………………………………
+- combien de relances au maximum avant que le déclarant reprenne la main (les maquettes : 5) : ……………………………………
+- un client qui n'a pas payé à l'échéance (les maquettes : 7 jours après l'échéance, puis tous les 7 jours) : ……………………………………
 
 ---
 
@@ -168,12 +193,78 @@ Réponse : ……………………………………
 Sur ses pages, le client voit par exemple : « Documents attendus », « Contrôle de la douane en cours », « Enlèvement autorisé », « Livraison en cours », « Dossier terminé ». La page de suivi publique ne montre ni document, ni montant, ni nom.
 Réponse : ……………………………………
 
+## Mandats
+
+**Combien de temps un mandat de représentation reste-t-il valable ?**
+Les maquettes : un an à partir de la signature, puis un nouveau mandat à faire signer.
+Réponse : ……………………………………
+
+**Combien de temps avant l'échéance faut-il être prévenu ?**
+Les maquettes : 30 jours avant. Le mandat passe alors en « Expire bientôt » et l'équipe peut demander le renouvellement.
+Réponse : ……………………………………
+
+**Un mandat par client, ou un mandat par type d'opération (import, export) ?**
+Les maquettes : un seul mandat par client, valable pour tous ses dossiers.
+Réponse : ……………………………………
+
+**Acceptez-vous un mandat signé sur papier ?**
+Les maquettes permettent les deux : signature en ligne (lien personnel et code reçu par email), ou original papier dont l'équipe dépose le scan en saisissant les dates.
+Réponse : ……………………………………
+
+**Pour un client sans dossier en cours, comment signe-t-il un nouveau mandat ?**
+Le lien personnel est rattaché à un dossier. Sans dossier, les maquettes envoient le modèle par email ; le client le renvoie signé et l'équipe dépose le scan.
+Réponse : ……………………………………
+
+## Documents
+
+**Combien de temps garder les documents d'un dossier, et où les archiver ?**
+Les maquettes gardent tous les documents avec le dossier, sans date de suppression.
+Réponse : ……………………………………
+
+**Quelle taille maximale pour un fichier, et quels formats acceptez-vous ?**
+Les maquettes : PDF, JPG ou PNG, 10 Mo maximum par fichier.
+Réponse : ……………………………………
+
+**Qui peut supprimer un document ?**
+Les maquettes ne proposent pas de suppression : on remplace un document (l'ancienne version reste visible) ou on ignore une pièce jointe sans intérêt.
+Réponse : ……………………………………
+
+**Voulez-vous que l'outil propose lui-même le type et le dossier d'une pièce jointe ?**
+Les maquettes montrent cette aide (« Type probable : Packing list · Dossier probable : DLG-2026-0428 »). Elle demande un module de lecture des documents : dès la première version, ou plus tard ?
+Réponse : ……………………………………
+
+## Paramètres
+
+**Qui peut modifier les paramètres de l'outil ?**
+Les maquettes : le manager et la direction. Les autres ne voient que leur profil. Le cahier des charges donne pourtant à la direction un accès en lecture seule : la direction doit-elle pouvoir modifier ?
+Réponse : ……………………………………
+
+**Le tableau « qui voit, qui modifie quoi » des Paramètres vous convient-il ?**
+Il est construit à partir du cahier des charges (§02) et remplace la matrice des droits qui manque. Par exemple : seul le manager attribue un dossier à un déclarant ; la facturation est réservée au service facturation et au manager.
+Réponse : ……………………………………
+
+**Quelle adresse email l'outil doit-il surveiller ?**
+Les maquettes : dossiers@doualog.fr. Faut-il aussi créer un dossier automatiquement quand un client connu envoie des pièces jointes sans numéro de dossier ?
+Réponse : ……………………………………
+
+**Quelles mentions et coordonnées bancaires faire figurer sur les factures ?**
+SIRET, RCS, numéro de TVA intracommunautaire, numéro EORI, adresse, téléphone, banque, IBAN et BIC de DOUALOG. Les maquettes proposent aussi les mentions de retard de paiement (pénalités, indemnité de 40 €).
+Réponse : ……………………………………
+
+**Qui doit être prévenu de quoi, et par quel moyen ?**
+Les maquettes proposent un réglage par événement et par rôle, dans l'application et par email (par exemple : contrôle douane → déclarant, opérateur et manager), plus un résumé quotidien par email à 8 h.
+Réponse : ……………………………………
+
+**La double authentification (code en plus du mot de passe) est-elle nécessaire dès la première version ?**
+Le cahier des charges la prévoit plus tard ; les maquettes l'affichent comme « prévue dans une version suivante ».
+Réponse : ……………………………………
+
 ---
 
 ## Déjà décidé
 
-- Pays : Sénégal — Port autonome de Dakar, aéroport AIBD.
-- Monnaie des factures : FCFA.
+- Pays : France — Port du Havre, aéroport Paris-Charles-de-Gaulle (Roissy).
+- Monnaie des factures : euro.
 - Une offre envoyée à plusieurs transporteurs revient au premier qui l'accepte ; les autres sont prévenus.
 - Ordre du transport : chargement, puis en route, puis livré.
 - Un dossier livré et facturé affiche l'état de la facture ; la livraison se lit dans la colonne Transport.

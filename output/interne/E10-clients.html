@@ -1,0 +1,232 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Clients — DOUALOG Control Tower</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<script src="../assets/icons.js"></script>
+<script src="../assets/data.js"></script>
+<script src="../assets/charts.js"></script>
+<script src="../assets/shell.js"></script>
+<script src="../assets/demo.js"></script>
+</head>
+<body>
+<!-- E10 · Clients — base clients centralisée (CDC §11.4) : liste + fiche client en panneau pleine hauteur, comme le dossier.
+     ?id=c01 ouvre la fiche au chargement ; ?rapide=absent|bientot|bloques ouvre la liste filtrée. Bloc Mandat → E12 (?id=).
+     Données : data.js (clients, dossiers, factures, emails) — mêmes clients, dossiers et montants que les autres écrans. -->
+<!-- À VALIDER : SIRET et EORI affichés à la place de l'IFU du CDC · grille tarifaire par client (prestations habituelles, prix convenus HT)
+     · « dossiers bloqués » = information demandée par la douane, contrôle en cours ou documents manquants
+     · « expire bientôt » = mandat qui se termine dans 30 jours ou moins · CA = factures émises en 2026 (TTC) · accès ouvert à tous les profils -->
+<div class="c-app">
+  <header class="c-topbar" id="topbar"></header>
+  <nav class="c-sidebar" id="sidebar" aria-label="Navigation principale"></nav>
+
+  <main class="c-main">
+    <div class="c-page-head">
+      <div class="c-page-head__title"><h1>Clients</h1><span class="c-page-head__meta" id="sous-titre"></span></div>
+    </div>
+
+    <section class="c-list" aria-labelledby="liste-titre">
+      <div class="c-list__head">
+        <h2 class="c-block-title" id="liste-titre">Liste des clients</h2>
+        <span class="c-list__meta" id="meta"></span>
+      </div>
+      <div class="c-toolbar">
+        <div class="c-input-icon c-toolbar__search">
+          <svg class="c-icon" aria-hidden="true"><use href="#i-search"></use></svg>
+          <input class="c-input" id="search" type="search" placeholder="Raison sociale, SIRET, contact, ville" aria-label="Rechercher un client">
+        </div>
+        <div class="u-contents" id="quick" role="group" aria-label="Filtres rapides"></div>
+      </div>
+      <div class="c-table-wrap">
+        <table class="c-table c-table--sticky">
+          <thead><tr>
+            <th>Raison sociale</th><th>SIRET</th><th>Ville</th><th>Contact principal</th>
+            <th class="is-num">Dossiers en cours</th><th>Mandat</th><th class="is-num">CA 2026</th><th class="is-center">Actions</th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div class="c-empty" id="empty" hidden>
+          <svg class="c-icon" aria-hidden="true"><use href="#i-clients"></use></svg>
+          <p class="c-empty__title">Aucun client ne correspond</p>
+          <p class="c-empty__text">Modifiez la recherche ou choisissez un autre filtre.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ══ Fiche client : panneau pleine hauteur sous le header ══ -->
+<aside class="c-panel" id="fiche" aria-label="Fiche client"></aside>
+
+<script>
+(function () {
+  var D = window.DOUALOG, F = D.fmt, esc = D.esc, C = window.DOUALOG_CHARTS;
+  function $(id) { return document.getElementById(id); }
+  function icon(n, cls) { return '<svg class="c-icon' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#i-' + n + '"></use></svg>'; }
+  var DASH = '<span class="c-dash">—</span>';
+  var AUJ = D.config.aujourdhui;
+  var BLOQUES = D.statutsBloquants;
+
+  window.DOUALOG_SHELL.init({ actif: 'clients' });
+
+  /* ── Données de chaque client, calculées depuis les dossiers et les factures ── */
+  var lignes = Object.keys(D.clients).map(D.resumeClient).sort(function (a, b) { return a.c.nom.localeCompare(b.c.nom, 'fr'); });
+
+  var RAPIDES = [
+    { id: 'tous',    label: 'Tous',                  f: function () { return true; } },
+    { id: 'absent',  label: 'Sans mandat valide',    f: function (l) { return !l.mandat.couvert; } },
+    { id: 'bientot', label: 'Mandat expire < 30 j',  f: function (l) { return l.mandat.bientot; } },
+    { id: 'bloques', label: 'Avec dossiers bloqués', f: function (l) { return l.bloques.length > 0; } }
+  ];
+  var p = new URLSearchParams(location.search);
+  var etat = { q: '', rapide: RAPIDES.filter(function (r) { return r.id === p.get('rapide'); }).length ? p.get('rapide') : 'tous' };
+
+  function mandatCellule(l) {
+    var m = l.mandat, aide = l.c.mandat.jusquau && !l.c.mandat.revoque ? F.date(l.c.mandat.jusquau) : (m.cle === 'absent' ? 'à demander' : '');
+    return '<a href="E12-mandats.html?id=' + l.id + '" title="Ouvrir le mandat"><span class="c-badge c-badge--' + m.ton + '">' + m.libelle + '</span></a> <span class="u-muted u-num">' + aide + '</span>';
+  }
+  function render() {
+    var r = RAPIDES.filter(function (x) { return x.id === etat.rapide; })[0], q = etat.q.toLowerCase();
+    $('quick').innerHTML = RAPIDES.map(function (x) {
+      return '<button class="c-chip' + (x.id === etat.rapide ? ' is-active' : '') + '" type="button" data-rapide="' + x.id + '" aria-pressed="' + (x.id === etat.rapide) + '">' +
+        x.label + ' <span class="c-count">' + lignes.filter(x.f).length + '</span></button>';
+    }).join('');
+    var vis = lignes.filter(r.f).filter(function (l) {
+      return !q || [l.c.nom, l.c.siret, l.c.siret.replace(/\s/g, ''), l.c.eori, l.c.contact, l.c.ville, l.c.email].join(' ').toLowerCase().indexOf(q) >= 0;
+    });
+    $('tbody').innerHTML = vis.map(function (l) {
+      var cls = !l.mandat.couvert ? 'is-alert' : (l.mandat.bientot || l.bloques.length ? 'is-warning' : '');
+      return '<tr class="' + cls + '"><td><a class="c-ref" href="?id=' + l.id + '" data-ouvrir="' + l.id + '">' + esc(l.c.nom) + '</a></td>' +
+        '<td class="u-num">' + esc(l.c.siret) + '</td><td>' + esc(l.c.ville) + '</td><td>' + esc(l.c.contact) + '</td>' +
+        '<td class="is-num">' + l.enCours.length + (l.bloques.length ? ' <span class="c-badge c-badge--warning">' + l.bloques.length + ' bloqué' + (l.bloques.length > 1 ? 's' : '') + '</span>' : '') + '</td>' +
+        '<td>' + mandatCellule(l) + '</td>' +
+        '<td class="is-num">' + (l.fact.ca ? F.montant(l.fact.ca) : DASH) + '</td>' +
+        '<td class="is-center"><a class="c-btn c-btn--icon c-btn--sm" href="?id=' + l.id + '" data-ouvrir="' + l.id + '" aria-label="Ouvrir la fiche de ' + esc(l.c.nom) + '" title="Ouvrir la fiche">' + icon('eye', 'c-icon--sm') + '</a></td></tr>';
+    }).join('');
+    $('empty').hidden = vis.length > 0;
+    $('meta').textContent = vis.length + ' client' + (vis.length > 1 ? 's' : '') + ' · tri par raison sociale';
+  }
+  var ca = lignes.reduce(function (s, l) { return s + l.fact.ca; }, 0);
+  $('sous-titre').textContent = lignes.length + ' clients · chiffre d\'affaires facturé en 2026 : ' + F.montant(ca);
+
+  /* ── Fiche client ── */
+  var CAT = { entrant: ['info', 'inbox', 'Reçu'], sortant: ['success', 'send', 'Envoyé'], auto: ['special', 'mail', 'Automatique'], logistique: ['warning', 'ship', 'Logistique'] };
+  function carte(titre, corps, actions, pied, cls) {
+    return '<section class="c-card' + (cls ? ' ' + cls : '') + '"><div class="c-card__head"><h3>' + titre + '</h3>' + (actions ? '<div class="c-card__actions">' + actions + '</div>' : '') + '</div>' +
+      '<div class="c-card__body">' + corps + '</div>' + (pied ? '<div class="c-card__foot">' + pied + '</div>' : '') + '</section>';
+  }
+  function initiales(nom) { return nom.split(/[\s-]+/).filter(Boolean).map(function (x) { return x.charAt(0); }).slice(0, 2).join('').toUpperCase(); }
+  function contact(x) {
+    return '<li class="c-contact"><span class="c-contact__initiales" aria-hidden="true">' + initiales(x.nom) + '</span>' +
+      '<span class="c-contact__nom">' + esc(x.nom) + '</span><span class="c-contact__fonction">' + esc(x.fonction) + '</span>' +
+      '<span class="c-contact__coord"><a href="mailto:' + esc(x.email) + '">' + esc(x.email) + '</a><span class="u-num">' + esc(x.tel) + '</span></span></li>';
+  }
+  function dernierDossier(l) { return l.dossiers.slice().sort(function (a, b) { return a.reception < b.reception ? 1 : -1; })[0]; }
+
+  function fiche(l) {
+    var c = l.c, m = l.mandat, f = l.fact, dd = dernierDossier(l);
+    var lienMandat = 'X09-email-demande-mandat.html' + (dd ? '?id=' + dd.id : '');
+    var bandeau = '<div class="c-banner"><div class="c-banner__main"><div class="c-banner__top"><span class="c-banner__ref">' + esc(c.nom) + '</span>' +
+      '<span class="c-badge c-badge--' + m.ton + '">Mandat : ' + m.libelle.toLowerCase() + '</span></div>' +
+      '<div class="c-banner__meta"><span>SIRET : <b>' + esc(c.siret) + '</b></span><span>Ville : <b>' + esc(c.ville) + '</b></span>' +
+      '<span>Contact : <b>' + esc(c.contact) + '</b></span><span>Dossiers en cours : <b>' + l.enCours.length + '</b></span>' +
+      '<span>CA 2026 : <b>' + F.montant(f.ca) + '</b></span></div></div>' +
+      '<div class="c-banner__actions"><a class="c-btn" href="E11-messagerie.html?client=' + l.id + '&amp;nouveau=1">' + icon('mail') + 'Nouveau message</a>' +
+      '<button class="c-btn c-btn--icon" type="button" data-fermer aria-label="Fermer la fiche" title="Fermer">' + icon('chevron-down') + '</button></div></div>';
+
+    var societe = carte('Société',
+      '<dl class="c-kv c-kv--rows"><div><dt>Raison sociale</dt><dd>' + esc(c.nom) + (c.sigle ? ' (' + c.sigle + ')' : '') + '</dd></div>' +
+      '<div><dt>SIRET</dt><dd>' + esc(c.siret) + '</dd></div><div><dt>N° EORI</dt><dd>' + esc(c.eori) + '</dd></div><div><dt>Adresse</dt><dd>' + esc(c.adresse) + ', ' + esc(c.cp) + ' ' + esc(c.ville) + '</dd></div>' +
+      '<div><dt>Email dossiers</dt><dd>' + esc(c.email) + '</dd></div></dl>' +
+      '<p class="u-label u-mt-3 u-mb-4">Contacts</p><ul class="c-contacts">' + contact({ nom: c.contact, fonction: c.fonction + ' · contact principal', email: c.email, tel: c.tel }) +
+      (c.autres || []).map(contact).join('') + '</ul>');
+
+    var corpsMandat = '<dl class="c-kv c-kv--rows"><div><dt>Statut</dt><dd><span class="c-badge c-badge--' + m.ton + '">' + m.libelle + '</span></dd></div>' +
+      '<div><dt>Signé le</dt><dd>' + (c.mandat.signe && !c.mandat.revoque ? F.date(c.mandat.signe) + (c.mandat.mode ? ' · ' + (c.mandat.mode === 'papier' ? 'papier scanné' : 'en ligne') : '') : DASH) + '</dd></div>' +
+      '<div><dt>Expire le</dt><dd>' + (c.mandat.jusquau && !c.mandat.revoque ? F.date(c.mandat.jusquau) + (m.jours >= 0 ? ' · dans ' + m.jours + ' jours' : ' · expiré') : DASH) + '</dd></div></dl>';
+    if (!m.couvert && !c.mandat.demande) corpsMandat += '<div class="c-alert c-alert--danger u-mt-3">' + icon('alert') + '<div><div class="c-alert__title">Aucun mandat valide</div>Sans mandat signé, DOUALOG ne peut pas déclarer en douane pour ce client.</div></div>';
+    if (m.bientot && !c.mandat.demande) corpsMandat += '<div class="c-alert c-alert--warning u-mt-3">' + icon('clock') + '<div><div class="c-alert__title">Mandat bientôt expiré</div>Demandez son renouvellement avant le ' + F.date(c.mandat.jusquau) + '.</div></div>';
+    if (c.mandat.demande) corpsMandat += '<div class="c-alert c-alert--info u-mt-3">' + icon('send') + '<div><div class="c-alert__title">' + m.libelle + '</div>Demande envoyée le ' + F.date(c.mandat.demande.date) +
+      (c.mandat.demande.relances.length ? ', relancée le ' + F.date(c.mandat.demande.relances[c.mandat.demande.relances.length - 1]) : '') + '. En attente de la signature du client.</div></div>';
+    var mandat = carte('Mandat de représentation', corpsMandat, '',
+      '<a class="c-btn c-btn--sm' + (m.aTraiter ? ' c-btn--primary' : '') + '" href="E12-mandats.html?id=' + l.id + '">' + icon('mandat', 'c-icon--sm') + 'Ouvrir le mandat</a>' +
+      (m.aTraiter && !c.mandat.demande ? '<a class="c-btn c-btn--sm c-btn--ghost" href="../externe/' + lienMandat + '">' + icon('send', 'c-icon--sm') + 'Demande de mandat (email)</a>' : ''));
+
+    var tarifs = carte('Grille tarifaire',
+      '<table class="c-table c-table--dense"><thead><tr><th>Prestation</th><th class="is-num">Prix convenu HT</th></tr></thead><tbody>' +
+      D.tarifsClient(l.id).map(function (t) { return '<tr><td class="is-wrap">' + esc(D.prestations[t.prestation].libelle) + '</td><td class="is-num">' + F.montant(t.montant) + '</td></tr>'; }).join('') +
+      '</tbody></table><p class="c-field__help u-mt-3">Magasinage et transport au réel selon le dossier. Droits, taxes et frais portuaires refacturés à l\'identique, hors TVA.</p>');
+
+    var dossiers = carte('Dossiers du client <span class="c-count">' + l.dossiers.length + '</span>',
+      '<table class="c-table c-table--dense"><thead><tr><th>N° dossier</th><th>Type</th><th>Statut</th><th>Réception</th><th>Marchandise</th></tr></thead><tbody>' +
+      l.dossiers.slice().sort(function (a, b) { return a.reception < b.reception ? 1 : -1; }).map(function (d) {
+        var lien = D.enSalleAttente(d) ? 'E01-dossiers.html?id=' + d.id : 'E01-dossiers.html?id=' + d.id;
+        return '<tr' + (BLOQUES.indexOf(d.statut) >= 0 ? ' class="is-warning"' : '') + '><td><a class="c-ref" href="' + lien + '">' + d.id + '</a></td><td>' + D.badge('type', d.type) + '</td>' +
+          '<td>' + D.badge('dossier', d.statut) + '</td><td class="u-num">' + F.date(d.reception) + '</td><td class="is-wrap">' + esc(d.marchandise) + '</td></tr>';
+      }).join('') + '</tbody></table>', '', '<a class="c-btn c-btn--sm" href="E13-documents.html?client=' + l.id + '">' + icon('document', 'c-icon--sm') + 'Documents du client</a>', 'is-span2');
+
+    var echues = f.echues.length
+      ? '<ul class="c-msglist">' + f.echues.map(function (e) { return '<li class="c-msg c-msg--danger"><span class="c-msg__icon">' + icon('facture') + '</span><span class="c-msg__from">' + e.num + ' · ' + e.dossier + '</span><span class="c-msg__date">échue le ' + F.date(e.echeance) + '</span><span class="c-msg__text">Reste ' + F.montant(e.reste) + '</span></li>'; }).join('') + '</ul>'
+      : '<p class="c-field__help">Aucune facture échue.</p>';
+    function fig(label, v, cls) { return '<div><div class="c-figure__label">' + label + '</div><div class="c-figure__value' + (cls ? ' ' + cls : '') + '">' + v + '</div></div>'; }
+    var facturation = carte('Facturation',
+      '<div class="u-stack"><div class="c-figures">' + fig('Facturé', F.nombre(f.facture) + ' <small>€</small>') + fig('Encaissé', F.nombre(f.encaisse) + ' <small>€</small>', 'is-success') +
+      fig('Reste à encaisser', F.nombre(f.reste) + ' <small>€</small>', f.reste ? 'is-warning' : '') + fig('Factures échues', String(f.echues.length), f.echues.length ? 'is-warning' : '') + '</div>' +
+      (f.facture ? C.empile([{ v: f.encaisse, cls: 'is-s-green', tip: 'Encaissé : ' + F.montant(f.encaisse) }, { v: f.reste, cls: 'is-s-orange', tip: 'Reste à encaisser : ' + F.montant(f.reste) }], 'Encaissé et reste à encaisser') +
+        '<ul class="c-legend"><li class="is-s-green">Encaissé</li><li class="is-s-orange">Reste à encaisser</li></ul>' : '') +
+      echues + '</div>', '', '<a class="c-btn c-btn--sm" href="E06-facturation.html">Ouvrir la facturation</a>');
+
+    var mails = [];
+    l.dossiers.forEach(function (d) { D.messagesDossier(d).forEach(function (x) { mails.push({ m: x, d: d.id }); }); });
+    mails.sort(function (a, b) { return a.m.date < b.m.date ? 1 : -1; });
+    var echanges = carte('Échanges récents',
+      mails.length ? '<ul class="c-msglist c-msglist--wrap">' + mails.slice(0, 6).map(function (x) {
+        var k = CAT[x.m.categorie] || CAT.auto;
+        return '<li class="c-msg c-msg--' + k[0] + (D.estNonLu(x.m) ? ' is-unread' : '') + '"><span class="c-msg__icon" title="' + k[2] + '">' + icon(k[1]) + '</span>' +
+          '<span class="c-msg__from">' + esc(x.m.de.replace(/\s*<.*>/, '')) + '</span><span class="c-msg__date">' + F.dateHeure(x.m.date) + '</span>' +
+          '<span class="c-msg__text"><a class="c-badge c-badge--ref" href="E01-dossiers.html?id=' + x.d + '">' + x.d + '</a> <a href="E11-messagerie.html?mail=' + encodeURIComponent(x.m.id) + '">' + esc(x.m.objet) + '</a></span></li>';
+      }).join('') + '</ul>' : '<p class="c-field__help">Aucun échange.</p>',
+      '', '<a class="c-btn c-btn--sm" href="E11-messagerie.html?client=' + l.id + '">' + icon('mail', 'c-icon--sm') + 'Tous les emails du client (' + mails.length + ')</a>', 'is-wide');
+
+    return bandeau + '<div class="c-panel__body">' +
+      '<div class="c-dgrid c-dgrid--3">' + societe + mandat + tarifs + '</div>' +
+      '<div class="c-dgrid c-dgrid--3">' + dossiers + facturation + echanges + '</div></div>';
+  }
+
+  var panneau = $('fiche'), ouverte = null;
+  function ouvrir(id, pousser) {
+    var l = lignes.filter(function (x) { return x.id === id; })[0];
+    if (!l) return;
+    ouverte = id;
+    panneau.innerHTML = fiche(l);
+    panneau.classList.add('is-entering', 'is-open');
+    clearTimeout(panneau._t); panneau._t = setTimeout(function () { panneau.classList.remove('is-entering'); }, 800);
+    document.body.classList.add('has-panel-open');
+    if (pousser) history.replaceState(null, '', '?id=' + id);
+  }
+  function fermer() {
+    ouverte = null;
+    panneau.classList.remove('is-open', 'is-entering');
+    document.body.classList.remove('has-panel-open');
+    history.replaceState(null, '', location.pathname);
+  }
+
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-ouvrir],[data-rapide],[data-fermer]');
+    if (!t) return;
+    if (t.dataset.ouvrir) { e.preventDefault(); ouvrir(t.dataset.ouvrir, true); }
+    else if (t.dataset.rapide) { etat.rapide = t.dataset.rapide; render(); }
+    else fermer();
+  });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && ouverte) fermer(); });
+  $('search').addEventListener('input', function () { etat.q = this.value.trim(); render(); });
+
+  render();
+  if (p.get('id')) ouvrir(p.get('id'));
+})();
+</script>
+</body>
+</html>

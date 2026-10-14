@@ -109,8 +109,9 @@ Le client trouvait le rendu « trop IA, projet scolaire ». Direction choisie : 
   « Livré » n'est statut global que si la facture n'est pas encore émise.
 - C3 : colonne **Statut** ajoutée après Client dans E01.
 - C1 : **annulé** — le visuel suit l'image du client (voir « Style visuel »).
-- C4 : **tranché** — Sénégal, Port autonome de Dakar, aéroport AIBD, FCFA (XOF). Clients et transporteurs sénégalais fictifs.
-  TVA 18 % À VALIDER pour les prestations ; N° IFU affiché au format NINEA (À VALIDER).
+- C4 : **tranché (14/10/2026) — périmètre France** (le choix initial du Sénégal était une erreur) : Port du Havre, aéroport Paris-CDG (Roissy),
+  euros, TVA 20 % À VALIDER pour les prestations ; « N° IFU » du CDC remplacé par **SIRET** (facture, fiche client) + **N° EORI** (douane, dossier), À VALIDER.
+  Clients et transporteurs français fictifs, provenances variées ; mentions de facture françaises (IBAN, pénalités de retard, indemnité de 40 €).
 - C5 : OT possible dès le BAE (À VALIDER). C7 : la première acceptation ferme l'offre pour les autres transporteurs.
 - D1 « Info manquante » · D2 Chargement → En route · D6 code de confirmation pour mandat **et** dépôt de documents.
 - D8 : en aérien, « Anticipé » = ETA vol + N° LTA. D10 : Responsable = déclarant assigné, par le Manager (À VALIDER).
@@ -122,7 +123,7 @@ Le client trouvait le rendu « trop IA, projet scolaire ». Direction choisie : 
 | ID | Écran | Parcours | US |
 |---|---|---|---|
 | E00 | Connexion | — | US-45 |
-| E09 | **Tableau de bord** (`E09-tableau-de-bord.html`) — 8 indicateurs cliquables (→ E01 `?kpi=`), graphiques SVG (reçus par semaine, répartition, étapes, délai réception → BAS), priorités du jour, facturation du mois. Semaines 35–38 : `statsAnterieures` (fictif) | — | US-10, 48 |
+| E09 | **Tableau de bord** (`E09-tableau-de-bord.html`) — 8 indicateurs cliquables (→ E01 `?kpi=`), graphiques SVG (reçus par semaine, répartition, étapes, délai réception → BAS), priorités du jour, facturation du mois. Ordre : indicateurs, puis section **Activité** juste dessous (demande client), puis section **Aujourd'hui** : priorités + répartition, puis étapes · **Clients à suivre** (mandat, factures échues, dossiers bloqués ; `DOUALOG.resumeClient`, partagé avec E10) · facturation. **Activité** : période au choix (récent, **années depuis 2021**, tout l'historique, plage de mois ; 8 sem. par défaut ; `?periode=8s|12m|a2025|tout|2024-03_2024-08&par=mois`), affichage semaine / mois / trimestre / année (jamais grisé : « Année » sur 8 sem. passe à tout l'historique, la note de section le signale), **comparaison avec la même période un an plus tôt**, gardée dans le navigateur, bouton « Réinitialiser » (visible hors réglage par défaut) pour revenir à 8 sem. Avant le 21/09/2026 : `statsAnterieures` (fictif : généré de 2021 à oct. 2025, écrit à la main ensuite) | — | US-10, 48 |
 | E01 | **Dossiers** (`E01-dossiers.html` ; l'ancien `E01-tableau-de-bord.html` redirige) — liste des dossiers (pleine largeur, filtres, tri), sans bandeau d'indicateurs | P1–P3 | US-10, 11, 16 |
 | E02 | Dossier ouvert en panneau pleine hauteur sur E01 : bandeau + workflow horizontal + **grille de blocs, sans onglets** | P3 | US-13 à 16 |
 | E02e | Bloc Informations générales | P3 | US-17, 09 |
@@ -147,6 +148,11 @@ les données en mémoire pour la démo (rechargement = retour à l'état initial
 | E06 | Facturation — liste + aperçu facture | P5 | US-34 à 37 |
 | E07 | Dashboard Manager — KPIs (SHOULD) | — | US-48 |
 | E08 | Centre de notifications (SHOULD) | — | US-46 |
+| E10 | **Clients** (`E10-clients.html`) — liste (SIRET, ville, contact, dossiers en cours, mandat, CA 2026 ; filtres Mandat absent / expire < 30 j / dossiers bloqués) + **fiche client en panneau pleine hauteur** (`?id=c01`) : société et contacts, mandat (→ X09), grille tarifaire (`data.js > tarifsClients`, À VALIDER), dossiers, facturation, échanges | — | CDC §11.4 |
+| E12 | **Mandats** (`E12-mandats.html`) — 4 indicateurs qui filtrent (valides, expirent < 30 j, en attente de signature, absents / expirés), tableau par client (SIRET, statut, dates, signataire, mode en ligne / papier, dossiers en cours, dernière action), **fiche mandat en panneau pleine hauteur** (`?id=c11`, `&action=demande|depot`) : document (aperçu PDF), signature, dossiers concernés, historique ; demander (aperçu X09), relancer, ajouter un scan papier, renouveler, révoquer. Statuts : `DOUALOG.etatMandat` (Valide, Expire bientôt, Demande envoyée, Relancé, Expiré, Absent), `mandatOk(d)` pour la pièce Mandat d'un dossier. Compteur « à traiter » dans le menu | P1 | CDC §3.4, US-08 |
+| E13 | **Documents** (`E13-documents.html`) — 4 indicateurs qui filtrent (manquants, à classer, reçus cette semaine, générés par DOUALOG), filtres (type, dossier, client, statut, provenance, période), recherche, vue **Liste** / **Par dossier** (checklist compacte des pièces), **aperçu en panneau à droite** (`?doc=DLG-…:packing`) : visuel simulé, informations, versions, historique ; remplacer, changer le type, rattacher, demander au client (X02). **À classer** : pièces jointes avec type et dossier probables (module IA documentaire, À VALIDER V1/V2) : Valider / Modifier / Ignorer. Une seule source : `DOUALOG.registreDocuments()` (pièces des dossiers + `docsInfo`, mandats, OT et documents transporteur, factures), `piecesManquantes(d)` = bloc Documents du dossier | P2 | CDC §3.2, §7.2, US-18, 19 |
+| E14 | **Paramètres** (`E14-parametres.html`) — sous-menu vertical (`.c-settings`) + sections en cartes avec « Enregistrer » et confirmation discrète, badge « À valider » sur les valeurs provisoires. Manager et Direction : 11 sections (profil, société, utilisateurs et droits par rôle, boîte email, documents obligatoires, délais, modèles d'emails, facturation, référentiels, notifications, sécurité) ; autres profils : Mon profil seulement. `?section=`. Enregistré dans la mémoire de démo (`DOUALOG.enregistrerParametres`) et appliqué : délais (`config`), TVA, boîte email, coordonnées société (facture E06), documents obligatoires (salle d'attente), équipe | — | CDC §02, §17 |
+| E11 | **Messagerie** (`E11-messagerie.html`) — boîte centrale 3 colonnes (filtres · liste · lecture), badge N° DLG, **Non rattachés** (dossier probable proposé : Rattacher / Créer / Ignorer), Répondre / Transférer / Nouveau message. Même source que le bloc Messagerie du dossier (`data.js > messagesDossier, boite, nonRattaches`). Proposition qui étend le CDC §7.6 (À VALIDER) | P1 | US-20, 21 |
 
 ### Externe (sans compte — design simple, mobile-first)
 | ID | Écran | Parcours | US |
@@ -166,9 +172,11 @@ les données en mémoire pour la démo (rechargement = retour à l'état initial
 ```
 output/
 ├── assets/tokens.css · components.css · icons.js · data.js (jeu de données + mémoire de démo) · shell.js (header + menu) · dossier.js (panneau E02)
+│          · charts.js (graphiques SVG partagés : barres, courbe, anneau, pistes, infobulle)
 │          · email.js (remplit les emails X0x depuis data.js) · img/
 ├── design-system.html
-├── index.html            ← sommaire groupé par parcours
+├── index.html            ← sommaire groupé par parcours (lien vers la présentation en haut)
+├── presentation.html     ← diaporama du dimanche (12 diapositives, aperçus des vraies maquettes)
 ├── interne/E01-dossiers.html …
 └── externe/X01-email-accuse-reception.html …
 ```
@@ -199,7 +207,7 @@ output/
 
 ## Sommaire et démo guidée (étape 8)
 - `output/index.html` : sommaire pour le client (français clair, sans jargon), écrans par parcours + « Ce que voient le client et le transporteur ».
-- `assets/demo.js` (chargé par toutes les pages) : barre fixe « Étape X / 13 » seulement avec `?demo=N` ; `&demo-reset=1` remet la mémoire de démo à zéro.
+- `assets/demo.js` (chargé par toutes les pages) : barre fixe « Étape X / 14 » seulement avec `?demo=N` ; `&demo-reset=1` remet la mémoire de démo à zéro.
 - Aucun code interne (C5, D7, US-…, À VALIDER) dans un texte visible à l'écran : seulement en commentaire (sauf références US discrètes du sommaire).
 
 ## Emails (X01, X02, X07, X08, X09…)
@@ -211,12 +219,12 @@ output/
 - `salleAttente.envois` : 1er envoi = demande initiale (X02), suivants = relances n°1, n°2…
 
 ## Données de maquette
-- Un **seul jeu de données partagé** (`assets/data.js`) : 20 dossiers `DLG-2026-0xxx`, cohérents d'un écran à l'autre
+- Un **seul jeu de données partagé** (`assets/data.js`) : 21 dossiers `DLG-2026-0xxx` (dont DLG-2026-0389, ancien dossier réglé d'Agrofertil Normandie, pour sa fiche client), cohérents d'un écran à l'autre
   (le même dossier a le même client, BL, statut partout). Date du jour fictive : **vendredi 16/10/2026**.
 - Mélange import/export, maritime/aérien, tous les statuts représentés, dont : 2 en contrôle physique,
-  1 en info manquante, 3 en salle d'attente, 2 en facturation, 1 clôturé.
-- Clients et transporteurs **sénégalais** fictifs crédibles (aucune vraie marque), équipe DOUALOG aux noms de l'image
-  (Awa Ndiaye, Mamadou Ba…), dates autour d'octobre 2026, formats français, téléphones +221.
+  1 en info manquante, 3 en salle d'attente, 2 en facturation, 2 clôturés.
+- Clients et transporteurs **français** fictifs crédibles (aucune vraie marque), équipe DOUALOG aux noms de l'image
+  (Awa Ndiaye, Mamadou Ba…), dates autour d'octobre 2026, formats français, téléphones +33, montants en euros avec centimes (`fmt.montant`).
 - **Dossier fil rouge : DLG-2026-0412** (En facturation, transport En route), utilisé dans tous les parcours pour la démo.
 
 ## Règles de travail
@@ -225,3 +233,15 @@ output/
 - Textes en français, vouvoiement pour tout ce qui s'adresse au client ou au transporteur, ton professionnel sobre.
 - Si une règle métier manque dans les specs : ne pas inventer, laisser un commentaire `<!-- À VALIDER : … -->`
   et le lister en fin d'étape (et dans `QUESTIONS-ONCLE.md` si c'est une question pour le client).
+
+## Graphiques, clients, messagerie, présentation (après la refonte apple-design)
+- **Graphiques** : tous dessinés par `assets/charts.js` (`DOUALOG_CHARTS`), rendu « Apple Santé / Stripe » : dessinés à la taille réelle du conteneur (`largeur(el)`, jamais agrandis par le viewBox), barres de 10 px max à coins hauts
+  arrondis, courbes de 1,75 px, grille en pointillé sans axe ni cadre, points au survol (sauf le dernier), ligne de référence en pointillé,
+  anneaux fins à segments espacés, infobulle de valeur exacte au survol. Ne jamais redessiner un graphique à la main dans une page.
+- **Clients (E10), Messagerie (E11) et Mandats (E12)** : entrées du menu actives pour tous les profils (À VALIDER). Mandats : c11 demande envoyée (DLG-2026-0427), c04 relancé, c06 expire bientôt, c13 Verrerie de la Bresle (ancien client sans dossier) expiré, c01 signé en ligne (historique complet), c09 papier scanné. Bloc Mandat de E10, bloc Documents de E02 et salle d'attente renvoient vers E12 ; X09 a une variante renouvellement.
+- **Paramètres (E14)** : entrée du menu active pour tous ; délais par défaut dans `config` (relance 2 j, 5 relances max, lien client 30 j, transporteur 24 h, alerte mandat 30 j, paiement 30 j, relance paiement 7 j), tous À VALIDER. Équipe : `equipe` a email, statut, dernière connexion ; Léa Martin (u8) invitée.
+- **Documents (E13)** : entrée du menu active pour tous (À VALIDER), compteur = manquants + à classer. Démo : valider la packing list `PL_88231_scan.pdf` → DLG-2026-0428 quitte la salle d'attente. Liens : bloc Documents du dossier (« Tous les documents du dossier »), pièces manquantes de la salle d'attente, fiche client, fiche mandat. Compteur d'emails non lus dans
+  le header et le menu (`DOUALOG.emailsNonLus()`). Rattacher / créer / ignorer un email non rattaché et emails lus : mémoire de démo.
+- **SIRET** (et N° EORI) affichés à la place de « N° IFU » (À VALIDER).
+- **Présentation** : `presentation.html`, 12 diapositives, flèches / clic / F (plein écran), `#n` ouvre la diapositive n.
+- **Démo guidée** : 14 étapes ; l'étape 3 montre un email non rattaché (E11, `?filtre=nonrattaches&mail=n1`).

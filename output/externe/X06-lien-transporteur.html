@@ -79,7 +79,7 @@
     }
     corps = '<div class="c-field"><label class="c-field__label" for="c-immat">Immatriculation du camion <span class="is-required">*</span></label><input class="c-input" id="c-immat" placeholder="DK-0000-AA" value="' + (c ? esc(c.immatriculation) : '') + '"></div>' +
       '<div class="c-field"><label class="c-field__label" for="c-chauffeur">Nom du chauffeur <span class="is-required">*</span></label><input class="c-input" id="c-chauffeur" autocomplete="name" value="' + (c ? esc(c.chauffeur) : '') + '"></div>' +
-      '<div class="c-field"><label class="c-field__label" for="c-tel">Téléphone du chauffeur <span class="is-required">*</span></label><input class="c-input" id="c-tel" type="tel" inputmode="tel" placeholder="+221 7x xxx xx xx" value="' + (c ? esc(c.tel) : '') + '"></div>' +
+      '<div class="c-field"><label class="c-field__label" for="c-tel">Téléphone du chauffeur <span class="is-required">*</span></label><input class="c-input" id="c-tel" type="tel" inputmode="tel" placeholder="+33 6 xx xx xx xx" value="' + (c ? esc(c.tel) : '') + '"></div>' +
       '<button class="c-btn c-btn--block" type="button" data-a="camion">' + icon('check') + 'Enregistrer le camion</button>';
     return '<section class="c-card"><div class="c-card__head"><h3>Camion et chauffeur</h3></div><div class="c-card__body u-stack">' + corps + '</div></section>';
   }

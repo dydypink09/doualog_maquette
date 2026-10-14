@@ -8,6 +8,7 @@
 <link rel="stylesheet" href="assets/components.css">
 <script src="assets/icons.js"></script>
 <script src="assets/data.js"></script>
+<script src="assets/charts.js"></script>
 <style>
   /* Mise en page propre à cette page de référence (aucun composant ici) */
   body { background: var(--bg-surface); }
@@ -46,6 +47,7 @@
   .ds-panel-demo .c-panel { position: absolute; left: 0; top: 0; }
   .ds-motion { display: grid; grid-template-columns: auto 1fr; gap: var(--sp-1) var(--sp-4); font-size: var(--fs-sm); }
   .ds-motion code { color: var(--text-strong); }
+  .ds-mailbox .c-mailbox { height: 440px; min-height: 0; border: 0; border-radius: 0; box-shadow: none; }
   @media (max-width: 760px) { .ds-two { grid-template-columns: 1fr; } }
 </style>
 </head>
@@ -64,7 +66,7 @@
     <a href="#statuts">Statuts</a><a href="#boutons">Boutons</a><a href="#champs">Champs</a><a href="#shell">Shell</a><a href="#indicateurs">Indicateurs</a><a href="#graphiques">Graphiques</a>
     <a href="#tableau">Tableau</a><a href="#onglets">Onglets</a><a href="#workflow">Workflow</a><a href="#bandeau">Bandeau</a>
     <a href="#panneau">Panneau &amp; modale</a><a href="#blocs">Blocs du dossier</a><a href="#timeline">Timeline</a><a href="#documents">Documents</a>
-    <a href="#alertes">Alertes</a><a href="#vide">État vide</a><a href="#depot">Dépôt</a><a href="#connexion">Connexion</a><a href="#externe">Pages externes</a><a href="#facture">Facture</a>
+    <a href="#alertes">Alertes</a><a href="#vide">État vide</a><a href="#depot">Dépôt</a><a href="#connexion">Connexion</a><a href="#externe">Pages externes</a><a href="#fiche-client">Fiche client</a><a href="#messagerie">Messagerie</a><a href="#presentation">Présentation</a><a href="#facture">Facture</a>
   </nav>
 
   <!-- ══ COULEURS ══ -->
@@ -191,8 +193,8 @@
         <div class="c-field"><label class="c-field__label" for="f6">Navire</label><input class="c-input" id="f6" value="MSC Ilaria" disabled></div>
         <div class="c-field is-wide"><label class="c-field__label" for="f7">Commentaire</label><textarea class="c-textarea" id="f7">Vérification du poids et du marquage des sacs : conforme au manifeste.</textarea></div>
         <div class="c-field"><span class="c-field__label">Transporteurs</span>
-          <label class="c-check"><input type="checkbox" checked> Téranga Fret Express</label>
-          <label class="c-check"><input type="checkbox"> Atlantique Fret Sénégal</label></div>
+          <label class="c-check"><input type="checkbox" checked> Normandie Fret Express</label>
+          <label class="c-check"><input type="checkbox"> Atlantique Fret Logistique</label></div>
         <div class="c-field"><span class="c-field__label">Résultat</span>
           <label class="c-check"><input type="radio" name="r" checked> Conforme</label>
           <label class="c-check"><input type="radio" name="r"> Info manquante</label></div>
@@ -253,23 +255,52 @@
   <!-- ══ GRAPHIQUES (tableau de bord E09) ══ -->
   <section class="ds-sec" id="graphiques">
     <h2>Graphiques du tableau de bord</h2>
-    <p class="ds-intro">Grille <code>.c-dash</code> (12 colonnes, <code>__w4</code> à <code>__w12</code>, une colonne sous 900 px). Graphiques en SVG dessinés par la page (géométrie en attributs) ; couleurs par classes : <code>.c-chart__bar--import / --export</code>, <code>.c-chart__line</code>, <code>.c-donut__seg</code> + teinte <code>.is-s-blue / -orange / -green / -violet / -magenta / -red / -navy / -gray</code>. Légende <code>.c-legend</code>, barres horizontales cliquables <code>.c-hbars</code>, chiffres clés <code>.c-figures</code>, liste de priorités <code>.c-todo</code>.</p>
+    <p class="ds-intro">Grille <code>.c-dash</code> (12 colonnes, <code>__w4</code> à <code>__w12</code>, une colonne sous 900 px). Tous les graphiques sont dessinés par <code>assets/charts.js</code> (<code>DOUALOG_CHARTS.barres / courbe / anneau / piste / empile</code>) : rendu léger et précis, comme Apple Santé ou Stripe. Dessinés à la taille réelle du conteneur (<code>w: DOUALOG_CHARTS.largeur(el)</code>), au pixel près : barres fines (10 px max) à coins hauts arrondis (2,5 px), séparées par un espace net, segments empilés espacés de 2 px, sans contour ; courbes de 1,75 px à extrémités arrondies avec un dégradé très transparent dessous ; grille de 3 ou 4 lignes horizontales en pointillé, sans axe ni cadre ; valeurs d'axe en petit, gris, chiffres tabulaires ; points de courbe visibles au survol seulement, sauf le dernier ; ligne de référence (moyenne, objectif) en pointillé de 1 px avec son libellé à gauche, détouré ; libellés d'axe espacés d'au moins 44 px (un sur deux si besoin, le dernier toujours affiché) ; anneaux fins (8 px) à segments espacés ; valeur exacte dans une infobulle discrète au survol (<code>[data-tip]</code>, <code>.c-chart-tip</code>). Teintes par classe <code>.is-s-blue / -orange / -green / -violet / -magenta / -red / -navy / -gray</code>. Légende <code>.c-legend</code> (pastilles rondes), barres horizontales cliquables <code>.c-hbars</code> (6 px), chiffres clés <code>.c-figures</code>, liste de priorités <code>.c-todo</code>. En-tête de section <code>.c-section-head</code> (titre, précision, réglages à droite). Choix de période <code>.c-period</code> : bouton qui affiche la période et ses dates, menu avec raccourcis récents, années (<code>.c-chip</code>), tout l'historique et plage de mois ; à sa gauche, bouton discret « Réinitialiser » (<code>.c-btn--ghost</code>, icône <code>refresh</code>) affiché seulement quand la période ou l'affichage diffère du réglage par défaut. Affichage par semaine / mois / trimestre / année en <code>.c-segmented</code> (option choisie : <code>aria-pressed="true"</code> ; jamais grisée : un affichage impossible sur la période change la période, signalé dans la précision de la section). Résumé <code>.c-chart-summary</code> (total, précision, légende) et évolution <code>.c-delta</code> (<code>.is-good</code> vert, <code>.is-bad</code> rouge, selon le sens de l'indicateur). Liste empilée <code>.c-todo--stack</code> (clients à suivre).</p>
     <div class="c-dash">
       <section class="c-card c-dash__w6"><div class="c-card__head"><h3>Où en sont les dossiers</h3><span class="c-card__note">un clic ouvre la liste</span></div>
-        <div class="c-card__body"><ul class="c-hbars">
-          <li><a class="c-hbar is-s-blue" href="#"><span>Déclaration en cours</span><span class="c-hbar__track"><svg viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><rect class="c-hbar__bg" width="100" height="10" rx="2"/><rect class="c-hbar__fill" width="100" height="10" rx="2"/></svg></span><span class="c-hbar__val">4</span></a></li>
-          <li><a class="c-hbar is-s-magenta" href="#"><span>Contrôle douane</span><span class="c-hbar__track"><svg viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><rect class="c-hbar__bg" width="100" height="10" rx="2"/><rect class="c-hbar__fill" width="75" height="10" rx="2"/></svg></span><span class="c-hbar__val">3</span></a></li>
-          <li><a class="c-hbar is-s-red" href="#"><span>Info manquante</span><span class="c-hbar__track"><svg viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><rect class="c-hbar__bg" width="100" height="10" rx="2"/><rect class="c-hbar__fill" width="25" height="10" rx="2"/></svg></span><span class="c-hbar__val">1</span></a></li>
+        <div class="c-card__body"><ul class="c-hbars" id="ds-hbars">
         </ul>
         <ul class="c-legend u-mt-3"><li class="is-s-blue">Import</li><li class="is-s-orange">Export</li><li class="is-s-green">Encaissé</li><li class="is-s-gray">À émettre</li></ul></div>
       </section>
       <section class="c-card c-dash__w6"><div class="c-card__head"><h3>À traiter en priorité</h3><span class="c-count c-count--alert">2</span></div>
         <div class="c-card__body"><ul class="c-todo">
-          <li class="c-todo__item c-todo__item--danger"><a class="c-ref" href="#">DLG-2026-0416</a><span class="c-todo__motif"><b>Information demandée par la douane</b> · Bâtiments et Travaux du Cap-Vert</span><span class="c-todo__age">depuis 2 j</span><a class="c-btn c-btn--sm" href="#">Ouvrir</a></li>
-          <li class="c-todo__item c-todo__item--warning"><a class="c-ref" href="#">DLG-2026-0415</a><span class="c-todo__motif"><b>Contrôle physique en cours</b> · Pièces Auto Colobane</span><span class="c-todo__age">depuis 2 j</span><a class="c-btn c-btn--sm" href="#">Ouvrir</a></li>
+          <li class="c-todo__item c-todo__item--danger"><a class="c-ref" href="#">DLG-2026-0416</a><span class="c-todo__motif"><b>Information demandée par la douane</b> · Bâtiment et Travaux de l’Estuaire</span><span class="c-todo__age">depuis 2 j</span><a class="c-btn c-btn--sm" href="#">Ouvrir</a></li>
+          <li class="c-todo__item c-todo__item--warning"><a class="c-ref" href="#">DLG-2026-0415</a><span class="c-todo__motif"><b>Contrôle physique en cours</b> · Pièces Auto du Havre</span><span class="c-todo__age">depuis 2 j</span><a class="c-btn c-btn--sm" href="#">Ouvrir</a></li>
         </ul>
-        <div class="c-figures u-mt-3"><div><div class="c-figure__label">Encaissé en octobre</div><div class="c-figure__value is-success">5 184 650 <small>FCFA</small></div></div><div><div class="c-figure__label">Reste à encaisser</div><div class="c-figure__value is-warning">5 680 855 <small>FCFA</small></div></div></div></div>
+        <div class="c-figures u-mt-3"><div><div class="c-figure__label">Encaissé en octobre</div><div class="c-figure__value is-success">7 905 <small>€</small></div></div><div><div class="c-figure__label">Reste à encaisser</div><div class="c-figure__value is-warning">8 660 <small>€</small></div></div></div></div>
       </section>
+      <div class="c-section-head">
+        <h2>Activité</h2><span class="c-section-head__note">affichage par mois</span>
+        <div class="c-section-head__actions">
+          <div class="c-menu-wrap c-period"><button class="c-btn c-btn--sm" type="button" data-open="ds-period-menu"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-calendar"></use></svg>Année 2025 <span class="c-period__dates">01/01/2025 – 31/12/2025</span><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-chevron-down"></use></svg></button>
+            <div class="c-menu" id="ds-period-menu" role="menu" hidden>
+              <div class="c-period__group"><div class="c-period__title">Récent</div>
+                <button class="c-menu__item" type="button" role="menuitemradio" aria-checked="false">8 dernières semaines</button>
+                <button class="c-menu__item" type="button" role="menuitemradio" aria-checked="false">12 derniers mois</button></div>
+              <div class="c-period__group"><div class="c-period__title">Par année</div><div class="c-period__years">
+                <button class="c-chip" type="button">2026</button><button class="c-chip is-active" type="button" aria-pressed="true">2025</button><button class="c-chip" type="button">2024</button></div></div>
+              <div class="c-period__group"><div class="c-period__title">Personnalisée</div><div class="c-period__custom">
+                <label class="c-field"><span class="c-field__help">Du mois</span><input class="c-input" type="month" value="2025-03"></label>
+                <label class="c-field"><span class="c-field__help">au mois</span><input class="c-input" type="month" value="2025-08"></label>
+                <button class="c-btn c-btn--sm c-btn--primary" type="button" data-close="ds-period-menu">Appliquer</button></div></div>
+            </div></div>
+          <div class="c-segmented" role="group" aria-label="Afficher par"><button type="button" class="c-segmented__opt" aria-pressed="false">Semaine</button><button type="button" class="c-segmented__opt" aria-pressed="true">Mois</button><button type="button" class="c-segmented__opt" aria-pressed="false">Trimestre</button><button type="button" class="c-segmented__opt" aria-pressed="false" disabled>Année</button></div>
+        </div>
+      </div>
+      <section class="c-card c-dash__w6"><div class="c-card__head"><h3>Clients à suivre</h3><span class="c-count c-count--alert">2</span></div>
+        <div class="c-card__body"><ul class="c-todo c-todo--stack">
+          <li class="c-todo__item c-todo__item--danger"><span><a class="c-todo__title" href="#">Cidrerie du Pays d’Auge</a><span class="c-todo__motif">Mandat absent · 1 dossier bloqué</span></span><span class="c-todo__age">1 en cours</span></li>
+          <li class="c-todo__item c-todo__item--warning"><span><a class="c-todo__title" href="#">Maison Textile Duval</a><span class="c-todo__motif">Mandat expire dans 24 j</span></span><span class="c-todo__age">1 en cours</span></li>
+        </ul>
+        <div class="c-chart-summary u-mt-3"><span class="c-chart-summary__total">278</span><span class="c-chart-summary__text">dossiers</span>
+          <span class="c-delta is-good"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-chevron-up"></use></svg>+3 %<span class="c-delta__ref">vs même période un an plus tôt</span></span>
+          <span class="c-delta is-bad"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-chevron-up"></use></svg>+0,6 j<span class="c-delta__ref">délai</span></span></div></div>
+      </section>
+      <section class="c-card c-dash__w6"><div class="c-card__head"><h3>Barres empilées</h3>
+        <div class="c-segmented" role="group" aria-label="Période affichée"><button type="button" class="c-segmented__opt" aria-pressed="false">4 sem.</button><button type="button" class="c-segmented__opt" aria-pressed="true">8 sem.</button><button type="button" class="c-segmented__opt" aria-pressed="false">6 mois</button></div></div>
+        <div class="c-card__body"><div class="c-chart-summary"><span class="c-chart-summary__total">33</span><span class="c-chart-summary__text">dossiers · 6 semaines</span><ul class="c-legend"><li class="is-s-blue">Import</li><li class="is-s-orange">Export</li></ul></div><div id="ds-barres"></div></div></section>
+      <section class="c-card c-dash__w6"><div class="c-card__head"><h3>Courbe et ligne de référence</h3></div><div class="c-card__body" id="ds-courbe"></div></section>
+      <section class="c-card c-dash__w6"><div class="c-card__head"><h3>Anneau et barre de répartition</h3></div><div class="c-card__body u-stack"><div id="ds-anneau"></div><div id="ds-empile"></div></div></section>
     </div>
   </section>
 
@@ -358,9 +389,9 @@
       <div class="c-drawer__head"><h3>Modifier le transporteur</h3>
         <button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" aria-label="Fermer" data-toggle="drawer-demo"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></button></div>
       <div class="c-drawer__body u-stack">
-        <div class="c-field"><label class="c-field__label" for="d1">Raison sociale <span class="is-required">*</span></label><input class="c-input" id="d1" value="Téranga Fret Express"></div>
+        <div class="c-field"><label class="c-field__label" for="d1">Raison sociale <span class="is-required">*</span></label><input class="c-input" id="d1" value="Normandie Fret Express"></div>
         <div class="c-field"><label class="c-field__label" for="d2">Contact</label><input class="c-input" id="d2" value="Alassane Ndour"></div>
-        <div class="c-field"><label class="c-field__label" for="d3">Email <span class="is-required">*</span></label><input class="c-input" id="d3" value="exploitation@teranga-fret.sn"></div>
+        <div class="c-field"><label class="c-field__label" for="d3">Email <span class="is-required">*</span></label><input class="c-input" id="d3" value="exploitation@normandie-fret.fr"></div>
       </div>
       <div class="c-drawer__foot"><button class="c-btn c-btn--ghost" data-toggle="drawer-demo">Annuler</button><button class="c-btn c-btn--primary">Enregistrer</button></div>
     </aside>
@@ -394,8 +425,8 @@
           </ul></div></section>
         <section class="c-card"><div class="c-card__head"><h3>Messagerie dossier</h3><div class="c-card__actions"><button class="c-btn c-btn--sm"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-plus"></use></svg>Nouveau message</button></div></div><div class="c-card__body">
           <ul class="c-msglist">
-            <li class="c-msg c-msg--success"><span class="c-msg__icon"><svg class="c-icon" aria-hidden="true"><use href="#i-send"></use></svg></span><span class="c-msg__from">dossiers@doualog.sn</span><span class="c-msg__date">16/10/2026 08:20</span><span class="c-msg__text">RE: [DLG-2026-0412] Bon à sortir obtenu</span></li>
-            <li class="c-msg c-msg--info is-unread"><span class="c-msg__icon"><svg class="c-icon" aria-hidden="true"><use href="#i-inbox"></use></svg></span><span class="c-msg__from">m.diouf@agro-sine.sn</span><span class="c-msg__date">16/10/2026 07:58</span><span class="c-msg__text">RE: [DLG-2026-0412] Bon à sortir obtenu</span></li>
+            <li class="c-msg c-msg--success"><span class="c-msg__icon"><svg class="c-icon" aria-hidden="true"><use href="#i-send"></use></svg></span><span class="c-msg__from">dossiers@doualog.fr</span><span class="c-msg__date">16/10/2026 08:20</span><span class="c-msg__text">RE: [DLG-2026-0412] Bon à sortir obtenu</span></li>
+            <li class="c-msg c-msg--info is-unread"><span class="c-msg__icon"><svg class="c-icon" aria-hidden="true"><use href="#i-inbox"></use></svg></span><span class="c-msg__from">c.dubois@agrofertil.fr</span><span class="c-msg__date">16/10/2026 07:58</span><span class="c-msg__text">RE: [DLG-2026-0412] Bon à sortir obtenu</span></li>
           </ul></div><div class="c-card__foot"><button class="c-btn c-btn--ghost c-btn--sm">Voir tous les messages (9)</button></div></section>
       </div>
     </div>
@@ -434,7 +465,7 @@
       <div class="c-alert c-alert--warning"><svg class="c-icon" aria-hidden="true"><use href="#i-clock"></use></svg>
         <div><div class="c-alert__title">Valider le BAS déclenche la facturation</div><div>Le dossier sera basculé en facturation et le Service facturation notifié.</div></div></div>
       <div class="c-alert c-alert--success"><svg class="c-icon" aria-hidden="true"><use href="#i-valide"></use></svg>
-        <div><div class="c-alert__title">Offre acceptée par Téranga Fret Express</div><div>Le 09/10/2026 à 14:47. L'offre a été clôturée pour Atlantique Fret Sénégal.</div></div></div>
+        <div><div class="c-alert__title">Offre acceptée par Normandie Fret Express</div><div>Le 09/10/2026 à 14:47. L'offre a été clôturée pour Atlantique Fret Logistique.</div></div></div>
       <div class="c-alert c-alert--info"><svg class="c-icon" aria-hidden="true"><use href="#i-info"></use></svg>
         <div>Prochaine relance automatique le 18/10/2026 à 08:16. <!-- À VALIDER : fréquence des relances (D11) --></div></div>
     </div>
@@ -464,6 +495,59 @@
       <input type="file" class="u-sr"></label></div>
   </section>
 
+  <!-- ══ FICHE CLIENT ══ -->
+  <section class="ds-sec" id="fiche-client">
+    <h2>Fiche client (E10)</h2>
+    <p class="ds-intro">Même panneau pleine hauteur que le dossier (<code>.c-panel</code>, <code>.c-banner</code>), blocs en grille de 3 colonnes <code>.c-dgrid--3</code> (2 colonnes sous 1000 px, 1 sous 760 px) ; un bloc peut s'étendre sur 2 colonnes (<code>.is-span2</code>) ou sur toute la largeur (<code>.is-wide</code>). Contacts <code>.c-contacts</code> / <code>.c-contact</code> (<code>__initiales</code>, <code>__nom</code>, <code>__fonction</code>, <code>__coord</code>). Étiquette de N° de dossier <code>.c-badge--ref</code> : pilule bleu marine sans pastille, cliquable.</p>
+    <div class="ds-box" style="background:var(--bg-app)">
+      <div class="c-dgrid c-dgrid--3">
+        <section class="c-card"><div class="c-card__head"><h3>Société</h3></div><div class="c-card__body"><ul class="c-contacts">
+          <li class="c-contact"><span class="c-contact__initiales" aria-hidden="true">CD</span><span class="c-contact__nom">Claire Dubois</span><span class="c-contact__fonction">Responsable achats · contact principal</span><span class="c-contact__coord"><a href="#">c.dubois@agrofertil.fr</a><span class="u-num">+33 2 35 68 41 90</span></span></li>
+          <li class="c-contact"><span class="c-contact__initiales" aria-hidden="true">PN</span><span class="c-contact__nom">Pierre Lambert</span><span class="c-contact__fonction">Directeur financier</span><span class="c-contact__coord"><a href="#">p.lambert@agrofertil.fr</a><span class="u-num">+33 2 35 68 41 10</span></span></li></ul></div></section>
+        <section class="c-card is-span2"><div class="c-card__head"><h3>Échanges récents</h3></div><div class="c-card__body"><ul class="c-msglist c-msglist--wrap">
+          <li class="c-msg c-msg--info is-unread"><span class="c-msg__icon"><svg class="c-icon" aria-hidden="true"><use href="#i-inbox"></use></svg></span><span class="c-msg__from">Claire Dubois</span><span class="c-msg__date">16/10/2026 · 07:58</span><span class="c-msg__text"><a class="c-badge c-badge--ref" href="#">DLG-2026-0412</a> RE: [DLG-2026-0412] Bon à sortir obtenu</span></li>
+          <li class="c-msg c-msg--success"><span class="c-msg__icon"><svg class="c-icon" aria-hidden="true"><use href="#i-send"></use></svg></span><span class="c-msg__from">Seydou Camara</span><span class="c-msg__date">16/10/2026 · 08:20</span><span class="c-msg__text"><a class="c-badge c-badge--ref" href="#">DLG-2026-0412</a> Heure d'arrivée du camion</span></li></ul></div></section>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ MESSAGERIE ══ -->
+  <section class="ds-sec" id="messagerie">
+    <h2>Messagerie (E11)</h2>
+    <p class="ds-intro">Boîte de réception en 3 colonnes <code>.c-mailbox</code> : filtres <code>__nav</code> (<code>.c-mailbox__filtre</code>, <code>.is-active</code>, séparateur <code>__sep</code>), liste <code>__list</code> (<code>__search</code>, <code>__items</code>), lecture <code>__read</code>. Email de la liste <code>.c-mail</code> (<code>__de</code>, <code>__date</code>, <code>__objet</code>, <code>__extrait</code>, <code>__meta</code>, <code>.is-unread</code> = pastille bleue et gras, <code>.is-active</code>). Lecture <code>.c-mailread__head / __objet / __meta / __actions / __body / __pj</code>, pièce jointe <code>.c-file</code> (<code>__type</code>, <code>__nom</code>). Email non rattaché : encart <code>.c-alert--warning</code> avec le dossier probable et les actions Rattacher (principal), Créer un nouveau dossier, Ignorer.</p>
+    <div class="ds-box ds-box--flush ds-mailbox">
+      <div class="c-mailbox">
+        <nav class="c-mailbox__nav"><button class="c-mailbox__filtre is-active" type="button"><svg class="c-icon" aria-hidden="true"><use href="#i-inbox"></use></svg>Tous<span class="c-count">65</span></button>
+          <button class="c-mailbox__filtre" type="button"><svg class="c-icon" aria-hidden="true"><use href="#i-mail"></use></svg>Non lus<span class="c-count c-count--accent">6</span></button>
+          <div class="c-mailbox__sep"></div>
+          <button class="c-mailbox__filtre" type="button"><svg class="c-icon" aria-hidden="true"><use href="#i-link"></use></svg>Non rattachés<span class="c-count c-count--alert">3</span></button></nav>
+        <div class="c-mailbox__list"><ul class="c-mailbox__items">
+          <li class="c-mail is-unread is-active"><span class="c-mail__de">Sébastien Caron</span><span class="c-mail__date">09:58</span><span class="c-mail__objet">Facture rectifiée pour la douane</span><span class="c-mail__extrait">Suite à la visite de la douane sur notre conteneur…</span><span class="c-mail__meta"><span class="c-badge c-badge--warning">Non rattaché</span></span></li>
+          <li class="c-mail"><span class="c-mail__de">Ousmane Fall</span><span class="c-mail__date">09:41</span><span class="c-mail__objet">RE: [DLG-2026-0416] Certificat d'origine</span><span class="c-mail__extrait">Notre fournisseur nous confirme l'envoi…</span><span class="c-mail__meta"><a class="c-badge c-badge--ref" href="#">DLG-2026-0416</a></span></li></ul></div>
+        <div class="c-mailbox__read">
+          <div class="c-alert c-alert--warning"><svg class="c-icon" aria-hidden="true"><use href="#i-link"></use></svg><div><div class="c-alert__title">Email non rattaché — dossier probable : DLG-2026-0415</div>Proposé car même client et même BL CMDULHR2211906.</div>
+            <div class="c-alert__actions"><button class="c-btn c-btn--primary c-btn--sm" type="button">Rattacher à DLG-2026-0415</button><button class="c-btn c-btn--sm" type="button">Créer un nouveau dossier</button><button class="c-btn c-btn--ghost c-btn--sm" type="button">Ignorer</button></div></div>
+          <div class="c-mailread__head"><h3 class="c-mailread__objet">Facture rectifiée pour la douane</h3>
+            <dl class="c-mailread__meta"><dt>De</dt><dd>Sébastien Caron &lt;contact@piecesauto-lehavre.fr&gt;</dd><dt>Date</dt><dd>16/10/2026 · 09:58</dd></dl>
+            <div class="c-mailread__actions"><button class="c-btn c-btn--sm" type="button"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-reply"></use></svg>Répondre</button><button class="c-btn c-btn--sm" type="button"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-forward"></use></svg>Transférer</button></div></div>
+          <div class="c-mailread__pj u-mt-3"><span class="c-file"><span class="c-file__type">PDF</span><span class="c-file__nom">Facture_rectifiee_FR-20931.pdf</span></span></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══ PRÉSENTATION ══ -->
+  <section class="ds-sec" id="presentation">
+    <h2>Présentation (diaporama)</h2>
+    <p class="ds-intro"><code>presentation.html</code> : <code>.c-deck</code> plein écran (<code>__top</code> logo et date, <code>__stage</code>, <code>__bar</code> avec <code>__num</code> et <code>__progress</code>). Diapositive <code>.c-slide</code> (<code>.is-active</code>, <code>.is-before</code> : glissement court, même chemin à l'aller et au retour), <code>.c-slide--split</code> (texte + aperçu), <code>__kicker</code>, <code>__titre</code>, <code>__texte</code>, <code>__actions</code>, <code>__logo</code>. Aperçu <code>.c-slide__apercu</code> : la vraie maquette dans un cadre, réduite (<code>--apercu-k</code>), non cliquable. Listes <code>.c-points</code> (numéros orange), cycle <code>.c-cycle</code>, jalons <code>.c-jalons</code> / <code>.c-jalon</code> (<code>.is-fait</code>, <code>.is-current</code>). Grand bouton <code>.c-btn--lg</code>.</p>
+    <div class="ds-box u-stack">
+      <ol class="c-cycle"><li class="c-cycle__etape">Email reçu</li><li class="c-cycle__fleche" aria-hidden="true"><svg class="c-icon c-icon--lg"><use href="#i-arrow-right"></use></svg></li><li class="c-cycle__etape is-accent">Dossier DLG</li><li class="c-cycle__fleche" aria-hidden="true"><svg class="c-icon c-icon--lg"><use href="#i-arrow-right"></use></svg></li><li class="c-cycle__etape">Douane</li></ol>
+      <ol class="c-points"><li><span class="c-points__num">01</span><span><b>Le dossier se crée tout seul</b> à la réception de l'email.</span></li><li><span class="c-points__num">02</span><span><b>Les relances partent automatiquement.</b></span></li></ol>
+      <ol class="c-jalons"><li class="c-jalon is-fait"><div class="c-jalon__quand">Septembre 2026</div><div class="c-jalon__quoi">Cadrage</div></li><li class="c-jalon is-current"><div class="c-jalon__quand">Octobre 2026</div><div class="c-jalon__quoi">Validation des maquettes</div></li><li class="c-jalon"><div class="c-jalon__quand">Vers mars 2027</div><div class="c-jalon__quoi">V1 testable</div></li><li class="c-jalon"><div class="c-jalon__quand">Vers octobre 2027</div><div class="c-jalon__quoi">Plateforme complète</div></li></ol>
+      <div><a class="c-btn c-btn--primary c-btn--lg" href="presentation.html">Ouvrir la présentation<svg class="c-icon" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></div>
+    </div>
+  </section>
+
   <!-- ══ PAGES EXTERNES ══ -->
   <section class="ds-sec" id="externe">
     <h2>Pages externes (client, transporteur)</h2>
@@ -474,10 +558,10 @@
           <span class="c-brand"><span class="c-brand__mark"><img src="assets/img/logo-monogramme.png" alt=""></span><span><span class="c-brand__name">DOUA<em>LOG</em></span><span class="c-brand__sub">Douane &amp; Logistique</span></span></span>
           <span class="c-ext__ctx">Offre de transport<b>OT-2026-0161</b></span></div></header>
         <main class="c-ext__main">
-          <div><h1>Offre acceptée</h1><p class="c-ext__lead">Merci Oumar Sall. L'ordre de transport <b>OT-2026-0161</b> est attribué à <b>Routes du Sahel Transport</b>.</p></div>
+          <div><h1>Offre acceptée</h1><p class="c-ext__lead">Merci Oumar Sall. L'ordre de transport <b>OT-2026-0161</b> est attribué à <b>Transports Vallée de Seine</b>.</p></div>
           <a class="c-btn c-btn--primary c-btn--block" href="#">Ouvrir mon lien transporteur</a>
         </main>
-        <footer class="c-ext__foot">Service transport DOUALOG · dossiers@doualog.sn</footer>
+        <footer class="c-ext__foot">Service transport DOUALOG · dossiers@doualog.fr</footer>
       </div>
     </div>
     <p class="ds-note"><b>Emails</b> (X01, X02, X05, X07, X08, X09) : même esprit dans les limites du HTML d'email (ni animation, ni flou, ni variable CSS : valeurs reprises de tokens.css en styles en ligne). Police système (Inter si installée, sinon celle de l'appareil), carte de 600 px aux angles de 12 px, bandeau bleu nuit + ligne orange, N° de dossier dans un encadré gris très clair, libellés en casse normale, bouton <code>#CC4A0E</code> aux angles de 8 px.<br>
@@ -488,15 +572,15 @@
   <section class="ds-sec" id="facture">
     <h2>Facture (aperçu du document) et compléments</h2>
     <p class="ds-intro">Aperçu dans un panneau latéral large (<code>.c-drawer--wide</code>) : en-tête DOUALOG avec trait orange, « FACTURE » et numéro séquentiel, client et références en deux colonnes, prestations puis débours (hors TVA), totaux alignés à droite, mentions de paiement. Filigrane « BROUILLON » tant que la facture n'est pas générée (<code>.c-invoice.is-brouillon</code>). <code>.c-invoice</code>, <code>__head</code>, <code>__logo</code>, <code>__emetteur</code>, <code>__title</code>, <code>__num</code>, <code>__dates</code>, <code>__parties</code>, <code>__bloc-titre</code>, <code>__lignes</code>, <code>__totaux</code>, <code>__mentions</code>.<br>
-    Compléments de l'étape 6 : <code>.c-stats__group--5</code> (10 indicateurs sur 2 lignes, E07), <code>.c-table .is-wrap</code> (cellule sur plusieurs lignes), <code>.c-table tr.is-unread</code> (notification non lue, E08).</p>
+    Compléments de l'étape 6 : <code>.c-stats__group--5</code> (10 indicateurs sur 2 lignes, E07), <code>.c-stats__group--4</code> (4 indicateurs sur une ligne, boutons qui filtrent la liste avec <code>.is-active</code>, Mandats E12), <code>.c-settings</code> (Paramètres E14 : sous-menu vertical collant <code>.c-settings__nav</code> dont les entrées reprennent <code>.c-mailbox__filtre</code>, contenu en cartes à droite ; une colonne sous 900 px), <code>.c-table .is-wrap</code> (cellule sur plusieurs lignes), <code>.c-table tr.is-unread</code> (notification non lue, E08).</p>
     <div class="ds-box" style="background:var(--bg-muted)">
       <div class="c-invoice is-brouillon">
-        <div class="c-invoice__head"><div><img class="c-invoice__logo" src="assets/img/logo.png" alt=""><div class="c-invoice__emetteur"><b>DOUALOG — Douane &amp; Logistique</b><br>Dakar, Sénégal · dossiers@doualog.sn</div></div>
+        <div class="c-invoice__head"><div><img class="c-invoice__logo" src="assets/img/logo.png" alt=""><div class="c-invoice__emetteur"><b>DOUALOG — Douane &amp; Logistique</b><br>Le Havre, France · dossiers@doualog.fr</div></div>
           <div><div class="c-invoice__title">Facture</div><div class="c-invoice__num">N° attribué à la génération</div><div class="c-invoice__dates">Échéance : à 30 jours</div></div></div>
-        <table class="c-invoice__lignes"><thead><tr><th>Désignation</th><th class="is-num">Montant (FCFA)</th></tr></thead><tbody>
-          <tr class="is-groupe"><td colspan="2">Prestations DOUALOG</td></tr><tr><td>Honoraires de transit</td><td class="is-num">145 000 FCFA</td></tr>
-          <tr class="is-groupe"><td colspan="2">Débours — refacturés à l'identique, hors TVA</td></tr><tr><td>Débours — droits et taxes de douane</td><td class="is-num">1 846 213 FCFA</td></tr></tbody></table>
-        <dl class="c-invoice__totaux"><dt>Total prestations HT</dt><dd>145 000 FCFA</dd><dt>TVA 18 %</dt><dd>26 100 FCFA</dd><dt class="is-total">Total TTC</dt><dd class="is-total">2 017 313 FCFA</dd></dl>
+        <table class="c-invoice__lignes"><thead><tr><th>Désignation</th><th class="is-num">Montant (€)</th></tr></thead><tbody>
+          <tr class="is-groupe"><td colspan="2">Prestations DOUALOG</td></tr><tr><td>Honoraires de transit</td><td class="is-num">210,00 €</td></tr>
+          <tr class="is-groupe"><td colspan="2">Débours — refacturés à l'identique, hors TVA</td></tr><tr><td>Débours — droits et taxes de douane</td><td class="is-num">2 815,00 €</td></tr></tbody></table>
+        <dl class="c-invoice__totaux"><dt>Total prestations HT</dt><dd>210,00 €</dd><dt>TVA 20 %</dt><dd>42,00 €</dd><dt class="is-total">Total TTC</dt><dd class="is-total">3 067,00 €</dd></dl>
       </div>
     </div>
   </section>
@@ -509,7 +593,7 @@
       <div class="c-auth__card">
         <div><img class="c-auth__logo" src="assets/img/logo.png" alt=""><h1>Connexion</h1><p class="c-auth__lead">Control Tower — suivi des dossiers de transit et de dédouanement</p></div>
         <p class="c-auth__note"><svg class="c-icon" aria-hidden="true"><use href="#i-lock"></use></svg><span><b>Accès réservé à l'équipe DOUALOG.</b></span></p>
-        <div class="c-field"><label class="c-field__label" for="ds-mail">Adresse email</label><input class="c-input" id="ds-mail" value="a.ndiaye@doualog.sn"></div>
+        <div class="c-field"><label class="c-field__label" for="ds-mail">Adresse email</label><input class="c-input" id="ds-mail" value="a.ndiaye@doualog.fr"></div>
         <div class="c-auth__row"><label class="c-check"><input type="checkbox" checked> Rester connecté</label><a href="#">Mot de passe oublié&nbsp;?</a></div>
         <button class="c-btn c-btn--primary" type="button">Se connecter</button>
       </div>
@@ -572,7 +656,7 @@
   $('role-select').innerHTML = D.roles.map(function (r) { return '<option' + (r.id === 'declarant' ? ' selected' : '') + '>' + r.label + '</option>'; }).join('');
   var nonLues = D.notifications.filter(function (n) { return !n.lue; }).length;
   $('bell-count').textContent = nonLues;
-  $('mail-count').textContent = D.emailsNonLus.length;
+  $('mail-count').textContent = D.emailsNonLus().length;
   $('nav-count-notif').textContent = nonLues;
 
   /* Tableau (extrait du jeu de données) */
@@ -624,6 +708,25 @@
     return '<li class="c-timeline__item' + tone + '"><span class="c-timeline__icon">' + icon(ico[h.type] || 'info') + '</span><div><div class="c-timeline__time">' + F.dateHeure(h.date) + '</div><div class="c-timeline__text">' + h.texte + '</div><div class="c-timeline__actor">' + h.acteur + '</div></div></li>';
   }).join('');
 
+  /* Graphiques (assets/charts.js) */
+  var G = window.DOUALOG_CHARTS;
+  $('ds-hbars').innerHTML = [['Déclaration en cours', 'is-s-blue', 100, 4], ['Contrôle douane', 'is-s-magenta', 75, 3], ['Info manquante', 'is-s-red', 25, 1]].map(function (h) {
+    return '<li><a class="c-hbar ' + h[1] + '" href="#"><span>' + h[0] + '</span>' + G.piste(h[2]) + '<span class="c-hbar__val">' + h[3] + '</span></a></li>';
+  }).join('');
+  $('ds-barres').innerHTML = G.barres({ aria: 'Exemple de barres empilées', total: true, w: G.largeur($('ds-barres')),
+    series: [{ cle: 'i', cls: 'is-s-blue', nom: 'Import' }, { cle: 'e', cls: 'is-s-orange', nom: 'Export' }],
+    points: [[4, 2], [5, 1], [3, 3], [5, 2], [4, 2], [3, 1]].map(function (v, k) { return { label: 'S' + (40 + k), valeurs: { i: v[0], e: v[1] }, partiel: k === 5 }; }) });
+  $('ds-courbe').innerHTML = G.courbe({ aria: 'Exemple de courbe', cls: 'is-s-blue', w: G.largeur($('ds-courbe')), labels: ['S40', 'S41', 'S42', 'S43', 'S44', 'S45'],
+    valeurs: [11.2, 12.4, 10.8, 11.6, 9.4, 10.1], format: function (v) { return String(v).replace('.', ',') + ' j'; }, reference: { v: 10.9, label: 'moyenne 10,9 j' } });
+  $('ds-anneau').innerHTML = G.anneau([{ label: 'Maritime', n: 12, cls: 'is-s-navy' }, { label: 'Aérien', n: 4, cls: 'is-s-blue' }], 16, 'par mode');
+  $('ds-empile').innerHTML = G.empile([{ v: 5184650, cls: 'is-s-green', tip: 'Encaissé' }, { v: 5680855, cls: 'is-s-orange', tip: 'Reste à encaisser' }, { v: 2100000, cls: 'is-s-gray', tip: 'À émettre' }], 'Exemple de répartition');
+
+  /* Contrôle segmenté : une seule option choisie */
+  document.addEventListener('click', function (e) {
+    var o = e.target.closest('.c-segmented__opt');
+    if (!o) return;
+    o.parentNode.querySelectorAll('.c-segmented__opt').forEach(function (b) { b.setAttribute('aria-pressed', String(b === o)); });
+  });
 
   /* Interactions de démonstration (JS minimal : panneau, onglets, modale) */
   document.addEventListener('click', function (e) {

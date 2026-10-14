@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DOUALOG Control Tower — Présentation des maquettes V1</title>
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/components.css">
+<script src="assets/icons.js"></script>
+</head>
+<body>
+<!-- Présentation du dimanche au dirigeant de DOUALOG : 12 diapositives, une idée par diapositive, langage simple.
+     Flèches ← →, Espace, clic ou boutons du bas pour avancer ; F = plein écran ; #3 dans l'adresse ouvre la 3e diapositive.
+     Les aperçus sont les vraies maquettes, réduites (chargées quand la diapositive s'affiche). -->
+<div class="c-deck" id="deck">
+  <header class="c-deck__top">
+    <span class="c-brand"><span class="c-brand__mark"><img src="assets/img/logo-monogramme.png" alt=""></span>
+      <span><span class="c-brand__name">DOUA<em>LOG</em></span><span class="c-brand__sub">Control Tower</span></span></span>
+    <span class="c-deck__date">Présentation des maquettes · dimanche 18 octobre 2026</span>
+  </header>
+
+  <main class="c-deck__stage" id="stage">
+
+    <!-- 1 · Titre -->
+    <section class="c-slide" aria-label="Titre">
+      <img class="c-slide__logo" src="assets/img/logo.png" alt="DOUALOG — Douane &amp; Logistique">
+      <h1 class="c-slide__titre">DOUALOG Control Tower — Maquettes V1</h1>
+      <p class="c-slide__texte">Le futur outil de suivi des dossiers de transit et de dédouanement, présenté écran par écran.</p>
+      <p class="c-slide__kicker">Dimanche 18 octobre 2026</p>
+    </section>
+
+    <!-- 2 · Le problème -->
+    <section class="c-slide" aria-label="Le problème aujourd'hui">
+      <p class="c-slide__kicker">Aujourd'hui</p>
+      <h2 class="c-slide__titre">Beaucoup de temps passé à chercher, relancer, recopier.</h2>
+      <ol class="c-points">
+        <li><span class="c-points__num">01</span><span><b>Les emails sont éparpillés</b> : clients, compagnies, transporteurs, tout arrive au même endroit.</span></li>
+        <li><span class="c-points__num">02</span><span><b>Le suivi se fait à la main</b>, dossier par dossier.</span></li>
+        <li><span class="c-points__num">03</span><span><b>Les relances partent une par une</b> : documents manquants, factures impayées.</span></li>
+        <li><span class="c-points__num">04</span><span><b>Personne n'a la vue d'ensemble</b> : qui fait quoi, quel dossier est bloqué.</span></li>
+      </ol>
+    </section>
+
+    <!-- 3 · La solution -->
+    <section class="c-slide" aria-label="La solution">
+      <p class="c-slide__kicker">La solution</p>
+      <h2 class="c-slide__titre">Chaque email devient un dossier, suivi jusqu'à la facture.</h2>
+      <ol class="c-cycle" aria-label="Le cycle d'un dossier">
+        <li class="c-cycle__etape">Email reçu</li><li class="c-cycle__fleche" aria-hidden="true"><svg class="c-icon c-icon--lg"><use href="#i-arrow-right"></use></svg></li>
+        <li class="c-cycle__etape is-accent">Dossier DLG</li><li class="c-cycle__fleche" aria-hidden="true"><svg class="c-icon c-icon--lg"><use href="#i-arrow-right"></use></svg></li>
+        <li class="c-cycle__etape">Douane</li><li class="c-cycle__fleche" aria-hidden="true"><svg class="c-icon c-icon--lg"><use href="#i-arrow-right"></use></svg></li>
+        <li class="c-cycle__etape">Transport</li><li class="c-cycle__fleche" aria-hidden="true"><svg class="c-icon c-icon--lg"><use href="#i-arrow-right"></use></svg></li>
+        <li class="c-cycle__etape">Facturation</li><li class="c-cycle__fleche" aria-hidden="true"><svg class="c-icon c-icon--lg"><use href="#i-arrow-right"></use></svg></li>
+        <li class="c-cycle__etape">Clôture</li>
+      </ol>
+      <p class="c-slide__texte">Un numéro unique, DLG, suit la marchandise du premier email jusqu'au paiement.</p>
+    </section>
+
+    <!-- 4 · Pour l'équipe -->
+    <section class="c-slide" aria-label="Ce qui change pour l'équipe">
+      <p class="c-slide__kicker">Pour l'équipe DOUALOG</p>
+      <h2 class="c-slide__titre">Moins de tâches répétitives, plus de temps pour les clients.</h2>
+      <ol class="c-points">
+        <li><span class="c-points__num">01</span><span><b>Le dossier se crée tout seul</b> à la réception de l'email et de ses pièces jointes.</span></li>
+        <li><span class="c-points__num">02</span><span><b>Les urgences remontent en haut</b> : contrôles de la douane, documents manquants, factures en retard.</span></li>
+        <li><span class="c-points__num">03</span><span><b>Les relances partent automatiquement</b>, au bon moment.</span></li>
+        <li><span class="c-points__num">04</span><span><b>Toute l'activité se voit d'un coup d'œil</b>, à tout moment.</span></li>
+      </ol>
+    </section>
+
+    <!-- 5 · Clients et transporteurs -->
+    <section class="c-slide c-slide--split" aria-label="Ce qui change pour les clients et les transporteurs">
+      <div class="c-slide__col">
+        <p class="c-slide__kicker">Pour les clients et les transporteurs</p>
+        <h2 class="c-slide__titre">Aucun compte à créer.</h2>
+        <p class="c-slide__texte">Tout passe par email et par un lien sécurisé. Le client suit son dossier comme un colis et envoie ses documents. Le transporteur accepte l'offre et confirme la livraison depuis son téléphone.</p>
+        <div class="c-slide__actions"><a class="c-btn" href="externe/X03-suivi-public.html?dlg=DLG-2026-0412&amp;ref=MEDULH482093" target="_blank" rel="noopener">Voir l'écran</a></div>
+      </div>
+      <div class="c-slide__apercu"><iframe title="Aperçu : suivi du dossier par le client" data-src="externe/X03-suivi-public.html?dlg=DLG-2026-0412&amp;ref=MEDULH482093" tabindex="-1"></iframe></div>
+    </section>
+
+    <!-- 6 · Tableau de bord -->
+    <section class="c-slide c-slide--split" aria-label="Le tableau de bord">
+      <div class="c-slide__col">
+        <p class="c-slide__kicker">Le tableau de bord</p>
+        <h2 class="c-slide__titre">Toute l'activité en un coup d'œil.</h2>
+        <p class="c-slide__texte">Les chiffres du jour, les dossiers reçus chaque semaine, le délai de dédouanement et les dossiers à traiter en priorité. Un clic sur un chiffre ouvre les dossiers concernés.</p>
+        <div class="c-slide__actions"><a class="c-btn" href="interne/E09-tableau-de-bord.html" target="_blank" rel="noopener">Voir l'écran</a></div>
+      </div>
+      <div class="c-slide__apercu"><iframe title="Aperçu : tableau de bord" data-src="interne/E09-tableau-de-bord.html" tabindex="-1"></iframe></div>
+    </section>
+
+    <!-- 7 · Dossier ouvert -->
+    <section class="c-slide c-slide--split" aria-label="Le dossier">
+      <div class="c-slide__col">
+        <p class="c-slide__kicker">Le dossier</p>
+        <h2 class="c-slide__titre">Tout le dossier sur un seul écran.</h2>
+        <p class="c-slide__texte">L'avancement en 9 étapes, les documents, la douane, le transport, les emails et les notifications. Rien à chercher ailleurs.</p>
+        <div class="c-slide__actions"><a class="c-btn" href="interne/E01-dossiers.html?id=DLG-2026-0412" target="_blank" rel="noopener">Voir l'écran</a></div>
+      </div>
+      <div class="c-slide__apercu"><iframe title="Aperçu : dossier ouvert" data-src="interne/E01-dossiers.html?id=DLG-2026-0412" tabindex="-1"></iframe></div>
+    </section>
+
+    <!-- 8 · Emails non rattachés -->
+    <section class="c-slide c-slide--split" aria-label="Les emails non rattachés">
+      <div class="c-slide__col">
+        <p class="c-slide__kicker">La messagerie</p>
+        <h2 class="c-slide__titre">Un email sans numéro ? L'outil retrouve le bon dossier.</h2>
+        <p class="c-slide__texte">Même client, même connaissement : le dossier probable est proposé. Un clic pour le rattacher, ou pour créer un nouveau dossier si c'est un nouveau client.</p>
+        <div class="c-slide__actions"><a class="c-btn" href="interne/E11-messagerie.html?filtre=nonrattaches" target="_blank" rel="noopener">Voir l'écran</a></div>
+      </div>
+      <div class="c-slide__apercu"><iframe title="Aperçu : emails non rattachés" data-src="interne/E11-messagerie.html?filtre=nonrattaches" tabindex="-1"></iframe></div>
+    </section>
+
+    <!-- 9 · Transport -->
+    <section class="c-slide c-slide--split" aria-label="Le transport">
+      <div class="c-slide__col">
+        <p class="c-slide__kicker">Le transport</p>
+        <h2 class="c-slide__titre">Le camion se commande en quelques clics.</h2>
+        <p class="c-slide__texte">L'ordre de transport se remplit tout seul depuis le dossier. L'offre part aux transporteurs choisis : le premier qui accepte l'obtient.</p>
+        <div class="c-slide__actions"><a class="c-btn" href="interne/E04-creation-ot.html?id=DLG-2026-0410" target="_blank" rel="noopener">Voir l'écran</a></div>
+      </div>
+      <div class="c-slide__apercu"><iframe title="Aperçu : ordre de transport" data-src="interne/E04-creation-ot.html?id=DLG-2026-0410" tabindex="-1"></iframe></div>
+    </section>
+
+    <!-- 10 · Facturation -->
+    <section class="c-slide c-slide--split" aria-label="La facturation">
+      <div class="c-slide__col">
+        <p class="c-slide__kicker">La facturation</p>
+        <h2 class="c-slide__titre">La facture est prête dès le bon à sortir.</h2>
+        <p class="c-slide__texte">Les prestations et les frais avancés sont repris du dossier. La facture part au client par email, et les paiements sont suivis jusqu'au dernier franc.</p>
+        <div class="c-slide__actions"><a class="c-btn" href="interne/E06-facturation.html?id=DLG-2026-0412" target="_blank" rel="noopener">Voir l'écran</a></div>
+      </div>
+      <div class="c-slide__apercu"><iframe title="Aperçu : facturation" data-src="interne/E06-facturation.html?id=DLG-2026-0412" tabindex="-1"></iframe></div>
+    </section>
+
+    <!-- 11 · Questions (QUESTIONS-ONCLE.md, les 5 plus importantes) -->
+    <section class="c-slide" aria-label="Les questions à trancher">
+      <p class="c-slide__kicker">À trancher ensemble</p>
+      <h2 class="c-slide__titre">Cinq questions pour construire juste.</h2>
+      <ol class="c-points">
+        <li><span class="c-points__num">01</span><span><b>Qui a le droit de voir et de faire quoi ?</b></span></li>
+        <li><span class="c-points__num">02</span><span><b>Peut-on créer un dossier à la main</b>, pour un client qui passe au bureau ?</span></li>
+        <li><span class="c-points__num">03</span><span><b>Que facturez-vous, et à quel prix ?</b></span></li>
+        <li><span class="c-points__num">04</span><span><b>Que se passe-t-il quand la douane refuse</b> la marchandise ?</span></li>
+        <li><span class="c-points__num">05</span><span><b>Comment le client signe-t-il le mandat ?</b></span></li>
+      </ol>
+    </section>
+
+    <!-- 12 · Prochaines étapes -->
+    <section class="c-slide" aria-label="Prochaines étapes">
+      <p class="c-slide__kicker">Prochaines étapes</p>
+      <h2 class="c-slide__titre">De la maquette à l'outil.</h2>
+      <ol class="c-jalons">
+        <li class="c-jalon is-current"><div class="c-jalon__quand">Octobre 2026</div><div class="c-jalon__quoi">Validation des maquettes</div></li>
+        <li class="c-jalon"><div class="c-jalon__quand">Ensuite</div><div class="c-jalon__quoi">Développement</div></li>
+        <li class="c-jalon"><div class="c-jalon__quand">Vers mars 2027</div><div class="c-jalon__quoi">V1 testable par l'équipe</div></li>
+        <li class="c-jalon"><div class="c-jalon__quand">Vers octobre 2027</div><div class="c-jalon__quoi">Plateforme complète</div></li>
+      </ol>
+      <div class="c-slide__actions"><a class="c-btn c-btn--primary c-btn--lg" href="externe/X01-email-accuse-reception.html?id=DLG-2026-0412&amp;demo=1&amp;demo-reset=1">Lancer la démo<svg class="c-icon" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></div>
+    </section>
+  </main>
+
+  <footer class="c-deck__bar">
+    <button class="c-btn c-btn--icon c-btn--ghost" type="button" id="prec" aria-label="Diapositive précédente"><svg class="c-icon" aria-hidden="true"><use href="#i-chevron-left"></use></svg></button>
+    <button class="c-btn c-btn--icon c-btn--ghost" type="button" id="suiv" aria-label="Diapositive suivante"><svg class="c-icon" aria-hidden="true"><use href="#i-chevron-right"></use></svg></button>
+    <span class="c-deck__num" id="num" aria-live="polite"></span>
+    <span class="c-deck__progress" aria-hidden="true"><span id="progression"></span></span>
+    <a class="c-btn c-btn--ghost c-btn--sm" href="index.html">Sommaire</a>
+    <button class="c-btn c-btn--icon c-btn--ghost" type="button" id="plein" aria-label="Plein écran (touche F)" title="Plein écran (F)"><svg class="c-icon" aria-hidden="true"><use href="#i-maximize"></use></svg></button>
+  </footer>
+</div>
+
+<script>
+(function () {
+  var slides = [].slice.call(document.querySelectorAll('.c-slide')), courant = 0;
+  function $(id) { return document.getElementById(id); }
+
+  /* Aperçus : la maquette (1440 × 900) est réduite à la largeur du cadre */
+  function echelle() {
+    document.querySelectorAll('.c-slide__apercu').forEach(function (a) { a.style.setProperty('--apercu-k', a.clientWidth / 1440); });
+  }
+  function charger(n) {
+    if (!slides[n]) return;
+    slides[n].querySelectorAll('iframe[data-src]').forEach(function (f) { f.src = f.dataset.src; f.removeAttribute('data-src'); });
+  }
+  function aller(n) {
+    courant = Math.max(0, Math.min(slides.length - 1, n));
+    slides.forEach(function (s, k) {
+      s.classList.toggle('is-active', k === courant);
+      s.classList.toggle('is-before', k < courant);
+      s.setAttribute('aria-hidden', k === courant ? 'false' : 'true');
+    });
+    charger(courant); charger(courant + 1);
+    $('num').textContent = (courant + 1) + ' / ' + slides.length;
+    $('progression').style.transform = 'scaleX(' + (courant + 1) / slides.length + ')';
+    $('prec').disabled = courant === 0; $('suiv').disabled = courant === slides.length - 1;
+    history.replaceState(null, '', '#' + (courant + 1));
+    echelle();
+  }
+  function pleinEcran() {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else if (document.documentElement.requestFullscreen) document.documentElement.requestFullscreen();
+  }
+
+  document.addEventListener('keydown', function (e) {
+    if (['ArrowRight', 'PageDown', ' '].indexOf(e.key) >= 0) { e.preventDefault(); aller(courant + 1); }
+    else if (['ArrowLeft', 'PageUp'].indexOf(e.key) >= 0) { e.preventDefault(); aller(courant - 1); }
+    else if (e.key === 'Home') aller(0);
+    else if (e.key === 'End') aller(slides.length - 1);
+    else if (e.key === 'f' || e.key === 'F') pleinEcran();
+  });
+  /* Clic sur la diapositive : suivante (sauf sur un lien ou un bouton) */
+  $('stage').addEventListener('click', function (e) { if (!e.target.closest('a, button')) aller(courant + 1); });
+  $('prec').addEventListener('click', function () { aller(courant - 1); });
+  $('suiv').addEventListener('click', function () { aller(courant + 1); });
+  $('plein').addEventListener('click', pleinEcran);
+  window.addEventListener('resize', echelle);
+
+  aller((parseInt(location.hash.slice(1), 10) || 1) - 1);
+})();
+</script>
+</body>
+</html>

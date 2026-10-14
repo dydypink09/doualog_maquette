@@ -8,13 +8,17 @@
 <link rel="stylesheet" href="../assets/components.css">
 <script src="../assets/icons.js"></script>
 <script src="../assets/data.js"></script>
+<script src="../assets/charts.js"></script>
 <script src="../assets/shell.js"></script>
 <script src="../assets/demo.js"></script>
 </head>
 <body>
 <!-- E09 · Tableau de bord — page d'accueil de tous les profils (séparée de la liste Dossiers E01).
      Indicateurs du jour (clic → E01 filtrée), graphiques SVG dessinés ici depuis data.js, priorités du jour, facturation.
-     Semaines 35 à 38 : historique fictif (data.js > statsAnterieures) ; à partir de la semaine 39, calcul sur les dossiers. -->
+     Ordre : indicateurs, puis l'activité sur la période (demande client), puis « Aujourd'hui » (priorités, clients à suivre, facturation).
+     Activité : période au choix (raccourcis, années depuis 2021, tout l'historique, plage de mois), affichage par semaine / mois /
+     trimestre / année, comparaison avec la même période un an plus tôt ; mémorisée dans le navigateur, ou ?periode=8s|12m|a2025|tout|2024-03_2024-08&par=mois.
+     Avant le 21/09/2026 : historique fictif (data.js > statsAnterieures) ; ensuite, calcul sur les dossiers. -->
 <!-- À VALIDER : indicateurs et graphiques à garder (QUESTIONS-ONCLE §Général) · délai de dédouanement mesuré de la réception au BAS -->
 <div class="c-app">
   <header class="c-topbar" id="topbar"></header>
@@ -31,11 +35,38 @@
     </div>
 
     <div class="c-dash">
+      <div class="c-section-head">
+        <h2>Activité</h2><span class="c-section-head__note" id="note-activite"></span>
+        <div class="c-section-head__actions">
+          <button class="c-btn c-btn--sm c-btn--ghost" type="button" id="periode-reset" hidden title="Revenir aux 8 dernières semaines, affichage automatique"></button>
+          <div class="c-menu-wrap c-period" id="periode"></div>
+          <div class="c-segmented" role="group" aria-label="Afficher par" id="par"></div>
+        </div>
+      </div>
+
       <section class="c-card c-dash__w8" aria-labelledby="t-semaines">
-        <div class="c-card__head"><h3 id="t-semaines">Dossiers reçus par semaine</h3>
-          <ul class="c-legend"><li class="is-s-blue">Import</li><li class="is-s-orange">Export</li></ul>
-          <span class="c-card__note" id="note-semaines"></span></div>
-        <div class="c-card__body" id="g-semaines"></div>
+        <div class="c-card__head"><h3 id="t-semaines">Dossiers reçus</h3>
+          <ul class="c-legend"><li class="is-s-blue">Import</li><li class="is-s-orange">Export</li></ul></div>
+        <div class="c-card__body">
+          <div class="c-chart-summary"><span class="c-chart-summary__total" id="total-semaines"></span><span class="c-chart-summary__text">dossiers</span><span id="delta-semaines"></span></div>
+          <div id="g-semaines"></div>
+        </div>
+      </section>
+
+      <section class="c-card c-dash__w4" aria-labelledby="t-delai">
+        <div class="c-card__head"><h3 id="t-delai">Délai moyen de dédouanement</h3><span class="c-card__note">réception → BAS</span></div>
+        <div class="c-card__body">
+          <div class="c-chart-summary"><span class="c-chart-summary__total" id="total-delai"></span><span class="c-chart-summary__text">en moyenne</span><span id="delta-delai"></span></div>
+          <div id="g-delai"></div>
+        </div>
+      </section>
+
+      <div class="c-section-head"><h2>Aujourd'hui</h2><span class="c-section-head__note">à date</span></div>
+
+      <section class="c-card c-dash__w8" aria-labelledby="t-todo">
+        <div class="c-card__head"><h3 id="t-todo">À traiter en priorité</h3><span class="c-count c-count--alert" id="n-todo"></span>
+          <a class="c-card__note" href="E08-notifications.html">Toutes les notifications</a></div>
+        <div class="c-card__body"><ul class="c-todo" id="todo"></ul></div>
       </section>
 
       <section class="c-card c-dash__w4" aria-labelledby="t-repartition">
@@ -43,20 +74,16 @@
         <div class="c-card__body" id="g-repartition"></div>
       </section>
 
-      <section class="c-card c-dash__w6" aria-labelledby="t-etapes">
+      <section class="c-card c-dash__w4" aria-labelledby="t-etapes">
         <div class="c-card__head"><h3 id="t-etapes">Où en sont les dossiers</h3><span class="c-card__note">un clic ouvre la liste</span></div>
         <div class="c-card__body"><ul class="c-hbars" id="g-etapes"></ul></div>
       </section>
 
-      <section class="c-card c-dash__w6" aria-labelledby="t-delai">
-        <div class="c-card__head"><h3 id="t-delai">Délai moyen de dédouanement</h3><span class="c-card__note" id="note-delai"></span></div>
-        <div class="c-card__body" id="g-delai"></div>
-      </section>
-
-      <section class="c-card c-dash__w8" aria-labelledby="t-todo">
-        <div class="c-card__head"><h3 id="t-todo">À traiter en priorité</h3><span class="c-count c-count--alert" id="n-todo"></span>
-          <a class="c-card__note" href="E08-notifications.html">Toutes les notifications</a></div>
-        <div class="c-card__body"><ul class="c-todo" id="todo"></ul></div>
+      <section class="c-card c-dash__w4" aria-labelledby="t-clients">
+        <div class="c-card__head"><h3 id="t-clients">Clients à suivre</h3><span class="c-count c-count--alert" id="n-clients"></span>
+          <span class="c-card__note">mandat, factures, blocages</span></div>
+        <div class="c-card__body"><ul class="c-todo c-todo--stack" id="clients"></ul></div>
+        <div class="c-card__foot"><a class="c-btn c-btn--sm" href="E10-clients.html">Tous les clients</a></div>
       </section>
 
       <section class="c-card c-dash__w4" aria-labelledby="t-fact">
@@ -110,7 +137,7 @@
       '<span class="c-stat__label">' + k.label + '</span></span></a>';
   }).join('');
 
-  /* ── 2. Dossiers reçus par semaine (8 semaines, import / export empilés) ── */
+  /* ── 2. Activité : semaines connues, regroupement, période choisie ── */
   function plusJours(iso, n) { var t = new Date(Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10) + n)); return t.toISOString().slice(0, 10); }   // sans décalage de fuseau
   var lundis = D.statsAnterieures.map(function (s) { return s.lundi; });
   for (var i = 0; i < 4; i++) lundis.push(plusJours('2026-09-21', 7 * i));
@@ -123,57 +150,115 @@
     var delai = bas.length ? Math.round(bas.reduce(function (s, d) { return s + jours(d.reception, d.bas.date); }, 0) / bas.length * 10) / 10 : null;
     return { lundi: l, import: recus.filter(function (d) { return d.type === 'Import'; }).length, export: recus.filter(function (d) { return d.type === 'Export'; }).length, delai: delai, ids: recus.map(function (d) { return d.id; }) };
   });
-  var enCours = semaines[semaines.length - 1];
+  semaines.forEach(function (s, k) { s.k = k; });
+  var derniere = semaines[semaines.length - 1];
+  derniere.partiel = true;   // semaine en cours
+  var PREMIER = semaines[0].lundi, MOIS_COURANT = auj.slice(0, 7);
 
-  var W = 640, H = 210, G = 30, B = 26, T = 18;   // largeur, hauteur, marge gauche, bas, haut
-  function axeY(max, pas) {
-    var s = '';
-    for (var v = 0; v <= max; v += pas) {
-      var y = H - B - (H - B - T) * v / max;
-      s += '<line class="c-chart__grid" x1="' + G + '" x2="' + W + '" y1="' + y + '" y2="' + y + '"/><text class="c-chart__axis" x="' + (G - 8) + '" y="' + (y + 4) + '" text-anchor="end">' + v + '</text>';
-    }
-    return s;
-  }
-  (function () {
-    var max = Math.max.apply(null, semaines.map(function (s) { return s.import + s.export; }));
-    max = Math.ceil((max + 1) / 2) * 2;
-    var slot = (W - G) / semaines.length, bw = slot * 0.46, svg = axeY(max, 2);
-    function hauteur(v) { return (H - B - T) * v / max; }
-    semaines.forEach(function (s, i) {
-      var x = G + slot * i + (slot - bw) / 2, hi = hauteur(s.import), he = hauteur(s.export), base = H - B, partiel = s === enCours ? ' c-chart__bar--partiel' : '';
-      var titre = 'Semaine du ' + F.dateCourte(s.lundi) + (partiel ? ' (en cours)' : '') + ' : ' + s.import + ' import, ' + s.export + ' export';
-      var barres = '<title>' + titre + '</title>' +
-        '<rect class="c-chart__bar c-chart__bar--import' + partiel + '" x="' + x + '" y="' + (base - hi) + '" width="' + bw + '" height="' + hi + '"/>' +
-        '<rect class="c-chart__bar c-chart__bar--export' + partiel + '" x="' + x + '" y="' + (base - hi - he) + '" width="' + bw + '" height="' + he + '"/>' +
-        '<text class="c-chart__value" x="' + (x + bw / 2) + '" y="' + (base - hi - he - 6) + '" text-anchor="middle">' + (s.import + s.export) + '</text>';
-      svg += s.ids && s.ids.length ? '<a href="' + lienIds(s.ids, 'reçus la semaine du ' + F.dateCourte(s.lundi)) + '">' + barres + '</a>' : '<g>' + barres + '</g>';
-      svg += '<text class="c-chart__axis" x="' + (x + bw / 2) + '" y="' + (H - 8) + '" text-anchor="middle">' + F.dateCourte(s.lundi) + (partiel ? '*' : '') + '</text>';
+  var MOIS = ['janv.', 'févr.', 'mars', 'avr.', 'mai', 'juin', 'juil.', 'août', 'sept.', 'oct.', 'nov.', 'déc.'];
+  var MOIS_LONG = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin', 'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+  function capitale(t) { return t.charAt(0).toUpperCase() + t.slice(1); }
+  function moyenne(v) { return v.length ? Math.round(v.reduce(function (a, b) { return a + b; }, 0) / v.length * 10) / 10 : null; }
+  function moisMoins(ym, n) { var t = new Date(Date.UTC(+ym.slice(0, 4), +ym.slice(5, 7) - 1 - n, 1)); return t.toISOString().slice(0, 7); }
+  function finMois(ym) { return new Date(Date.UTC(+ym.slice(0, 4), +ym.slice(5, 7), 0)).toISOString().slice(0, 10); }
+  function moisLong(ym) { return MOIS_LONG[+ym.slice(5, 7) - 1] + ' ' + ym.slice(0, 4); }
+
+  /* Affichage : clé de regroupement, libellé d'axe, nom complet (infobulle) */
+  var PAR = [
+    { id: 'semaine',   court: 'Semaine',   cle: function (l) { return l; },
+      label: function (c) { return F.dateCourte(c); }, nom: function (c) { return 'semaine du ' + F.date(c); } },
+    { id: 'mois',      court: 'Mois',      cle: function (l) { return l.slice(0, 7); },
+      label: function (c, multi) { var m = +c.slice(5, 7) - 1; return MOIS[m] + (multi && m === 0 ? ' ' + c.slice(2, 4) : ''); }, nom: moisLong },
+    { id: 'trimestre', court: 'Trimestre', cle: function (l) { return l.slice(0, 4) + '-T' + Math.ceil(+l.slice(5, 7) / 3); },
+      label: function (c) { return c.slice(5) + ' ' + c.slice(2, 4); }, nom: function (c) { var q = c.slice(6); return (q === '1' ? '1er' : q + 'e') + ' trimestre ' + c.slice(0, 4); } },
+    { id: 'annee',     court: 'Année',     cle: function (l) { return l.slice(0, 4); },
+      label: function (c) { return c; }, nom: function (c) { return 'année ' + c; } }
+  ];
+  function grouper(liste, par) {
+    var g = [], multi = liste.length && liste[0].lundi.slice(0, 4) !== liste[liste.length - 1].lundi.slice(0, 4);
+    liste.forEach(function (s) {
+      var cle = par.cle(s.lundi), b = g[g.length - 1];
+      if (!b || b.cle !== cle) g.push(b = { cle: cle, import: 0, export: 0, delais: [], ids: [], calcule: true, partiel: false });
+      b.import += s.import; b.export += s.export; if (s.delai !== null) b.delais.push(s.delai);
+      if (s.ids) b.ids = b.ids.concat(s.ids); else b.calcule = false;
+      if (s.partiel) b.partiel = true;
     });
-    svg += '<line class="c-chart__base" x1="' + G + '" x2="' + W + '" y1="' + (H - B) + '" y2="' + (H - B) + '"/>';
-    $('g-semaines').innerHTML = '<svg class="c-chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Dossiers reçus par semaine, 8 dernières semaines">' + svg + '</svg>';
-    var total = semaines.reduce(function (s, x) { return s + x.import + x.export; }, 0);
-    $('note-semaines').textContent = total + ' dossiers sur 8 semaines · * semaine en cours';
-  })();
+    return g.map(function (b) {
+      return { label: par.label(b.cle, multi), nom: par.nom(b.cle), import: b.import, export: b.export, partiel: b.partiel,
+        delai: moyenne(b.delais), ids: b.calcule ? b.ids : null };   // lien vers la liste seulement si toutes les semaines sont des dossiers réels
+    });
+  }
+  function nbGroupes(liste, par) { var n = 0, prec = null; liste.forEach(function (s) { var c = par.cle(s.lundi); if (c !== prec) { n++; prec = c; } }); return n; }
+
+  /* Périodes : raccourcis récents, années, tout l'historique, plage de mois personnalisée */
+  var RECENTS = [
+    { id: '4s',  nom: '4 dernières semaines', du: function () { return semaines[semaines.length - 4].lundi; } },
+    { id: '8s',  nom: '8 dernières semaines', du: function () { return semaines[semaines.length - 8].lundi; } },
+    { id: '3m',  nom: '3 derniers mois',      du: function () { return semaines[semaines.length - 13].lundi; } },
+    { id: '6m',  nom: '6 derniers mois',      du: function () { return moisMoins(MOIS_COURANT, 5) + '-01'; } },
+    { id: '12m', nom: '12 derniers mois',     du: function () { return moisMoins(MOIS_COURANT, 11) + '-01'; } }
+  ];
+  var ANNEES = [];
+  for (var an = +auj.slice(0, 4); an >= +PREMIER.slice(0, 4); an--) ANNEES.push(String(an));
+  function periodeDepuis(id) {
+    var r = RECENTS.filter(function (x) { return x.id === id; })[0];
+    if (r) return { id: id, nom: r.nom, du: r.du(), au: auj };
+    if (/^a\d{4}$/.test(id) && ANNEES.indexOf(id.slice(1)) >= 0) { var y = id.slice(1); return { id: id, nom: y === auj.slice(0, 4) ? 'Année ' + y + ' à date' : 'Année ' + y, du: y + '-01-01', au: y === auj.slice(0, 4) ? auj : y + '-12-31' }; }
+    if (id === 'tout') return { id: id, nom: 'Tout l\'historique', du: PREMIER, au: auj };
+    var m = /^(\d{4}-\d{2})_(\d{4}-\d{2})$/.exec(id || '');
+    if (m && m[1] <= m[2] && m[1] >= PREMIER.slice(0, 7) && m[2] <= MOIS_COURANT)
+      return { id: id, nom: m[1] === m[2] ? capitale(moisLong(m[1])) : capitale(moisLong(m[1])) + ' – ' + moisLong(m[2]), du: m[1] + '-01', au: finMois(m[2]) < auj ? finMois(m[2]) : auj, perso: [m[1], m[2]] };
+    return null;
+  }
+  function semainesDe(per) { return semaines.filter(function (s) { return s.lundi >= per.du && s.lundi <= per.au; }); }
+  function parAuto(liste) { return PAR[liste.length <= 16 ? 0 : liste.length <= 112 ? 1 : 2]; }
+  function parPossible(liste, par) { var n = nbGroupes(liste, par); return n >= 2 && n <= 60; }
+
+  /* Choix courant : URL d'abord, puis le dernier choix gardé dans ce navigateur, sinon 8 dernières semaines */
+  var CLE_PERIODE = 'doualog-e09-activite', qs = new URLSearchParams(location.search), memo = {};
+  try { memo = JSON.parse(localStorage.getItem(CLE_PERIODE) || '{}') || {}; } catch (e) {}
+  var etat = { periode: periodeDepuis(qs.get('periode')) || periodeDepuis(memo.periode) || periodeDepuis('8s'), par: null };
+  var parDemande = PAR.filter(function (x) { return x.id === (qs.get('par') || memo.par); })[0];
+  if (parDemande && parPossible(semainesDe(etat.periode), parDemande)) etat.par = parDemande;
+  function garder() { try { localStorage.setItem(CLE_PERIODE, JSON.stringify({ periode: etat.periode.id, par: etat.par ? etat.par.id : null })); } catch (e) {} }
+
+  /* Comparaison avec la même période un an plus tôt (52 semaines), sur les semaines terminées seulement */
+  function comparaison(liste) {
+    var finies = liste.filter(function (s) { return !s.partiel; });
+    if (!finies.length || finies[0].k < 52) return null;
+    var avant = finies.map(function (s) { return semaines[s.k - 52]; });
+    function somme(l) { return l.reduce(function (t, s) { return t + s.import + s.export; }, 0); }
+    function delaiMoyen(l) { return moyenne(l.filter(function (s) { return s.delai !== null; }).map(function (s) { return s.delai; })); }
+    return { recus: somme(finies), recusAvant: somme(avant), delai: delaiMoyen(finies), delaiAvant: delaiMoyen(avant) };
+  }
+  var REF_N1 = 'vs même période un an plus tôt';
+  function delta(ecart, valeur, bon) {
+    if (ecart === 0) return '<span class="c-delta">stable<span class="c-delta__ref">' + REF_N1 + '</span></span>';
+    return '<span class="c-delta ' + (bon ? 'is-good' : 'is-bad') + '">' + icon(ecart > 0 ? 'chevron-up' : 'chevron-down') + valeur.replace('-', '−') + '<span class="c-delta__ref">' + REF_N1 + '</span></span>';
+  }
+
+  var C = window.DOUALOG_CHARTS;
+  function dessinerRecus(pts) {
+    var el = $('g-semaines'), unite = (etat.par || {}).id;
+    el.innerHTML = C.barres({
+      w: C.largeur(el), h: 220, total: pts.length <= 26, aria: 'Dossiers reçus, ' + etat.periode.nom.toLowerCase(),
+      series: [{ cle: 'import', cls: 'is-s-blue', nom: 'Import' }, { cle: 'export', cls: 'is-s-orange', nom: 'Export' }],
+      points: pts.map(function (p) {
+        return { label: p.label + (p.partiel ? '*' : ''), valeurs: { import: p.import, export: p.export }, partiel: p.partiel,
+          tip: capitale(p.nom) + (p.partiel ? ' (en cours)' : '') + ' : ' + (p.import + p.export) + ' dossiers — ' + p.import + ' import, ' + p.export + ' export',
+          href: p.ids && p.ids.length ? lienIds(p.ids, 'reçus ' + (unite === 'semaine' ? 'la ' : 'en ') + p.nom) : null };
+      })
+    });
+    $('total-semaines').textContent = F.nombre(pts.reduce(function (s, x) { return s + x.import + x.export; }, 0));
+  }
 
   /* ── 3. Répartition des dossiers en cours (anneaux) ── */
-  function anneau(parts, total, legende) {
-    var r = 46, c = 2 * Math.PI * r, debut = 0, segs = '';
-    parts.forEach(function (p) {
-      var l = total ? c * p.n / total : 0;
-      if (l) segs += '<circle class="c-donut__seg ' + p.cls + '" cx="60" cy="60" r="' + r + '" stroke-width="16" stroke-dasharray="' + l + ' ' + (c - l) + '" stroke-dashoffset="' + (-debut) + '" transform="rotate(-90 60 60)"><title>' + p.label + ' : ' + p.n + '</title></circle>';
-      debut += l;
-    });
-    return '<div class="c-donut-row"><svg class="c-chart" viewBox="0 0 120 120" role="img" aria-label="' + legende + '">' +
-      '<circle class="c-donut__track" cx="60" cy="60" r="' + r + '" stroke-width="16"/>' + segs +
-      '<text class="c-donut__total" x="60" y="62" text-anchor="middle">' + total + '</text><text class="c-donut__label" x="60" y="78" text-anchor="middle">' + legende + '</text></svg>' +
-      '<ul class="c-legend c-legend--col">' + parts.map(function (p) { return '<li class="' + p.cls + '">' + p.label + '<b>' + p.n + ' · ' + (total ? Math.round(100 * p.n / total) : 0) + ' %</b></li>'; }).join('') + '</ul></div>';
-  }
   function compte(f) { return actifs.filter(f).length; }
   $('g-repartition').innerHTML =
-    anneau([{ label: 'Maritime', n: compte(function (d) { return d.mode === 'Maritime'; }), cls: 'is-s-navy' },
-            { label: 'Aérien', n: compte(function (d) { return d.mode === 'Aérien'; }), cls: 'is-s-blue' }], actifs.length, 'par mode') +
-    anneau([{ label: 'Import', n: compte(function (d) { return d.type === 'Import'; }), cls: 'is-s-blue' },
-            { label: 'Export', n: compte(function (d) { return d.type === 'Export'; }), cls: 'is-s-orange' }], actifs.length, 'par sens');
+    C.anneau([{ label: 'Maritime', n: compte(function (d) { return d.mode === 'Maritime'; }), cls: 'is-s-navy' },
+              { label: 'Aérien', n: compte(function (d) { return d.mode === 'Aérien'; }), cls: 'is-s-blue' }], actifs.length, 'par mode') +
+    C.anneau([{ label: 'Import', n: compte(function (d) { return d.type === 'Import'; }), cls: 'is-s-blue' },
+              { label: 'Export', n: compte(function (d) { return d.type === 'Export'; }), cls: 'is-s-orange' }], actifs.length, 'par sens');
 
   /* ── 4. Où en sont les dossiers (barres horizontales cliquables) ── */
   var ETAPES = [
@@ -191,34 +276,115 @@
   });
   var maxEtape = Math.max.apply(null, lignesEtapes.map(function (l) { return l.ids.length; })) || 1;
   $('g-etapes').innerHTML = lignesEtapes.map(function (l) {
-    var pct = Math.round(100 * l.ids.length / maxEtape);
     return '<li><a class="c-hbar ' + l.e.cls + '" href="' + l.href + '"><span>' + l.e.label + '</span>' +
-      '<span class="c-hbar__track"><svg viewBox="0 0 100 10" preserveAspectRatio="none" aria-hidden="true"><rect class="c-hbar__bg" width="100" height="10" rx="2"/>' +
-      (pct ? '<rect class="c-hbar__fill" width="' + pct + '" height="10" rx="2"/>' : '') + '</svg></span>' +
-      '<span class="c-hbar__val">' + l.ids.length + '</span></a></li>';
+      C.piste(Math.round(100 * l.ids.length / maxEtape)) + '<span class="c-hbar__val">' + l.ids.length + '</span></a></li>';
   }).join('');
 
-  /* ── 5. Délai moyen de dédouanement (réception → BAS, en jours) ── */
-  (function () {
-    var pts = semaines.map(function (s, i) { return { i: i, v: s.delai, s: s }; }).filter(function (p) { return p.v !== null; });
-    var max = Math.ceil(Math.max.apply(null, pts.map(function (p) { return p.v; })) + 1);
-    max = Math.ceil(max / 4) * 4;
-    var slot = (W - G) / semaines.length;
-    function xy(p) { return [G + slot * p.i + slot / 2, H - B - (H - B - T) * p.v / max]; }
-    var chemin = pts.map(function (p, k) { var c = xy(p); return (k ? 'L' : 'M') + c[0].toFixed(1) + ' ' + c[1].toFixed(1); }).join(' ');
-    var aire = chemin + ' L' + xy(pts[pts.length - 1])[0].toFixed(1) + ' ' + (H - B) + ' L' + xy(pts[0])[0].toFixed(1) + ' ' + (H - B) + ' Z';
-    var svg = axeY(max, max > 12 ? 4 : 2) + '<path class="c-chart__area" d="' + aire + '"/><path class="c-chart__line" d="' + chemin + '"/>';
-    pts.forEach(function (p) {
-      var c = xy(p);
-      svg += '<circle class="c-chart__dot" cx="' + c[0] + '" cy="' + c[1] + '" r="4"><title>Semaine du ' + F.dateCourte(p.s.lundi) + ' : ' + nb(p.v) + ' jours</title></circle>' +
-        '<text class="c-chart__value" x="' + c[0] + '" y="' + (c[1] - 10) + '" text-anchor="middle">' + nb(p.v) + ' j</text>';
+  /* ── 5. Délai moyen de dédouanement (réception → BAS, en jours), moyenne de la période en ligne de référence ── */
+  function dessinerDelai(pts) {
+    var el = $('g-delai'), moy = moyenne(pts.filter(function (p) { return p.delai !== null; }).map(function (p) { return p.delai; }));
+    el.innerHTML = C.courbe({
+      w: C.largeur(el), h: 220, cls: 'is-s-blue', aria: 'Délai moyen entre la réception et le BAS, en jours, ' + etat.periode.nom.toLowerCase(),
+      labels: pts.map(function (p) { return p.label; }),
+      valeurs: pts.map(function (p) { return p.delai; }),
+      tips: pts.map(function (p) { return p.delai === null ? '' : capitale(p.nom) + ' : ' + nb(p.delai) + ' jours'; }),
+      format: function (v) { return nb(v) + ' j'; },
+      reference: { v: moy, label: 'moyenne ' + nb(moy) + ' j' }
     });
-    semaines.forEach(function (s, i) { svg += '<text class="c-chart__axis" x="' + (G + slot * i + slot / 2) + '" y="' + (H - 8) + '" text-anchor="middle">' + F.dateCourte(s.lundi) + '</text>'; });
-    svg += '<line class="c-chart__base" x1="' + G + '" x2="' + W + '" y1="' + (H - B) + '" y2="' + (H - B) + '"/>';
-    $('g-delai').innerHTML = '<svg class="c-chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Délai moyen entre la réception et le BAS, en jours, par semaine">' + svg + '</svg>';
-    var moy = Math.round(pts.reduce(function (s, p) { return s + p.v; }, 0) / pts.length * 10) / 10;
-    $('note-delai').textContent = 'réception → BAS · moyenne ' + nb(moy) + ' j';
-  })();
+    $('total-delai').textContent = nb(moy) + ' j';
+  }
+
+  /* Bouton de période et son menu (raccourcis, années, tout l'historique, plage de mois) */
+  function coche(actif) { return actif ? icon('check', 'c-icon--sm') : ''; }
+  function dessinerPeriode(ouvert) {
+    var per = etat.periode, perso = per.perso || [moisMoins(MOIS_COURANT, 2), MOIS_COURANT];
+    $('periode').innerHTML =
+      '<button class="c-btn c-btn--sm" type="button" id="periode-btn" aria-haspopup="true" aria-expanded="' + !!ouvert + '">' + icon('calendar', 'c-icon--sm') +
+        per.nom + ' <span class="c-period__dates">' + F.date(per.du < PREMIER ? PREMIER : per.du) + ' – ' + F.date(per.au) + '</span>' + icon('chevron-down', 'c-icon--sm') + '</button>' +
+      '<div class="c-menu" role="menu" id="periode-menu"' + (ouvert ? '' : ' hidden') + '>' +
+        '<div class="c-period__group"><div class="c-period__title">Récent</div>' +
+          RECENTS.map(function (r) { return '<button class="c-menu__item" type="button" role="menuitemradio" aria-checked="' + (per.id === r.id) + '" data-per="' + r.id + '">' + r.nom + coche(per.id === r.id) + '</button>'; }).join('') + '</div>' +
+        '<div class="c-period__group"><div class="c-period__title">Par année</div><div class="c-period__years">' +
+          ANNEES.map(function (y) { return '<button class="c-chip' + (per.id === 'a' + y ? ' is-active' : '') + '" type="button" aria-pressed="' + (per.id === 'a' + y) + '" data-per="a' + y + '">' + y + '</button>'; }).join('') + '</div>' +
+          '<button class="c-menu__item u-mt-2" type="button" role="menuitemradio" aria-checked="' + (per.id === 'tout') + '" data-per="tout">Tout l\'historique <span class="c-period__dates">depuis ' + MOIS[+PREMIER.slice(5, 7) - 1] + ' ' + PREMIER.slice(0, 4) + '</span>' + coche(per.id === 'tout') + '</button></div>' +
+        '<form class="c-period__group" id="periode-perso"><div class="c-period__title">Personnalisée</div><div class="c-period__custom">' +
+          '<label class="c-field"><span class="c-field__help">Du mois</span><input class="c-input" type="month" name="du" value="' + perso[0] + '" min="' + PREMIER.slice(0, 7) + '" max="' + MOIS_COURANT + '" required></label>' +
+          '<label class="c-field"><span class="c-field__help">au mois</span><input class="c-input" type="month" name="au" value="' + perso[1] + '" min="' + PREMIER.slice(0, 7) + '" max="' + MOIS_COURANT + '" required></label>' +
+          '<button class="c-btn c-btn--sm c-btn--primary" type="submit">Appliquer</button></div></form>' +
+      '</div>';
+  }
+  function dessinerPar(liste) {
+    var choisi = etat.par || parAuto(liste);
+    $('par').innerHTML = PAR.map(function (x) {
+      var ok = parPossible(liste, x);
+      return '<button type="button" class="c-segmented__opt" data-par="' + x.id + '" aria-pressed="' + (x === choisi) + '"' + (ok ? '' : ' title="Change la période pour cet affichage"') + '>' + x.court + '</button>';
+    }).join('');
+    return choisi;
+  }
+
+  function dessinerActivite() {
+    var liste = semainesDe(etat.periode), par = dessinerPar(liste), pts = grouper(liste, par), cmp = comparaison(liste);
+    dessinerRecus(pts); dessinerDelai(pts);
+    $('periode-reset').hidden = etat.periode.id === '8s' && !etat.par;
+    var partiel = pts.some(function (x) { return x.partiel; });
+    $('note-activite').textContent = 'dossiers reçus et délai de dédouanement · affichage par ' + par.court.toLowerCase() + (partiel ? ' · * en cours' : '') +
+      (ajustee ? ' · période passée à « ' + etat.periode.nom.toLowerCase() + ' » pour cet affichage' : '');
+    if (cmp && cmp.recusAvant) {
+      var pct = Math.round((cmp.recus - cmp.recusAvant) / cmp.recusAvant * 100);
+      $('delta-semaines').innerHTML = delta(pct, (pct > 0 ? '+' : '') + pct + ' %', pct > 0);
+    } else $('delta-semaines').innerHTML = '';
+    if (cmp && cmp.delai !== null && cmp.delaiAvant !== null) {
+      var ec = Math.round((cmp.delai - cmp.delaiAvant) * 10) / 10;
+      $('delta-delai').innerHTML = delta(ec, (ec > 0 ? '+' : '') + nb(ec) + ' j', ec < 0);   // un délai qui baisse, c'est bien
+    } else $('delta-delai').innerHTML = '';
+  }
+  /* Affichage impossible sur la période (moins de 2 ou plus de 60 barres) : on change la période plutôt que de griser le bouton.
+     Trop peu de barres → période plus longue (Année → tout l'historique) ; trop de barres → période plus courte. */
+  var ajustee = false;
+  function periodePour(par) {
+    var tropPeu = nbGroupes(semainesDe(etat.periode), par) < 2;
+    var ids = tropPeu ? (par.id === 'annee' ? ['tout'] : ['3m', '6m', '12m', 'tout']) : ['12m', '6m', '3m', '8s'];
+    for (var i = 0; i < ids.length; i++) { var per = periodeDepuis(ids[i]); if (parPossible(semainesDe(per), par)) return per; }
+    return null;
+  }
+  function choisirPar(par) {
+    ajustee = false;
+    if (!parPossible(semainesDe(etat.periode), par)) { var per = periodePour(par); if (!per) return; etat.periode = per; ajustee = true; dessinerPeriode(false); }
+    etat.par = par; garder(); dessinerActivite();
+  }
+  function choisirPeriode(per) { ajustee = false; etat.periode = per; etat.par = null; garder(); dessinerPeriode(false); dessinerActivite(); $('periode-btn').focus(); }
+
+  /* Réinitialiser : 8 dernières semaines, affichage automatique ; oublie le choix gardé et les paramètres de l'URL */
+  $('periode-reset').innerHTML = icon('refresh', 'c-icon--sm') + 'Réinitialiser';
+  function reinitialiserPeriode() {
+    try { localStorage.removeItem(CLE_PERIODE); } catch (e) {}
+    qs.delete('periode'); qs.delete('par');
+    try { history.replaceState(null, '', location.pathname + (qs.toString() ? '?' + qs : '') + location.hash); } catch (e) {}
+    etat.periode = periodeDepuis('8s'); etat.par = null; ajustee = false;
+    dessinerPeriode(false); dessinerActivite(); $('periode-btn').focus();
+  }
+
+  document.addEventListener('click', function (ev) {
+    var btn = ev.target.closest('#periode-btn'), choix = ev.target.closest('[data-per]'), par = ev.target.closest('[data-par]');
+    if (ev.target.closest('#periode-reset')) { reinitialiserPeriode(); return; }
+    if (btn) { dessinerPeriode($('periode-menu').hidden); return; }
+    if (choix) { choisirPeriode(periodeDepuis(choix.getAttribute('data-per'))); return; }
+    if (par) { choisirPar(PAR.filter(function (x) { return x.id === par.getAttribute('data-par'); })[0]); return; }
+    if (!ev.target.closest('#periode') && !$('periode-menu').hidden) dessinerPeriode(false);
+  });
+  document.addEventListener('submit', function (ev) {
+    if (ev.target.id !== 'periode-perso') return;
+    ev.preventDefault();
+    var du = ev.target.elements.du.value, au = ev.target.elements.au.value, per = periodeDepuis((du <= au ? du + '_' + au : au + '_' + du));
+    if (per) choisirPeriode(per);
+  });
+  document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && !$('periode-menu').hidden) { dessinerPeriode(false); $('periode-btn').focus(); } });
+  var attente = null, largeurVue = window.innerWidth;
+  window.addEventListener('resize', function () {
+    if (window.innerWidth === largeurVue) return;
+    largeurVue = window.innerWidth; cancelAnimationFrame(attente); attente = requestAnimationFrame(dessinerActivite);
+  });
+  dessinerPeriode(false); dessinerActivite();
 
   /* ── 6. À traiter en priorité (les exceptions, de la plus grave à la moins grave) ── */
   var todo = [];
@@ -226,7 +392,7 @@
   D.dossiers.forEach(function (d) {
     var c = D.client(d).nom;
     if (d.statut === 'Info manquante') ajoute('danger', d, '<b>Information demandée par la douane</b> · ' + esc(c), d.controle.demandeEnvoyee || d.controle.notification);
-    if (D.enSalleAttente(d) && !d.docs.mandat) ajoute('danger', d, '<b>Mandat absent</b> · ' + esc(c), d.reception);
+    if (D.enSalleAttente(d) && !D.mandatOk(d)) ajoute('danger', d, '<b>Mandat absent</b> · ' + esc(c), d.reception);
     else if (D.enSalleAttente(d)) { var nr = D.relances(d).nombre; ajoute('warning', d, '<b>Documents manquants</b>' + (nr ? ', ' + nr + ' relance' + (nr > 1 ? 's' : '') : ', demande envoyée') + ' · ' + esc(c), d.reception); }
     if (d.statut.indexOf('Contrôle') === 0) ajoute('warning', d, '<b>Contrôle ' + d.controle.type.toLowerCase() + ' en cours</b> · ' + esc(c), d.controle.notification);
     if (d.transport && d.transport.statut === 'À confirmer') ajoute('warning', d, '<b>Offre de transport sans réponse</b> · ' + esc(c), d.transport.envoi || d.bae.date);
@@ -255,17 +421,34 @@
       f.paiements.forEach(function (p) { if (p.date.slice(0, 7) === mois) encaisse += p.montant; });
       reste += f.reste;
     });
-    function fig(label, v, cls) { return '<div><div class="c-figure__label">' + label + '</div><div class="c-figure__value' + (cls ? ' ' + cls : '') + '">' + F.nombre(v) + ' <small>FCFA</small></div></div>'; }
+    function fig(label, v, cls) { return '<div><div class="c-figure__label">' + label + '</div><div class="c-figure__value' + (cls ? ' ' + cls : '') + '">' + F.nombre(v) + ' <small>€</small></div></div>'; }
     $('g-fact').innerHTML = fig('Facturé en octobre', emis) + fig('Encaissé en octobre', encaisse, 'is-success') +
       fig('Reste à encaisser', reste, 'is-warning') + fig(nAEmettre + ' facture(s) à émettre', aEmettre);
-    var tot = encaisse + reste + aEmettre || 1, x = 0, bar = '';
-    [[encaisse, 'is-s-green', 'Encaissé'], [reste, 'is-s-orange', 'Reste à encaisser'], [aEmettre, 'is-s-gray', 'À émettre']].forEach(function (p) {
-      var w = 100 * p[0] / tot;
-      if (w) bar += '<rect class="c-hbar__fill ' + p[1] + '" x="' + x + '" width="' + w + '" height="10"><title>' + p[2] + ' : ' + F.nombre(p[0]) + ' FCFA</title></rect>';
-      x += w;
-    });
-    $('g-fact-bar').innerHTML = '<span class="c-hbar__track"><svg viewBox="0 0 100 10" preserveAspectRatio="none" role="img" aria-label="Encaissé, reste à encaisser et à émettre">' + bar + '</svg></span>';
+    $('g-fact-bar').innerHTML = C.empile([
+      { v: encaisse, cls: 'is-s-green', tip: 'Encaissé : ' + F.nombre(encaisse) + ' €' },
+      { v: reste, cls: 'is-s-orange', tip: 'Reste à encaisser : ' + F.nombre(reste) + ' €' },
+      { v: aEmettre, cls: 'is-s-gray', tip: 'À émettre : ' + F.nombre(aEmettre) + ' €' }], 'Encaissé, reste à encaisser et à émettre');
     $('g-fact-legende').innerHTML = '<li class="is-s-green">Encaissé</li><li class="is-s-orange">Reste à encaisser</li><li class="is-s-gray">À émettre</li>';
+  })();
+
+  /* ── 8. Clients à suivre : mandat absent ou bientôt expiré, factures échues, dossiers bloqués (mêmes règles que Clients E10) ── */
+  (function () {
+    var suivis = Object.keys(D.clients).map(D.resumeClient).map(function (l) {
+      var motifs = [], grave = false;
+      if (!l.mandat.couvert && l.enCours.length) { motifs.push('mandat ' + l.mandat.libelle.toLowerCase()); grave = true; }
+      if (l.mandat.bientot) motifs.push('mandat expire dans ' + l.mandat.jours + ' j');
+      if (l.fact.echues.length) { motifs.push(l.fact.echues.length + ' facture' + (l.fact.echues.length > 1 ? 's' : '') + ' échue' + (l.fact.echues.length > 1 ? 's' : '')); grave = true; }
+      if (l.bloques.length) motifs.push(l.bloques.length + ' dossier' + (l.bloques.length > 1 ? 's' : '') + ' bloqué' + (l.bloques.length > 1 ? 's' : ''));
+      return { l: l, motifs: motifs, grave: grave };
+    }).filter(function (x) { return x.motifs.length; })
+      .sort(function (a, b) { return (b.grave - a.grave) || (b.motifs.length - a.motifs.length) || a.l.c.nom.localeCompare(b.l.c.nom, 'fr'); });
+    $('n-clients').textContent = suivis.length;
+    $('clients').innerHTML = suivis.slice(0, 5).map(function (x) {
+      var href = 'E10-clients.html?id=' + x.l.id;
+      return '<li class="c-todo__item c-todo__item--' + (x.grave ? 'danger' : 'warning') + '"><span><a class="c-todo__title" href="' + href + '">' + esc(x.l.c.nom) + '</a>' +
+        '<span class="c-todo__motif">' + capitale(x.motifs.join(' · ')) + '</span></span>' +
+        '<span class="c-todo__age">' + x.l.enCours.length + ' en cours</span></li>';
+    }).join('') || '<li class="c-todo__item"><span class="c-todo__motif">Aucun client à suivre aujourd\'hui.</span></li>';
   })();
 })();
 </script>

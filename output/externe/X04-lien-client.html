@@ -133,10 +133,13 @@
       '<button class="c-btn c-btn--primary c-btn--block" type="button" data-a="instructions">' + icon('send') + 'Envoyer mes instructions</button>');
   }
   function sectionMandat() {
-    if (d.docs.mandat) return carte('mandat', 'Mandat de représentation', '<p>DOUALOG dispose d\'un mandat valide pour ' + esc(c.nom) +
+    /* Renouvellement demandé (E12) : le mandat actuel couvre encore le dossier, mais le client peut déjà signer le suivant */
+    var renouv = D.mandatOk(d) && c.mandat.demande;
+    if (D.mandatOk(d) && !renouv) return carte('mandat', 'Mandat de représentation', '<p>DOUALOG dispose d\'un mandat valide pour ' + esc(c.nom) +
       (c.mandat && c.mandat.jusquau ? ', jusqu\'au ' + F.date(c.mandat.jusquau) : '') + '. Aucune action n\'est nécessaire.</p>');
     return carte('mandat', 'Mandat de représentation',
-      '<p class="c-ext__lead">Pour vous représenter auprès de la douane, nous avons besoin d\'un mandat signé par une personne habilitée de ' + esc(c.nom) + '.</p>' +
+      '<p class="c-ext__lead">' + (renouv ? 'Votre mandat actuel prend fin le ' + F.date(c.mandat.jusquau) + '. Pour que vos prochains dossiers ne soient pas retardés, merci de signer le nouveau mandat.'
+        : 'Pour vous représenter auprès de la douane, nous avons besoin d\'un mandat signé par une personne habilitée de ' + esc(c.nom) + '.') + '</p>' +
       '<ol class="c-timeline">' +
         '<li class="c-timeline__item c-timeline__item--current"><span class="c-timeline__icon">' + icon('download') + '</span><div><div class="c-timeline__text">Téléchargez le modèle pré-rempli</div>' +
           '<div class="c-timeline__time"><button class="c-btn c-btn--sm" type="button" data-a="telecharger">' + icon('pdf', 'c-icon--sm') + 'Modèle de mandat (PDF)</button></div></div></li>' +

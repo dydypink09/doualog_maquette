@@ -23,16 +23,16 @@
   function accueil(role) { return D.acces[role].accueil || 'E09-tableau-de-bord.html'; }
 
   function renderTopbar(role) {
-    var notif = nonLues(), mails = D.emailsNonLus.length;
+    var notif = nonLues(), mails = D.emailsNonLus().length;
     $('topbar').innerHTML =
       '<div class="c-topbar__search c-input-icon">' + icon('search') +
         '<input class="c-input" id="shell-search" type="search" placeholder="Rechercher un dossier, un BL, un conteneur, un client…" aria-label="Recherche globale"></div>' +
       '<div class="c-topbar__right">' +
         '<a class="c-btn c-btn--icon c-btn--ghost c-topbar__icon" href="E08-notifications.html" aria-label="Notifications, ' + notif + ' non lues">' +
           icon('bell', 'c-icon--lg') + '<span class="c-count c-count--accent" id="shell-notif">' + (notif || '') + '</span></a>' +
-        /* Messagerie générale hors V1 : le compteur montre les emails entrants non lus de la boîte DOUALOG */
-        '<span class="c-btn c-btn--icon c-btn--ghost c-topbar__icon" role="img" title="Emails entrants non lus — messagerie générale prévue après la V1" aria-label="' + mails + ' emails entrants non lus">' +
-          icon('mail', 'c-icon--lg') + '<span class="c-count c-count--accent">' + (mails || '') + '</span></span>' +
+        /* Boîte de réception centrale (E11) : emails entrants non lus, rattachés ou non */
+        '<a class="c-btn c-btn--icon c-btn--ghost c-topbar__icon" href="E11-messagerie.html" aria-label="Messagerie, ' + mails + ' emails non lus">' +
+          icon('mail', 'c-icon--lg') + '<span class="c-count c-count--accent" id="shell-mail">' + (mails || '') + '</span></a>' +
         '<div class="c-user"><span class="c-user__initials" id="shell-initiales"></span><span>' +
           '<span class="c-user__name" id="shell-nom"></span>' +
           '<select class="c-user__role" id="shell-role" aria-label="Profil affiché (maquette)">' +
@@ -47,12 +47,12 @@
     }
     /* Entrée hors droits du profil : rendue grisée par appliquerRole (le menu reste celui de l'image) */
     return '<li data-nav="' + e.id + '"><a class="c-nav__item" href="' + e.href + '">' + icon(e.icone) + e.label +
-      '<span class="c-count"' + (e.id === 'notifications' ? ' id="shell-nav-notif"' : '') + (n ? '' : ' data-zero') + '>' + (n || '') + '</span></a></li>';
+      '<span class="c-count"' + (e.id === 'notifications' ? ' id="shell-nav-notif"' : e.id === 'messagerie' ? ' id="shell-nav-mail"' : e.id === 'mandats' ? ' id="shell-nav-mandats" title="Mandats à traiter"' : e.id === 'documents' ? ' id="shell-nav-documents" title="Documents manquants ou à classer"' : '') + (n ? '' : ' data-zero') + '>' + (n || '') + '</span></a></li>';
   }
 
   /* Le logo est en tête du menu (menu bleu nuit pleine hauteur, header blanc) */
   function renderSidebar(role) {
-    var n = { notifications: nonLues() };
+    var n = { notifications: nonLues(), messagerie: D.emailsNonLus().length, mandats: D.mandatsATraiter().length, documents: D.documentsATraiter().length };
     $('sidebar').innerHTML =
       '<div class="c-sidebar__brand"><a class="c-brand" id="shell-accueil" href="' + accueil(role) + '" aria-label="DOUALOG — Accueil">' +
         '<span class="c-brand__mark"><img src="../assets/img/logo-monogramme.png" alt=""></span>' +
@@ -106,14 +106,23 @@
     });
   }
 
-  /* Met à jour les compteurs de notifications (cloche + menu) après « marquer comme lu » */
+  /* Met à jour les compteurs (cloche, emails, mandats à traiter) après « marquer comme lu », un rattachement ou une action sur un mandat */
   function majCompteurs() {
-    var n = nonLues();
+    var n = nonLues(), m = D.emailsNonLus().length, k = D.mandatsATraiter().length;
     [$('shell-notif'), $('shell-nav-notif')].forEach(function (el) {
       if (!el) return;
       el.textContent = n || '';
       if (n) el.removeAttribute('data-zero'); else el.setAttribute('data-zero', '');
     });
+    [$('shell-mail'), $('shell-nav-mail')].forEach(function (el) {
+      if (!el) return;
+      el.textContent = m || '';
+      if (m) el.removeAttribute('data-zero'); else el.setAttribute('data-zero', '');
+    });
+    var em = $('shell-nav-mandats');
+    if (em) { em.textContent = k || ''; if (k) em.removeAttribute('data-zero'); else em.setAttribute('data-zero', ''); }
+    var ed = $('shell-nav-documents'), nd = D.documentsATraiter().length;
+    if (ed) { ed.textContent = nd || ''; if (nd) ed.removeAttribute('data-zero'); else ed.setAttribute('data-zero', ''); }
   }
 
   window.DOUALOG_SHELL = { init: init, setActive: setActive, role: lireRole, icon: icon, accueil: accueil, majCompteurs: majCompteurs };

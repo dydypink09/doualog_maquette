@@ -1,0 +1,300 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Messagerie — DOUALOG Control Tower</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<script src="../assets/icons.js"></script>
+<script src="../assets/data.js"></script>
+<script src="../assets/shell.js"></script>
+<script src="../assets/demo.js"></script>
+</head>
+<body>
+<!-- E11 · Messagerie — boîte de réception centrale dossiers@doualog.fr : filtres · liste · lecture.
+     Mêmes emails que le bloc Messagerie de chaque dossier (data.js > messagesDossier, boite).
+     ?filtre=tous|nonlus|entrants|sortants|auto|logistique|nonrattaches · ?mail=<id> · ?dossier=DLG-… · ?client=c01 · &nouveau=1 (nouveau message)
+     Non rattachés : emails entrants sans [DLG-…] reconnu ; le système propose un dossier probable (même client, même BL).
+     Rattacher / créer / ignorer sont gardés dans la mémoire de démo (data.js > traiterNonRattache). -->
+<!-- À VALIDER : la boîte centrale est une proposition qui étend le CDC §7.6 (messagerie par dossier) · règles de proposition
+     (même client, même BL / LTA / conteneur) · « Créer un nouveau dossier » depuis un email (QUESTIONS-ONCLE §Général) · accès pour tous les profils -->
+<div class="c-app">
+  <header class="c-topbar" id="topbar"></header>
+  <nav class="c-sidebar" id="sidebar" aria-label="Navigation principale"></nav>
+
+  <main class="c-main">
+    <div class="c-page-head">
+      <div class="c-page-head__title"><h1>Messagerie</h1><span class="c-page-head__meta" id="sous-titre"></span></div>
+      <div class="c-page-head__actions"><button class="c-btn c-btn--primary" type="button" data-nouveau><svg class="c-icon" aria-hidden="true"><use href="#i-plus"></use></svg>Nouveau message</button></div>
+    </div>
+
+    <div class="c-alert c-alert--info" id="msg" role="status" hidden>
+      <svg class="c-icon" aria-hidden="true"><use href="#i-info"></use></svg>
+      <div id="msg-texte"></div>
+      <div class="c-alert__actions"><button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" type="button" id="msg-fermer" aria-label="Fermer le message"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></button></div>
+    </div>
+
+    <section class="c-mailbox" aria-label="Boîte de réception">
+      <nav class="c-mailbox__nav" id="filtres" aria-label="Filtres de la boîte"></nav>
+      <div class="c-mailbox__list">
+        <div class="c-mailbox__search u-stack">
+          <div class="c-input-icon">
+            <svg class="c-icon" aria-hidden="true"><use href="#i-search"></use></svg>
+            <input class="c-input" id="search" type="search" placeholder="Expéditeur, objet, N° DLG" aria-label="Rechercher un email">
+          </div>
+          <div class="u-row" id="portee" hidden></div>
+        </div>
+        <ul class="c-mailbox__items" id="liste" aria-label="Emails"></ul>
+      </div>
+      <div class="c-mailbox__read" id="lecture" aria-live="polite"></div>
+    </section>
+  </main>
+</div>
+
+<!-- ══ Rédaction : nouveau message, réponse, transfert ══ -->
+<div class="c-overlay" id="modale" hidden>
+  <div class="c-modal" role="dialog" aria-modal="true" aria-labelledby="modale-titre">
+    <div class="c-modal__head"><h2 class="c-block-title" id="modale-titre">Nouveau message</h2>
+      <button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" type="button" data-annuler aria-label="Fermer"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></button></div>
+    <div class="c-modal__body" id="modale-corps"></div>
+    <div class="c-modal__foot">
+      <button class="c-btn" type="button" data-annuler>Annuler</button>
+      <button class="c-btn c-btn--primary" type="button" id="modale-ok"><svg class="c-icon" aria-hidden="true"><use href="#i-send"></use></svg>Envoyer</button>
+    </div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var D = window.DOUALOG, F = D.fmt, esc = D.esc;
+  function $(id) { return document.getElementById(id); }
+  function icon(n, cls) { return '<svg class="c-icon' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#i-' + n + '"></use></svg>'; }
+  var AUJ = D.config.aujourdhui;
+
+  window.DOUALOG_SHELL.init({ actif: 'messagerie' });
+  $('sous-titre').textContent = D.config.boiteEmail + ' · les emails sont rattachés aux dossiers par leur N° DLG';
+
+  function cat(c) { return function (x) { return x.m.categorie === c; }; }
+  var FILTRES = [
+    { id: 'tous',         label: 'Tous',              icone: 'inbox',   f: function () { return true; } },
+    { id: 'nonlus',       label: 'Non lus',           icone: 'mail',    f: function (x) { return D.estNonLu(x.m); } },
+    null,
+    { id: 'entrants',     label: 'Entrants clients',  icone: 'user',    f: cat('entrant') },
+    { id: 'sortants',     label: 'Sortants DOUALOG',  icone: 'send',    f: cat('sortant') },
+    { id: 'auto',         label: 'Automatiques',      icone: 'refresh', f: cat('auto') },
+    { id: 'logistique',   label: 'Logistiques',       icone: 'ship',    f: cat('logistique') },
+    null,
+    { id: 'nonrattaches', label: 'Non rattachés',     icone: 'link',    f: function (x) { return !x.dossier; } }
+  ];
+  var p = new URLSearchParams(location.search);
+  var etat = {
+    filtre: FILTRES.filter(function (f) { return f && f.id === p.get('filtre'); }).length ? p.get('filtre') : 'tous',
+    q: '', mail: p.get('mail'), dossier: p.get('dossier'), client: D.clients[p.get('client')] ? p.get('client') : null
+  };
+
+  function utilisateur() { return D.equipe[D.acces[window.DOUALOG_SHELL.role()].utilisateur]; }
+  function nom(de) { return de.replace(/\s*<.*>/, ''); }
+  function adresse(de) { var m = /<([^>]+)>/.exec(de); return m ? m[1] : de; }
+  function quand(iso) { return iso.slice(0, 10) === AUJ.slice(0, 10) ? F.heure(iso) : F.dateCourte(iso); }
+  function extrait(m) { return (m.corps || '').replace(/^(Madame, Monsieur|Bonjour|Madame)[,.]?\s*/i, '').split('\n').filter(Boolean)[0] || ''; }
+  function refDossier(id) { return '<a class="c-badge c-badge--ref" href="E01-dossiers.html?id=' + id + '" title="Ouvrir le dossier ' + id + '">' + id + '</a>'; }
+  var NON_RATTACHE = '<span class="c-badge c-badge--warning">Non rattaché</span>';
+
+  function portee(l) {
+    if (etat.dossier) l = l.filter(function (x) { return x.dossier === etat.dossier; });
+    if (etat.client) l = l.filter(function (x) { return x.dossier && D.dossier(x.dossier).client === etat.client; });
+    return l;
+  }
+  function visibles() {
+    var f = FILTRES.filter(function (x) { return x && x.id === etat.filtre; })[0], q = etat.q.toLowerCase();
+    return portee(D.boite()).filter(f.f).filter(function (x) {
+      return !q || [x.m.de, x.m.objet, x.dossier || '', x.m.corps || ''].join(' ').toLowerCase().indexOf(q) >= 0;
+    });
+  }
+
+  function renderFiltres() {
+    var tout = portee(D.boite());
+    $('filtres').innerHTML = FILTRES.map(function (f) {
+      if (!f) return '<div class="c-mailbox__sep" role="separator"></div>';
+      var l = tout.filter(f.f), n = f.id === 'nonlus' ? l.filter(function (x) { return D.estNonLu(x.m); }).length : l.length;
+      var cls = f.id === 'nonrattaches' ? (n ? ' c-count--alert' : '') : (f.id === 'nonlus' && n ? ' c-count--accent' : '');
+      return '<button class="c-mailbox__filtre' + (f.id === etat.filtre ? ' is-active' : '') + '" type="button" data-filtre="' + f.id + '" aria-pressed="' + (f.id === etat.filtre) + '">' +
+        icon(f.icone) + f.label + '<span class="c-count' + cls + '"' + (n ? '' : ' data-zero') + '>' + (n || '') + '</span></button>';
+    }).join('');
+    var lib = etat.dossier ? 'Dossier ' + etat.dossier : etat.client ? 'Client : ' + D.clients[etat.client].nom : '';
+    $('portee').hidden = !lib;
+    $('portee').innerHTML = lib ? '<span class="c-chip is-active">' + esc(lib) + '<button class="c-btn c-btn--icon c-btn--ghost c-btn--sm c-chip__remove" type="button" data-portee aria-label="Voir toute la boîte">' + icon('x', 'c-icon--sm') + '</button></span>' : '';
+  }
+
+  function renderListe() {
+    var l = visibles();
+    if (!l.some(function (x) { return x.m.id === etat.mail; })) etat.mail = l.length ? l[0].m.id : null;
+    $('liste').innerHTML = l.length ? l.map(function (x) {
+      var m = x.m;
+      return '<li class="c-mail' + (D.estNonLu(m) ? ' is-unread' : '') + (m.id === etat.mail ? ' is-active' : '') + '" data-mail="' + esc(m.id) + '" tabindex="0" role="button" aria-current="' + (m.id === etat.mail) + '">' +
+        '<span class="c-mail__de">' + esc(nom(m.de)) + '</span><span class="c-mail__date">' + quand(m.date) + '</span>' +
+        '<span class="c-mail__objet">' + esc(m.objet) + '</span>' +
+        '<span class="c-mail__extrait">' + esc(extrait(m)) + '</span>' +
+        '<span class="c-mail__meta">' + (x.dossier ? refDossier(x.dossier) : NON_RATTACHE) +
+          (m.pj && m.pj.length ? '<span>' + icon('paperclip', 'c-icon--sm') + ' ' + m.pj.length + '</span>' : '') + '</span></li>';
+    }).join('') : '<li class="c-empty">' + icon('inbox') + '<p class="c-empty__title">Aucun email</p><p class="c-empty__text">Rien dans ce filtre pour le moment.</p></li>';
+  }
+
+  function trouve(id) { return D.boite().filter(function (x) { return x.m.id === id; })[0] || null; }
+
+  function renderLecture() {
+    var x = etat.mail ? trouve(etat.mail) : null;
+    if (!x) { $('lecture').innerHTML = '<div class="c-empty">' + icon('mail') + '<p class="c-empty__title">Aucun email sélectionné</p><p class="c-empty__text">Choisissez un email dans la liste.</p></div>'; return; }
+    var m = x.m, d = x.dossier ? D.dossier(x.dossier) : null, prop = !d && m.proposition ? D.dossier(m.proposition.dossier) : null;
+    if (D.estNonLu(m)) { D.marquerEmailLu(m); window.DOUALOG_SHELL.majCompteurs(); }
+    var actif = document.querySelector('.c-mail.is-active'); if (actif) actif.classList.remove('is-unread');
+
+    var alerte = '';
+    if (!d && prop) {
+      alerte = '<div class="c-alert c-alert--warning">' + icon('link') + '<div><div class="c-alert__title">Email non rattaché — dossier probable : ' + prop.id + '</div>' +
+        'Proposé car ' + esc(m.proposition.raison) + '. ' + esc(D.client(prop).nom) + ' · ' + esc(prop.marchandise) + ' · ' + D.badge('dossier', prop.statut) + '</div>' +
+        '<div class="c-alert__actions"><button class="c-btn c-btn--primary c-btn--sm" type="button" data-rattacher="' + prop.id + '">' + icon('link', 'c-icon--sm') + 'Rattacher à ' + prop.id + '</button>' +
+        '<button class="c-btn c-btn--sm" type="button" data-creer>' + icon('plus', 'c-icon--sm') + 'Créer un nouveau dossier</button>' +
+        '<button class="c-btn c-btn--ghost c-btn--sm" type="button" data-ignorer>Ignorer</button></div></div>';
+    } else if (!d) {
+      alerte = '<div class="c-alert c-alert--warning">' + icon('link') + '<div><div class="c-alert__title">Email non rattaché — aucun dossier correspondant</div>' +
+        'Expéditeur inconnu et aucune référence de transport déjà enregistrée : il s\'agit probablement d\'un nouveau client.</div>' +
+        '<div class="c-alert__actions"><button class="c-btn c-btn--primary c-btn--sm" type="button" data-creer>' + icon('plus', 'c-icon--sm') + 'Créer un nouveau dossier</button>' +
+        '<select class="c-select" id="rattacher-a" aria-label="Rattacher à un dossier existant"><option value="">Rattacher à un dossier…</option>' +
+          D.dossiers.filter(function (y) { return y.statut !== 'Clôturé'; }).map(function (y) { return '<option value="' + y.id + '">' + y.id + ' · ' + esc(D.client(y).nom) + '</option>'; }).join('') + '</select>' +
+        '<button class="c-btn c-btn--ghost c-btn--sm" type="button" data-ignorer>Ignorer</button></div></div>';
+    }
+    $('lecture').innerHTML = alerte +
+      '<div class="c-mailread__head"><h2 class="c-mailread__objet">' + esc(m.objet) + '</h2>' +
+      '<dl class="c-mailread__meta"><dt>De</dt><dd>' + esc(m.de) + '</dd><dt>À</dt><dd>' + esc(m.a || D.config.boiteEmail) + '</dd>' +
+        '<dt>Date</dt><dd class="u-num">' + F.dateHeure(m.date) + '</dd><dt>Dossier</dt><dd>' + (d ? refDossier(d.id) + ' ' + esc(D.client(d).nom) : NON_RATTACHE) + '</dd></dl>' +
+      '<div class="c-mailread__actions"><button class="c-btn c-btn--sm" type="button" data-repondre>' + icon('reply', 'c-icon--sm') + 'Répondre</button>' +
+        '<button class="c-btn c-btn--sm" type="button" data-transferer>' + icon('forward', 'c-icon--sm') + 'Transférer</button>' +
+        (d ? '<a class="c-btn c-btn--ghost c-btn--sm" href="E01-dossiers.html?id=' + d.id + '">' + icon('dossiers', 'c-icon--sm') + 'Ouvrir le dossier</a>' : '') + '</div></div>' +
+      '<div class="c-mailread__body">' + esc(m.corps || 'Email sans texte.') + '</div>' +
+      (m.pj && m.pj.length ? '<div class="c-mailread__pj">' + m.pj.map(function (f) {
+        var ext = (f.split('.').pop() || '').toUpperCase();
+        return '<span class="c-file" title="' + esc(f) + '"><span class="c-file__type">' + ext + '</span><span class="c-file__nom">' + esc(f) + '</span></span>';
+      }).join('') + '</div>' : '');
+    var sel = $('rattacher-a');
+    if (sel) sel.addEventListener('change', function () { if (this.value) rattacher(this.value); });
+  }
+
+  function render() { renderFiltres(); renderListe(); renderLecture(); renderFiltres(); }
+
+  function info(html, ton) {
+    var el = $('msg');
+    el.className = 'c-alert c-alert--' + (ton || 'info');
+    el.querySelector('use').setAttribute('href', '#i-' + (ton === 'success' ? 'valide' : 'info'));
+    $('msg-texte').innerHTML = html; el.hidden = false;
+  }
+
+  /* ── Non rattachés : rattacher, créer un dossier, ignorer ── */
+  function rattacher(id) {
+    var m = trouve(etat.mail).m;
+    D.traiterNonRattache(m.id, id);
+    etat.filtre = 'tous';
+    info('<b>Email rattaché au dossier ' + id + '.</b> Il apparaît maintenant dans la messagerie du dossier. <a href="E01-dossiers.html?id=' + id + '">Ouvrir le dossier</a>', 'success');
+    render(); window.DOUALOG_SHELL.majCompteurs();
+  }
+  function prochainNumero() {
+    var max = 0; D.dossiers.forEach(function (d) { max = Math.max(max, +d.id.slice(-4)); });
+    return 'DLG-2026-' + String(max + 1).padStart(4, '0');
+  }
+  function creer() {
+    var m = trouve(etat.mail).m, num = prochainNumero();
+    D.traiterNonRattache(m.id, 'nouveau');
+    info('<b>Dossier ' + num + ' créé à partir de cet email</b> (' + esc(nom(m.de)) + ', ' + m.pj.length + ' pièce' + (m.pj.length > 1 ? 's' : '') + ' jointe' + (m.pj.length > 1 ? 's' : '') + '). L\'accusé de réception part au client avec son lien de suivi. Dans la maquette, ce dossier n\'est pas ajouté à la liste.', 'success');
+    etat.mail = null; render(); window.DOUALOG_SHELL.majCompteurs();
+  }
+  function ignorer() {
+    var m = trouve(etat.mail).m;
+    D.traiterNonRattache(m.id, 'ignore');
+    info('Email ignoré : il ne sera rattaché à aucun dossier.');
+    etat.mail = null; render(); window.DOUALOG_SHELL.majCompteurs();
+  }
+
+  /* ── Rédaction ── */
+  var redaction = null;
+  function champ(id, label, valeur, aide, attrs) {
+    return '<div class="c-field"><label class="c-field__label" for="' + id + '">' + label + '</label><input class="c-input" id="' + id + '" value="' + esc(valeur || '') + '"' + (attrs || '') + '>' +
+      (aide ? '<span class="c-field__help">' + aide + '</span>' : '') + '</div>';
+  }
+  function avecRef(objet, id) { return !id || objet.indexOf('[' + id + ']') >= 0 ? objet : objet.replace(/^((RE|TR): )?/, '$1[' + id + '] '); }
+  function ouvrirRedaction(mode) {
+    var x = mode === 'nouveau' ? null : trouve(etat.mail), m = x && x.m, id = x && x.dossier;
+    redaction = { mode: mode, dossier: id };
+    var corps = '';
+    if (mode === 'nouveau') {
+      var choix = D.dossiers.filter(function (d) { return d.statut !== 'Clôturé' && (!etat.client || d.client === etat.client); });
+      var defaut = etat.dossier || (choix[0] && choix[0].id);
+      corps = '<div class="c-field"><label class="c-field__label" for="r-dossier">Dossier</label><select class="c-select" id="r-dossier">' +
+        choix.map(function (d) { return '<option value="' + d.id + '"' + (d.id === defaut ? ' selected' : '') + '>' + d.id + ' · ' + esc(D.client(d).nom) + '</option>'; }).join('') + '</select></div>' +
+        champ('r-a', 'À', '') + champ('r-objet', 'Objet', '', 'Le N° de dossier en objet permet de rattacher la réponse automatiquement.') +
+        '<div class="c-field"><label class="c-field__label" for="r-corps">Message</label><textarea class="c-textarea" id="r-corps">Madame, Monsieur,\n\n</textarea></div>';
+    } else {
+      var objet = (mode === 'repondre' ? 'RE: ' : 'TR: ') + m.objet.replace(/^(RE|TR):\s*/i, '');
+      var a = mode === 'repondre' ? (m.categorie === 'sortant' || m.categorie === 'auto' ? m.a : adresse(m.de)) : '';
+      var cite = '\n\n----- Message de ' + nom(m.de) + ' du ' + F.dateHeure(m.date) + ' -----\n' + (m.corps || '');
+      corps = (id ? champ('r-dossier-lu', 'Dossier', id + ' · ' + D.client(D.dossier(id)).nom, '', ' readonly') : '') +
+        champ('r-a', 'À', a) + champ('r-objet', 'Objet', avecRef(objet, id), id ? 'Le [' + id + '] reste dans l\'objet : la réponse sera rattachée au dossier.' : 'Email non rattaché : rattachez-le à un dossier pour suivre les échanges.') +
+        '<div class="c-field"><label class="c-field__label" for="r-corps">Message</label><textarea class="c-textarea" id="r-corps">' + esc((mode === 'repondre' ? 'Madame, Monsieur,\n\n' : '') + cite) + '</textarea></div>' +
+        (mode === 'transferer' && m.pj && m.pj.length ? '<p class="c-field__help">' + icon('paperclip', 'c-icon--sm') + ' ' + m.pj.length + ' pièce(s) jointe(s) transférée(s).</p>' : '');
+    }
+    $('modale-titre').textContent = mode === 'nouveau' ? 'Nouveau message' : mode === 'repondre' ? 'Répondre' : 'Transférer';
+    $('modale-corps').innerHTML = corps;
+    $('modale').hidden = false;
+    if (mode === 'nouveau') { majDossier(); $('r-dossier').addEventListener('change', majDossier); $('r-corps').focus(); }
+    else $(mode === 'repondre' ? 'r-corps' : 'r-a').focus();
+  }
+  function majDossier() {
+    var d = D.dossier($('r-dossier').value);
+    redaction.dossier = d.id;
+    $('r-a').value = D.client(d).email;
+    $('r-objet').value = '[' + d.id + '] ';
+  }
+  function fermerRedaction() { $('modale').hidden = true; redaction = null; }
+  function envoyer() {
+    var a = $('r-a').value.trim();
+    if (!a) { $('r-a').closest('.c-field').classList.add('is-error'); $('r-a').focus(); return; }
+    var u = utilisateur(), id = redaction.dossier;
+    var nouveau = { id: 'n' + Date.now(), date: AUJ, categorie: 'sortant', de: u.nom + ' <' + D.config.boiteEmail + '>', a: a,
+      objet: $('r-objet').value.trim() || '(sans objet)', corps: $('r-corps').value, pj: [] };
+    if (id) D.messagesDossier(D.dossier(id)).push(nouveau);
+    fermerRedaction();
+    info('<b>Message envoyé à ' + esc(a) + '.</b>' + (id ? ' Il est ajouté à la messagerie du dossier ' + id + '.' : ''), 'success');
+    if (id) { etat.mail = nouveau.id; etat.filtre = 'tous'; }
+    render();
+  }
+
+  /* ── Événements ── */
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('[data-filtre],[data-mail],[data-rattacher],[data-creer],[data-ignorer],[data-repondre],[data-transferer],[data-nouveau],[data-annuler],[data-portee]');
+    if (!t) return;
+    if (t.dataset.mail !== undefined) { if (e.target.closest('a')) return; etat.mail = t.dataset.mail; renderListe(); renderLecture(); renderFiltres(); return; }
+    if (t.dataset.filtre) { etat.filtre = t.dataset.filtre; etat.mail = null; render(); }
+    else if (t.dataset.rattacher) rattacher(t.dataset.rattacher);
+    else if (t.hasAttribute('data-creer')) creer();
+    else if (t.hasAttribute('data-ignorer')) ignorer();
+    else if (t.hasAttribute('data-repondre')) ouvrirRedaction('repondre');
+    else if (t.hasAttribute('data-transferer')) ouvrirRedaction('transferer');
+    else if (t.hasAttribute('data-nouveau')) ouvrirRedaction('nouveau');
+    else if (t.hasAttribute('data-annuler')) fermerRedaction();
+    else if (t.hasAttribute('data-portee')) { etat.dossier = null; etat.client = null; render(); }
+  });
+  $('liste').addEventListener('keydown', function (e) {
+    var li = e.target.closest('[data-mail]');
+    if (li && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); li.click(); }
+  });
+  $('modale-ok').addEventListener('click', envoyer);
+  $('msg-fermer').addEventListener('click', function () { $('msg').hidden = true; });
+  $('search').addEventListener('input', function () { etat.q = this.value.trim(); renderListe(); renderLecture(); renderFiltres(); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape' && !$('modale').hidden) fermerRedaction(); });
+
+  render();
+  if (p.get('nouveau')) ouvrirRedaction('nouveau');
+})();
+</script>
+</body>
+</html>

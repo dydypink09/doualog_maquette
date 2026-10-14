@@ -1,0 +1,463 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Documents — DOUALOG Control Tower</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<script src="../assets/icons.js"></script>
+<script src="../assets/data.js"></script>
+<script src="../assets/shell.js"></script>
+<script src="../assets/demo.js"></script>
+</head>
+<body>
+<!-- E13 · Documents (CDC §3.2, §7.2) : tous les documents de tous les dossiers, une seule source (data.js > registreDocuments) :
+     pièces des dossiers (obligatoires selon le sens, certificat d'origine), mandats (E12), documents de transport (X06),
+     ordres de transport et factures générés par DOUALOG, pièces jointes à classer.
+     ?filtre=manquants|aclasser|semaine|generes · ?dossier=DLG-… · ?client=c01 · ?doc=<id> ouvre l'aperçu · ?vue=dossiers.
+     Les pièces manquantes sont celles du bloc Documents du dossier (E02) et de la salle d'attente (E03), avec les mêmes relances. -->
+<!-- À VALIDER : proposition automatique du type et du dossier (module IA documentaire : V1 ou V2) · durée de conservation et archivage
+     · taille maximale et formats acceptés · qui peut supprimer un document · versions (US-19, COULD) · « Validé » = pièce contrôlée par le déclarant
+     (déclaration stockée) · accès ouvert à tous les profils — QUESTIONS-ONCLE.md -->
+<div class="c-app">
+  <header class="c-topbar" id="topbar"></header>
+  <nav class="c-sidebar" id="sidebar" aria-label="Navigation principale"></nav>
+
+  <main class="c-main">
+    <div class="c-page-head">
+      <div class="c-page-head__title"><h1>Documents</h1><span class="c-page-head__meta" id="sous-titre"></span></div>
+    </div>
+
+    <div class="c-alert" id="msg" role="status" hidden></div>
+
+    <div class="c-stats">
+      <div class="c-stats__group c-stats__group--4" id="stats" role="group" aria-label="Documents — un clic filtre la liste"></div>
+    </div>
+
+    <section class="c-list" aria-labelledby="liste-titre">
+      <div class="c-list__head">
+        <h2 class="c-block-title" id="liste-titre">Tous les documents</h2>
+        <span class="c-list__meta" id="meta"></span>
+        <div class="c-list__actions">
+          <div class="c-segmented" role="group" aria-label="Affichage" id="vue"></div>
+          <button class="c-btn c-btn--sm" type="button" id="open-filters" aria-controls="filters"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-filter"></use></svg>Filtres <span class="c-count c-count--accent" id="filters-count" data-zero></span></button>
+        </div>
+      </div>
+      <div class="c-toolbar">
+        <div class="c-input-icon c-toolbar__search">
+          <svg class="c-icon" aria-hidden="true"><use href="#i-search"></use></svg>
+          <input class="c-input" id="search" type="search" placeholder="Nom de fichier, N° DLG, client, BL" aria-label="Rechercher un document">
+        </div>
+        <div class="u-contents" id="active-filters"></div>
+      </div>
+      <div class="c-table-wrap">
+        <table class="c-table c-table--sticky" id="table-liste">
+          <thead><tr>
+            <th class="is-center"><span class="u-sr">Format</span></th><th>Document</th><th>Type</th><th>Dossier</th><th>Client</th><th>Provenance</th><th>Reçu le</th><th>Statut</th><th class="is-center">Actions</th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <table class="c-table c-table--sticky" id="table-dossiers" hidden>
+          <thead><tr><th>Dossier</th><th>Type</th><th>Statut du dossier</th><th>Pièces</th><th class="is-num">Complet</th></tr></thead>
+          <tbody id="tbody-dossiers"></tbody>
+        </table>
+        <div class="c-empty" id="empty" hidden>
+          <svg class="c-icon" aria-hidden="true"><use href="#i-document"></use></svg>
+          <p class="c-empty__title">Aucun document ne correspond</p>
+          <p class="c-empty__text">Modifiez la recherche ou retirez un filtre.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ══ Filtres ══ -->
+<aside class="c-drawer" id="filters" aria-label="Filtres">
+  <div class="c-drawer__head">
+    <h2 class="c-block-title">Filtres</h2>
+    <button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" type="button" data-close-filters aria-label="Fermer les filtres"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></button>
+  </div>
+  <div class="c-drawer__body"><div class="u-stack" id="filters-fields"></div></div>
+  <div class="c-drawer__foot">
+    <button class="c-btn" type="button" id="filters-reset">Réinitialiser</button>
+    <button class="c-btn c-btn--primary" type="button" id="filters-apply">Appliquer</button>
+  </div>
+</aside>
+
+<!-- ══ Aperçu d'un document ══ -->
+<aside class="c-drawer c-drawer--wide" id="apercu" aria-labelledby="apercu-titre">
+  <div class="c-drawer__head">
+    <h2 class="c-block-title" id="apercu-titre"></h2>
+    <span id="apercu-statut"></span>
+    <button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" type="button" data-fermer-apercu aria-label="Fermer l'aperçu"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></button>
+  </div>
+  <div class="c-drawer__body u-stack" id="apercu-corps"></div>
+  <div class="c-drawer__foot" id="apercu-pied"></div>
+</aside>
+<input type="file" class="u-sr" id="remplacer-fichier" accept="image/*,application/pdf" aria-label="Choisir le fichier de remplacement">
+
+<!-- ══ Modale : classer, changer le type, rattacher à un autre dossier ══ -->
+<div class="c-overlay" id="modale-classer" hidden>
+  <div class="c-modal" role="dialog" aria-modal="true" aria-labelledby="classer-titre">
+    <div class="c-modal__head"><h3 id="classer-titre"></h3>
+      <button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" type="button" data-fermer-modale aria-label="Fermer"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></button></div>
+    <div class="c-modal__body">
+      <p id="classer-intro"></p>
+      <div class="c-field" id="classer-champ-type"><label class="c-field__label" for="classer-type">Type de document</label><select class="c-select" id="classer-type"></select></div>
+      <div class="c-field" id="classer-champ-dossier"><label class="c-field__label" for="classer-dossier">Dossier</label><select class="c-select" id="classer-dossier"></select></div>
+      <p class="c-field__help" id="classer-aide"></p>
+    </div>
+    <div class="c-modal__foot"><button class="c-btn c-btn--ghost" type="button" data-fermer-modale>Annuler</button><button class="c-btn c-btn--primary" type="button" id="classer-ok">Enregistrer</button></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var D = window.DOUALOG, F = D.fmt, esc = D.esc, SH = window.DOUALOG_SHELL;
+  function $(id) { return document.getElementById(id); }
+  function icon(n, cls) { return '<svg class="c-icon' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#i-' + n + '"></use></svg>'; }
+  var DASH = '<span class="c-dash">—</span>';
+  var AUJ = D.config.aujourdhui.slice(0, 10), LUNDI = '2026-10-12', DEBUT_MOIS = AUJ.slice(0, 8) + '01';
+  var IL_Y_A_30 = (function () { var t = new Date(AUJ + 'T00:00'); t.setDate(t.getDate() - 30); return t.toISOString().slice(0, 10); })();
+
+  SH.init({ actif: 'documents' });
+  function moi() { return D.equipe[D.acces[SH.role()].utilisateur].nom; }
+  function nomClient(id) { return id ? D.clients[id].nom : ''; }
+  function taille(ko) { return ko >= 1000 ? (Math.round(ko / 100) / 10).toString().replace('.', ',') + ' Mo' : ko + ' Ko'; }
+
+  var docs = [];
+  function charger() {
+    docs = D.registreDocuments().sort(function (a, b) {
+      var o = { 'À classer': 0, 'Manquant': 1 };
+      return (o[a.statut] !== undefined ? o[a.statut] : 2) - (o[b.statut] !== undefined ? o[b.statut] : 2) || ((b.date || '') < (a.date || '') ? -1 : (b.date || '') > (a.date || '') ? 1 : 0);
+    });
+  }
+  function doc(id) { return docs.filter(function (x) { return x.id === id; })[0]; }
+
+  /* ── Indicateurs (un clic filtre, un second clic retire le filtre) ── */
+  var TUILES = [
+    { id: 'manquants', label: 'Documents manquants',   ton: 'red',    icone: 'alert',    f: function (x) { return x.statut === 'Manquant'; } },
+    { id: 'aclasser',  label: 'À classer',             ton: 'violet', icone: 'inbox',    f: function (x) { return x.statut === 'À classer'; } },
+    { id: 'semaine',   label: 'Reçus cette semaine',   ton: 'blue',   icone: 'download', f: function (x) { return x.date && x.date.slice(0, 10) >= LUNDI && x.provenance !== 'Généré par DOUALOG'; } },
+    { id: 'generes',   label: 'Générés par DOUALOG',   ton: 'green',  icone: 'document', f: function (x) { return x.provenance === 'Généré par DOUALOG'; } }
+  ];
+  var PERIODES = { 'Cette semaine': function (j) { return j >= LUNDI; }, 'Ce mois-ci': function (j) { return j >= DEBUT_MOIS; },
+    '30 derniers jours': function (j) { return j >= IL_Y_A_30; }, 'Plus de 30 jours': function (j) { return j < IL_Y_A_30; } };
+  function FILTRES() {
+    function uniques(l) { return l.filter(function (v, i, a) { return v && a.indexOf(v) === i; }); }
+    return [
+      { k: 'type', label: 'Type de document', options: uniques(docs.map(function (x) { return x.type; })).sort() },
+      { k: 'dossier', label: 'Dossier', options: D.dossiers.map(function (d) { return d.id; }).sort().reverse() },
+      { k: 'client', label: 'Client', options: Object.keys(D.clients).map(nomClient).sort(function (a, b) { return a.localeCompare(b, 'fr'); }) },
+      { k: 'statut', label: 'Statut', options: ['Reçu', 'Manquant', 'À classer', 'Validé'] },
+      { k: 'provenance', label: 'Provenance', options: D.provenances },
+      { k: 'periode', label: 'Période de réception', options: Object.keys(PERIODES) }
+    ];
+  }
+  var p = new URLSearchParams(location.search);
+  var etat = { q: '', tuile: TUILES.filter(function (t) { return t.id === p.get('filtre'); }).length ? p.get('filtre') : null,
+    vue: p.get('vue') === 'dossiers' ? 'dossiers' : 'liste', filtres: {}, ouvert: null };
+  if (p.get('dossier')) etat.filtres.dossier = p.get('dossier');
+  if (p.get('client') && D.clients[p.get('client')]) etat.filtres.client = nomClient(p.get('client'));
+
+  function garde(x) {
+    var fl = etat.filtres, t = TUILES.filter(function (y) { return y.id === etat.tuile; })[0], q = etat.q.toLowerCase();
+    if (t && !t.f(x)) return false;
+    if (fl.type && x.type !== fl.type) return false;
+    if (fl.dossier && x.dossier !== fl.dossier) return false;
+    if (fl.client && nomClient(x.client) !== fl.client) return false;
+    if (fl.statut && x.statut !== fl.statut) return false;
+    if (fl.provenance && x.provenance !== fl.provenance) return false;
+    if (fl.periode && (!x.date || !PERIODES[fl.periode](x.date.slice(0, 10)))) return false;
+    if (q) {
+      var d = x.dossier ? D.dossier(x.dossier) : null;
+      var champs = [x.fichier, x.dossier, nomClient(x.client), x.type, d && d.bl, d && d.lta, d && d.booking, x.origine].join(' ').toLowerCase();
+      if (champs.indexOf(q) < 0) return false;
+    }
+    return true;
+  }
+
+  /* ── Cellules ── */
+  function badgeStatut(x) { return D.badge('document', x.statut); }
+  function lienDossier(id) { return id ? '<a class="c-ref" href="E01-dossiers.html?id=' + id + '">' + id + '</a>' : DASH; }
+  function nomCellule(x) {
+    if (x.statut === 'Manquant') return '<span class="u-muted">Non reçu</span>';
+    return '<a class="c-ref" href="?doc=' + encodeURIComponent(x.id) + '" data-voir="' + x.id + '">' + esc(x.fichier) + '</a><div class="c-field__help">' + taille(x.taille) + '</div>';
+  }
+  function dateCellule(x) {
+    if (x.statut === 'Manquant') return x.demande ? '<span class="u-muted">demandé le ' + F.date(x.demande) + '</span>' + (x.relances ? '<div class="c-field__help">' + x.relances + ' relance' + (x.relances > 1 ? 's' : '') + (x.prochaine ? ' · prochaine ' + F.dateCourte(x.prochaine) : '') + '</div>' : (x.parDouane ? '<div class="c-field__help">demandé par la douane</div>' : '')) : DASH;
+    return F.date(x.date) + '<div class="c-field__help">' + F.heure(x.date) + '</div>';
+  }
+  function bIcone(attrs, ic, label) { return '<button class="c-btn c-btn--icon c-btn--sm" type="button" ' + attrs + ' aria-label="' + label + '" title="' + label + '">' + icon(ic, 'c-icon--sm') + '</button>'; }
+  function actions(x) {
+    if (x.statut === 'À classer') return '<button class="c-btn c-btn--sm c-btn--primary" type="button" data-valider="' + x.id + '">Valider</button> ' +
+      bIcone('data-modifier="' + x.id + '"', 'edit', 'Modifier le type ou le dossier') + ' ' + bIcone('data-ignorer="' + x.id + '"', 'x', 'Ignorer cette pièce jointe');
+    if (x.statut === 'Manquant') return '<a class="c-btn c-btn--icon c-btn--sm" href="' + lienDemande(x) + '" aria-label="Demander au client" title="Demander au client">' + icon('send', 'c-icon--sm') + '</a> ' + bIcone('data-voir="' + x.id + '"', 'eye', 'Voir');
+    return bIcone('data-voir="' + x.id + '"', 'eye', 'Voir') + ' ' + bIcone('data-telecharger="' + x.id + '"', 'download', 'Télécharger');
+  }
+  function lienDemande(x) { return x.cle === 'mandat' ? 'E12-mandats.html?id=' + x.client + '&action=demande' : '../externe/X02-email-documents-manquants.html?id=' + x.dossier; }
+  function typeCellule(x) {
+    if (x.statut === 'À classer') return '<span class="u-muted">Type probable :</span><div>' + esc(D.libDoc(x.proposition.type)) + '</div>';
+    return esc(x.type) + (x.famille === 'mandat' && x.statut !== 'Manquant' ? '<div class="c-field__help"><a href="E12-mandats.html?id=' + x.client + '">voir le mandat</a></div>' : '');
+  }
+  function dossierCellule(x) {
+    if (x.statut === 'À classer') return '<span class="u-muted">Dossier probable :</span><div>' + lienDossier(x.proposition.dossier) + '</div>';
+    return lienDossier(x.dossier);
+  }
+  function clientCellule(x) {
+    if (x.statut === 'À classer') return esc(nomClient(D.dossier(x.proposition.dossier).client)) + '<div class="c-field__help">probable</div>';
+    return esc(nomClient(x.client)) || DASH;
+  }
+  function provCellule(x) { return x.provenance ? esc(x.provenance) + (x.statut === 'À classer' ? '<div class="c-field__help">' + esc(x.par) + '</div>' : '') : DASH; }
+
+  /* ── Vue par dossier : checklist compacte des pièces ── */
+  var COURT = { facture: 'Facture', packing: 'Packing', instruction: 'Instruction', bl: 'BL / LTA', bonLivraison: 'Bon livr.', certificatOrigine: 'Certif. origine', mandat: 'Mandat' };
+  function lignesDossiers() {
+    return D.dossiers.map(function (d) {
+      var cles = D.clesDossier(d).concat(['mandat']), manq = D.piecesManquantes(d);
+      return { d: d, cles: cles, manq: manq, ok: cles.length - manq.length };
+    }).filter(function (l) {
+      var fl = etat.filtres, q = etat.q.toLowerCase();
+      if (fl.dossier && l.d.id !== fl.dossier) return false;
+      if (fl.client && nomClient(l.d.client) !== fl.client) return false;
+      if ((etat.tuile === 'manquants' || fl.statut === 'Manquant') && !l.manq.length) return false;
+      if (q && [l.d.id, nomClient(l.d.client), l.d.bl, l.d.lta, l.d.booking].join(' ').toLowerCase().indexOf(q) < 0) return false;
+      return true;
+    }).sort(function (a, b) { return (b.manq.length ? 1 : 0) - (a.manq.length ? 1 : 0) || (a.d.id < b.d.id ? 1 : -1); });
+  }
+
+  function render() {
+    $('stats').innerHTML = TUILES.map(function (t) {
+      var on = t.id === etat.tuile;
+      return '<button class="c-stat c-stat--' + t.ton + (on ? ' is-active' : '') + '" type="button" data-tuile="' + t.id + '" aria-pressed="' + on + '" title="' + t.label + ' — ' + (on ? 'retirer le filtre' : 'filtrer la liste') + '">' +
+        '<span class="c-stat__in"><span class="c-stat__icon">' + icon(t.icone) + '</span><span class="c-stat__value">' + docs.filter(t.f).length + '</span>' +
+        '<span class="c-stat__label">' + t.label + '</span></span></button>';
+    }).join('');
+    $('vue').innerHTML = [['liste', 'Liste'], ['dossiers', 'Par dossier']].map(function (v) {
+      return '<button type="button" class="c-segmented__opt" data-vue="' + v[0] + '" aria-pressed="' + (etat.vue === v[0]) + '">' + v[1] + '</button>';
+    }).join('');
+    var actifs = FILTRES().filter(function (f) { return etat.filtres[f.k]; });
+    $('active-filters').innerHTML = actifs.map(function (f) {
+      return '<button class="c-chip" type="button" data-remove="' + f.k + '" aria-label="Retirer le filtre ' + esc(f.label) + '">' + esc(f.label + ' : ' + etat.filtres[f.k]) + '<span class="c-chip__remove">' + icon('x', 'c-icon--sm') + '</span></button>';
+    }).join('');
+    var c = $('filters-count'); c.textContent = actifs.length || ''; if (actifs.length) c.removeAttribute('data-zero'); else c.setAttribute('data-zero', '');
+
+    var liste = etat.vue === 'liste';
+    $('table-liste').hidden = !liste; $('table-dossiers').hidden = liste;
+    var n;
+    if (liste) {
+      var vis = docs.filter(garde);
+      n = vis.length;
+      $('tbody').innerHTML = vis.map(function (x) {
+        var cls = x.statut === 'Manquant' ? 'is-alert' : x.statut === 'À classer' ? 'is-warning' : '';
+        return '<tr class="' + cls + '"><td class="is-center">' + (x.ext ? '<span class="c-file__type" title="' + x.ext + '">' + x.ext + '</span>' : DASH) + '</td><td>' + nomCellule(x) + '</td><td class="is-wrap">' + typeCellule(x) + '</td><td>' + dossierCellule(x) + '</td>' +
+          '<td class="is-wrap">' + clientCellule(x) + '</td><td class="is-wrap">' + provCellule(x) + '</td><td class="u-num">' + dateCellule(x) + '</td>' +
+          '<td>' + badgeStatut(x) + '</td><td class="is-center u-nowrap">' + actions(x) + '</td></tr>';
+      }).join('');
+      $('meta').textContent = n + ' document' + (n > 1 ? 's' : '') + ' · à classer et manquants en premier';
+    } else {
+      var ld = lignesDossiers();
+      n = ld.length;
+      $('tbody-dossiers').innerHTML = ld.map(function (l) {
+        return '<tr' + (l.manq.length ? ' class="is-alert"' : '') + '><td><a class="c-ref" href="?dossier=' + l.d.id + '" data-dossier="' + l.d.id + '" title="Voir les documents de ce dossier">' + l.d.id + '</a><div class="c-field__help">' + esc(nomClient(l.d.client)) + '</div></td>' +
+          '<td>' + D.badge('type', l.d.type) + '</td><td>' + D.badge('dossier', l.d.statut) + '</td>' +
+          '<td class="is-wrap">' + l.cles.map(function (k) {
+            var ok = l.manq.indexOf(k) < 0, lib = k === 'mandat' ? 'Mandat' : D.libDoc(k);
+            return '<span class="c-badge c-badge--' + (ok ? 'success' : 'danger') + '" title="' + lib + (ok ? ' : présent' : ' : manquant') + '">' + COURT[k] + '</span>';
+          }).join(' ') + '</td>' +
+          '<td class="is-num"><b>' + l.ok + '/' + l.cles.length + '</b>' + (l.manq.length ? '<div class="c-field__help">' + l.manq.length + ' manquant' + (l.manq.length > 1 ? 's' : '') + '</div>' : '') + '</td></tr>';
+      }).join('');
+      var inc = ld.filter(function (l) { return l.manq.length; }).length;
+      $('meta').textContent = n + ' dossier' + (n > 1 ? 's' : '') + ' · ' + inc + ' incomplet' + (inc > 1 ? 's' : '') + ' en premier';
+    }
+    $('empty').hidden = n > 0;
+    var t = D.documentsATraiter().length;
+    $('sous-titre').textContent = docs.filter(function (x) { return x.statut !== 'Manquant'; }).length + ' documents · ' + t + ' à traiter';
+  }
+
+  /* ── Messages ── */
+  function message(ton, titre, texte) {
+    var m = $('msg');
+    m.className = 'c-alert c-alert--' + ton; m.hidden = false;
+    m.innerHTML = icon(ton === 'success' ? 'valide' : ton === 'danger' ? 'alert' : 'info') + '<div><div class="c-alert__title">' + titre + '</div>' + (texte || '') + '</div>' +
+      '<div class="c-alert__actions"><button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" type="button" data-fermer-msg aria-label="Fermer le message">' + icon('x', 'c-icon--sm') + '</button></div>';
+  }
+  function rafraichir() { charger(); render(); SH.majCompteurs(); if (etat.ouvert) { if (doc(etat.ouvert)) apercu(etat.ouvert); else fermerApercu(); } }
+
+  /* ── Aperçu ── */
+  function kv(rows) {
+    return '<dl class="c-kv c-kv--rows">' + rows.filter(Boolean).map(function (r) { return '<div><dt>' + r[0] + '</dt><dd>' + (r[1] ? r[1] : DASH) + '</dd></div>'; }).join('') + '</dl>';
+  }
+  function visuel(x) {
+    if (x.ext === 'JPG') return '<div class="c-empty">' + icon('camera') + '<p class="c-empty__title">' + esc(x.fichier) + '</p><p class="c-empty__text">Photo · aperçu de l\'image (simulé dans la maquette)</p></div>';
+    var d = x.dossier ? D.dossier(x.dossier) : null, c = x.client ? D.clients[x.client] : null;
+    if (x.famille === 'aclasser') { d = D.dossier(x.proposition.dossier); c = D.client(d); }
+    var titre = x.type || D.libDoc(x.proposition.type);
+    return '<div class="c-invoice">' +
+      '<div class="c-invoice__head"><div><div class="c-invoice__emetteur"><b>' + (x.provenance === 'Généré par DOUALOG' ? 'DOUALOG — Douane &amp; Logistique' : esc(c ? c.nom : '')) + '</b><br>' + (c ? esc(c.adresse) + ', ' + esc(c.cp) + ' ' + esc(c.ville) : '') + '</div></div>' +
+        '<div><div class="c-invoice__title">' + esc(titre) + '</div><div class="c-invoice__num">' + esc(x.fichier.replace(/\.[a-z]+$/i, '').replace(/_/g, ' ')) + '</div>' +
+        '<div class="c-invoice__dates">' + (d ? 'Dossier ' + d.id + '<br>' + (d.bl ? 'BL ' + d.bl : d.lta ? 'LTA ' + d.lta : 'Booking ' + (d.booking || '')) : '') + '</div></div></div>' +
+      (d ? '<table class="c-invoice__lignes"><thead><tr><th>Désignation</th><th class="is-num">Colis</th><th class="is-num">Poids brut</th></tr></thead><tbody>' +
+        '<tr><td>' + esc(d.marchandise) + '</td><td class="is-num">' + F.nombre(d.colis) + ' ' + esc(d.unite) + '</td><td class="is-num">' + F.poids(d.poids) + '</td></tr></tbody></table>' : '') +
+      '<div class="c-invoice__mentions">Aperçu simulé de la première page · ' + x.ext + ' · ' + taille(x.taille) + '</div></div>';
+  }
+  function historique(x) {
+    var h = [], d = x.dossier ? D.dossier(x.dossier) : null;
+    var RECU = { 'Email client': 'Reçu en pièce jointe de l\'email de ' + (x.origine || x.par), 'Lien client': 'Déposé par ' + x.par + ' sur son lien personnel',
+      'Transporteur': 'Déposé par ' + x.par + ' sur son lien transporteur', 'Généré par DOUALOG': 'Généré par DOUALOG (' + x.par + ')', 'Ajout manuel': 'Ajouté par ' + x.par };
+    var v = x.versions || [];
+    if (v.length > 1) v.forEach(function (y, i) { h.push({ date: y.date, ic: i ? 'refresh' : 'download', texte: i ? 'Remplacé par ' + y.fichier + ' (version ' + (i + 1) + ')' + (y.note ? ' : ' + y.note : '') + '.' : 'Reçu : ' + y.fichier + '.', par: y.par }); });
+    else if (x.date) h.push({ date: x.date, ic: 'download', texte: RECU[x.provenance] + '.', par: x.par });
+    (x.journal || []).forEach(function (j) { if (!/^Remplacé/.test(j.texte)) h.push({ date: j.date, ic: 'edit', texte: j.texte, par: j.par }); });
+    if (d && d.lienClient && x.date && x.date < '2026-10-13T09:12' && x.famille !== 'transport') h.push({ date: '2026-10-13T09:12', ic: 'eye', texte: 'Consulté par le client sur son lien personnel.', par: 'Client (lien personnel)' });
+    if (x.statut === 'Validé' && d && d.declStockee && x.famille === 'dossier') h.push({ date: d.declStockee, ic: 'check', texte: 'Contrôlé avec la déclaration stockée.', par: D.responsable(d).nom });
+    if (x.statut === 'Manquant') {
+      if (x.demande) h.push({ date: x.demande, ic: 'send', texte: x.parDouane ? 'Demandé par la douane, demande transmise au client.' : x.cle === 'mandat' ? 'Mandat demandé au client (email avec le modèle).' : 'Demandé au client (email des documents manquants).', par: 'Système' });
+      if (d && d.salleAttente && x.cle !== 'mandat') d.salleAttente.envois.slice(1).forEach(function (e, i) { h.push({ date: e, ic: 'refresh', texte: 'Relance n° ' + (i + 1) + ' envoyée au client.', par: 'Système' }); });
+    }
+    h.sort(function (a, b) { return a.date < b.date ? 1 : -1; });
+    return h.length ? '<ol class="c-timeline">' + h.map(function (e) {
+      return '<li class="c-timeline__item"><span class="c-timeline__icon">' + icon(e.ic) + '</span><div><div class="c-timeline__time">' + F.dateHeure(e.date) + '</div><div class="c-timeline__text">' + esc(e.texte) + '</div><div class="c-timeline__actor">' + esc(e.par || '') + '</div></div></li>';
+    }).join('') + '</ol>' : '<p class="c-field__help">Aucun événement.</p>';
+  }
+  function apercu(id) {
+    var x = doc(id);
+    if (!x) return;
+    etat.ouvert = id;
+    var d = x.dossier ? D.dossier(x.dossier) : null, corps = '', pied = '';
+    $('apercu-titre').textContent = x.statut === 'À classer' ? 'Pièce jointe à classer' : x.type + (x.dossier ? ' — ' + x.dossier : '');
+    $('apercu-statut').innerHTML = badgeStatut(x);
+    if (x.statut === 'Manquant') {
+      corps = '<div class="c-alert c-alert--danger">' + icon('alert') + '<div><div class="c-alert__title">' + esc(x.type) + ' : pas encore reçu</div>' +
+        (x.demande ? 'Demandé le ' + F.dateHeure(x.demande) + (x.relances ? ' · ' + x.relances + ' relance' + (x.relances > 1 ? 's' : '') : '') + (x.prochaine ? ' · prochaine relance automatique le ' + F.date(x.prochaine) : '') + '.' : 'Pas encore demandé au client.') + '</div></div>' +
+        kv([['Type', esc(x.type)], ['Dossier', lienDossier(x.dossier)], ['Client', esc(nomClient(x.client))], ['Demandé par', x.parDouane ? 'La douane (contrôle documentaire)' : 'DOUALOG']]) +
+        '<p class="u-label u-mt-3">Historique</p>' + historique(x);
+      pied = '<a class="c-btn c-btn--primary" href="' + lienDemande(x) + '">' + icon('send') + (x.cle === 'mandat' ? 'Demander le mandat' : 'Demander au client') + '</a>' +
+        (x.cle !== 'mandat' ? '<a class="c-btn" href="E01-dossiers.html?id=' + x.dossier + '">' + icon('upload') + 'Ajouter dans le dossier</a>' : '');
+    } else if (x.statut === 'À classer') {
+      var pd = D.dossier(x.proposition.dossier);
+      corps = '<div class="c-alert c-alert--info">' + icon('info') + '<div><div class="c-alert__title">Type probable : ' + esc(D.libDoc(x.proposition.type)) + ' · Dossier probable : ' + pd.id + '</div>' +
+        'Proposé car ' + esc(x.proposition.raison) + '.</div></div>' + visuel(x) +
+        kv([['Fichier', esc(x.fichier)], ['Email d\'origine', esc(x.origine) + '<div class="c-field__help">« ' + esc(x.objet) + ' »</div>'], ['Reçu le', F.dateHeure(x.date)], ['Taille', taille(x.taille)]]);
+      pied = '<button class="c-btn c-btn--ghost" type="button" data-ignorer="' + x.id + '">' + icon('x') + 'Ignorer</button>' +
+        '<button class="c-btn" type="button" data-modifier="' + x.id + '">' + icon('edit') + 'Modifier</button>' +
+        '<button class="c-btn c-btn--primary" type="button" data-valider="' + x.id + '">' + icon('check') + 'Valider</button>';
+    } else {
+      var v = x.versions || [];
+      corps = visuel(x) +
+        kv([['Type', esc(x.type)], ['Dossier', lienDossier(x.dossier)], ['Client', esc(nomClient(x.client))], ['Provenance', esc(x.provenance)],
+          ['Reçu le', F.dateHeure(x.date)], ['Taille', x.ext + ' · ' + taille(x.taille)], ['Ajouté par', esc(x.par)], x.origine ? ['Email d\'origine', esc(x.origine)] : null]) +
+        (v.length > 1 ? '<p class="u-label u-mt-3">Versions</p><ul class="u-stack">' + v.slice().reverse().map(function (y, i) {
+          return '<li class="c-field__help">v' + (v.length - i) + ' · ' + F.dateHeure(y.date) + ' · ' + esc(y.fichier) + ' · ' + esc(y.par) + (i === 0 ? ' (actuelle)' : '') + '</li>'; }).join('') + '</ul>' : '') +
+        '<p class="u-label u-mt-3">Historique</p>' + historique(x);
+      var piece = x.famille === 'dossier';
+      pied = '<button class="c-btn" type="button" data-telecharger="' + x.id + '">' + icon('download') + 'Télécharger</button>' +
+        (piece ? '<button class="c-btn" type="button" data-remplacer="' + x.id + '">' + icon('upload') + 'Remplacer</button>' +
+          '<button class="c-btn" type="button" data-changer="type" data-doc="' + x.id + '">' + icon('edit') + 'Changer le type</button>' +
+          '<button class="c-btn" type="button" data-changer="dossier" data-doc="' + x.id + '">' + icon('link') + 'Rattacher à un autre dossier</button>'
+        : x.famille === 'mandat' ? '<a class="c-btn" href="E12-mandats.html?id=' + x.client + '">' + icon('mandat') + 'Ouvrir le mandat</a>'
+        : x.cle === 'factureDoualog' ? '<a class="c-btn" href="E06-facturation.html?id=' + x.dossier + '">' + icon('facture') + 'Ouvrir la facture</a>'
+        : '<span class="c-field__help">Document ' + (x.famille === 'transport' ? 'déposé par le transporteur' : 'généré par DOUALOG') + ' : type et dossier fixés.</span>');
+    }
+    $('apercu-corps').innerHTML = corps; $('apercu-pied').innerHTML = pied;
+    $('apercu').classList.add('is-open');
+    history.replaceState(null, '', '?doc=' + encodeURIComponent(id));
+  }
+  function fermerApercu() { etat.ouvert = null; $('apercu').classList.remove('is-open'); history.replaceState(null, '', location.pathname); }
+
+  /* ── Classer / changer le type / rattacher ── */
+  var modale = null;
+  function optionsDossiers(sel) {
+    return D.dossiers.filter(function (d) { return d.statut !== 'Clôturé'; }).sort(function (a, b) { return a.id < b.id ? 1 : -1; }).map(function (d) {
+      return '<option value="' + d.id + '"' + (d.id === sel ? ' selected' : '') + '>' + d.id + ' · ' + esc(nomClient(d.client)) + (D.enSalleAttente(d) ? ' (salle d\'attente)' : '') + '</option>';
+    }).join('');
+  }
+  function optionsTypes(sel) { return D.clesDocDossier.map(function (k) { return '<option value="' + k + '"' + (k === sel ? ' selected' : '') + '>' + D.libDoc(k) + '</option>'; }).join(''); }
+  function ouvrirModale(mode, x) {
+    modale = { mode: mode, x: x };
+    var type = x.statut === 'À classer' ? x.proposition.type : x.cle, dos = x.statut === 'À classer' ? x.proposition.dossier : x.dossier;
+    $('classer-titre').textContent = mode === 'classer' ? 'Classer la pièce jointe' : mode === 'type' ? 'Changer le type' : 'Rattacher à un autre dossier';
+    $('classer-intro').innerHTML = '<b>' + esc(x.fichier) + '</b>' + (x.origine ? '<br><span class="c-field__help">' + esc(x.origine) + '</span>' : '');
+    $('classer-type').innerHTML = optionsTypes(type); $('classer-dossier').innerHTML = optionsDossiers(dos);
+    $('classer-champ-type').hidden = mode === 'dossier'; $('classer-champ-dossier').hidden = mode === 'type';
+    $('classer-aide').textContent = mode === 'classer' ? 'La pièce rejoint le dossier choisi. Si c\'était la dernière pièce attendue, le dossier quitte la salle d\'attente.'
+      : 'La pièce quitte sa place actuelle : si elle y était obligatoire, elle y redevient manquante.';
+    $('modale-classer').hidden = false; $(mode === 'dossier' ? 'classer-dossier' : 'classer-type').focus();
+  }
+  function annoncerClassement(res, k) {
+    var d = res.dossier;
+    if (res.sortiSalle) message('success', 'Dossier ' + d.id + ' complet', D.libDoc(k) + ' rattachée. Le dossier quitte la salle d\'attente et rejoint la liste des dossiers (statut : ' + esc(d.statut) + '). <a href="E01-dossiers.html?id=' + d.id + '">Ouvrir le dossier</a> · <a href="E03-salle-attente.html">Salle d\'attente</a>');
+    else message('success', D.libDoc(k) + ' classée dans ' + d.id, (D.documentsManquants(d).length ? 'Il manque encore : ' + D.documentsManquants(d).map(D.libDoc).join(', ') + '.' : 'Plus aucune pièce obligatoire ne manque.') + ' <a href="E01-dossiers.html?id=' + d.id + '">Ouvrir le dossier</a>');
+  }
+  function valider(x, k, dossierId) {
+    var res = D.classerDocument(x.id.slice(3), k, dossierId, moi());
+    if (res) { fermerApercu(); rafraichir(); annoncerClassement(res, k); }
+  }
+  $('classer-ok').addEventListener('click', function () {
+    var x = modale.x, k = $('classer-type').value, did = $('classer-dossier').value;
+    $('modale-classer').hidden = true;
+    if (modale.mode === 'classer') { valider(x, k, did); return; }
+    var d = D.dossier(x.dossier), d2 = D.dossier(modale.mode === 'dossier' ? did : x.dossier), k2 = modale.mode === 'type' ? k : x.cle;
+    if (d2 === d && k2 === x.cle) return;
+    var remplace = d2.docs[k2];
+    D.deplacerDocument(d, x.cle, d2, k2, moi());
+    etat.ouvert = d2.id + ':' + k2; rafraichir();
+    message('success', modale.mode === 'type' ? 'Type changé : ' + D.libDoc(k2) : 'Rattaché au dossier ' + d2.id,
+      (remplace ? 'La pièce précédente de ce type est remplacée. ' : '') + (D.clesDossier(d).indexOf(x.cle) >= 0 && !d.docs[x.cle] ? D.libDoc(x.cle) + ' redevient manquant(e) dans ' + d.id + '.' : ''));
+  });
+
+  /* ── Filtres ── */
+  function ouvrirFiltres(on) {
+    if (on) $('filters-fields').innerHTML = FILTRES().map(function (f) {
+      return '<div class="c-field"><label class="c-field__label" for="f-' + f.k + '">' + f.label + '</label><select class="c-select" id="f-' + f.k + '"><option value="">Tous</option>' +
+        f.options.map(function (o) { return '<option' + (etat.filtres[f.k] === o ? ' selected' : '') + '>' + esc(o) + '</option>'; }).join('') + '</select></div>';
+    }).join('');
+    $('filters').classList.toggle('is-open', on); if (on) $('f-type').focus();
+  }
+  $('open-filters').addEventListener('click', function () { ouvrirFiltres(true); });
+  $('filters-apply').addEventListener('click', function () { FILTRES().forEach(function (f) { var v = $('f-' + f.k).value; if (v) etat.filtres[f.k] = v; else delete etat.filtres[f.k]; }); ouvrirFiltres(false); render(); });
+  $('filters-reset').addEventListener('click', function () { etat.filtres = {}; ouvrirFiltres(false); render(); });
+
+  /* ── Clics ── */
+  document.addEventListener('click', function (ev) {
+    var t = ev.target.closest('[data-tuile],[data-vue],[data-remove],[data-voir],[data-telecharger],[data-valider],[data-modifier],[data-ignorer],[data-remplacer],[data-changer],[data-dossier],[data-close-filters],[data-fermer-apercu],[data-fermer-modale],[data-fermer-msg]');
+    if (!t) return;
+    if (t.dataset.tuile) { etat.tuile = etat.tuile === t.dataset.tuile ? null : t.dataset.tuile; if (etat.tuile === 'aclasser' || etat.tuile === 'generes' || etat.tuile === 'semaine') etat.vue = 'liste'; render(); return; }
+    if (t.dataset.vue) { etat.vue = t.dataset.vue; render(); return; }
+    if (t.dataset.remove) { delete etat.filtres[t.dataset.remove]; render(); return; }
+    if (t.dataset.dossier) { ev.preventDefault(); etat.filtres = { dossier: t.dataset.dossier }; etat.vue = 'liste'; etat.tuile = null; render(); return; }
+    if (t.hasAttribute('data-close-filters')) { ouvrirFiltres(false); return; }
+    if (t.hasAttribute('data-fermer-apercu')) { fermerApercu(); return; }
+    if (t.hasAttribute('data-fermer-modale')) { $('modale-classer').hidden = true; return; }
+    if (t.hasAttribute('data-fermer-msg')) { $('msg').hidden = true; return; }
+    if (t.dataset.voir) { ev.preventDefault(); apercu(t.dataset.voir); return; }
+    if (t.dataset.telecharger) { var xt = doc(t.dataset.telecharger); message('info', 'Téléchargement de ' + esc(xt.fichier), 'Dans la maquette, aucun fichier n\'est téléchargé.'); return; }
+    if (t.dataset.valider) { var xv = doc(t.dataset.valider); valider(xv, xv.proposition.type, xv.proposition.dossier); return; }
+    if (t.dataset.modifier) { ouvrirModale('classer', doc(t.dataset.modifier)); return; }
+    if (t.dataset.ignorer) { var xi = doc(t.dataset.ignorer); D.ignorerDocument(xi.id.slice(3), moi()); fermerApercu(); rafraichir(); message('info', 'Pièce jointe ignorée : ' + esc(xi.fichier), 'Elle reste dans l\'email d\'origine, mais n\'est rattachée à aucun dossier.'); return; }
+    if (t.dataset.remplacer) { remplacement = doc(t.dataset.remplacer); $('remplacer-fichier').value = ''; $('remplacer-fichier').click(); return; }
+    if (t.dataset.changer) { ouvrirModale(t.dataset.changer, doc(t.dataset.doc)); return; }
+  });
+  var remplacement = null;
+  $('remplacer-fichier').addEventListener('change', function () {
+    var f = this.files[0], x = remplacement;
+    if (!f || !x) return;
+    D.remplacerDocument(D.dossier(x.dossier), x.cle, f.name, moi());
+    rafraichir();
+    message('success', esc(x.type) + ' remplacé(e) dans ' + x.dossier, 'Nouvelle version : ' + esc(f.name) + '. L\'ancienne version reste consultable dans l\'aperçu.');
+  });
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key !== 'Escape') return;
+    if (!$('modale-classer').hidden) $('modale-classer').hidden = true;
+    else if ($('filters').classList.contains('is-open')) ouvrirFiltres(false);
+    else if (etat.ouvert) fermerApercu();
+  });
+  $('search').addEventListener('input', function () { etat.q = this.value.trim(); render(); });
+
+  charger(); render();
+  if (p.get('doc') && doc(p.get('doc'))) apercu(p.get('doc'));
+})();
+</script>
+</body>
+</html>

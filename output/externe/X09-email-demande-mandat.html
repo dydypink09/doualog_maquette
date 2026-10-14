@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Demande de mandat — maquette email</title>
 <!-- X09 · Email demande de mandat · US-08 (SHOULD, P1) — envoyé quand aucun mandat valide n'est trouvé pour le client.
-     ?id=DLG-… (par défaut DLG-2026-0427, Anacarde Trading Casamance, mandat absent).
+     ?id=DLG-… (par défaut DLG-2026-0427, Cidrerie du Pays d’Auge, mandat absent). Variante renouvellement si le mandat du client est encore valide (ex. ?id=DLG-2026-0403, Maison Textile Duval).
      HTML d'email : 600 px, tableaux, styles en ligne. Données : ../assets/data.js. -->
 <!-- À VALIDER : signature en ligne ou retour du mandat signé (scan) — QUESTIONS-ONCLE §3.4 ; durée de validité d'un mandat. -->
 <script src="../assets/data.js"></script>
@@ -55,14 +55,19 @@
 
       <!-- Corps -->
       <tr><td style="padding:32px 28px 8px;">
-        <h1 style="margin:0 0 16px;font-size:22px;line-height:30px;font-weight:700;color:#0C2C5E;">Un mandat signé est nécessaire pour vous représenter en douane</h1>
+        <h1 data-si="premierMandat" style="margin:0 0 16px;font-size:22px;line-height:30px;font-weight:700;color:#0C2C5E;">Un mandat signé est nécessaire pour vous représenter en douane</h1>
+        <h1 data-si="renouvellement" style="margin:0 0 16px;font-size:22px;line-height:30px;font-weight:700;color:#0C2C5E;">Votre mandat de représentation arrive à échéance</h1>
         <p style="margin:0 0 12px;font-size:15px;line-height:24px;color:#344054;">Bonjour <span data-f="contact"></span>,</p>
-        <p style="margin:0 0 12px;font-size:15px;line-height:24px;color:#344054;">
+        <p data-si="renouvellement" style="margin:0 0 20px;font-size:15px;line-height:24px;color:#344054;">
+          Le mandat <b data-f="mandatNum"></b> qui nous permet de vous représenter auprès de la douane pour <b data-f="client"></b> (SIRET <span data-f="siret"></span>) prend fin le <b data-f="mandatFin"></b>.
+          Pour que vos prochains dossiers ne soient pas retardés, merci de signer le nouveau mandat joint, déjà rempli avec ces informations.
+        </p>
+        <p data-si="premierMandat" style="margin:0 0 12px;font-size:15px;line-height:24px;color:#344054;">
           Nous avons bien reçu votre envoi, enregistré sous le numéro <b data-f="id"></b>.
           Pour accomplir les formalités en votre nom auprès de la douane, nous avons besoin d'un mandat de représentation signé par votre société.
         </p>
-        <p style="margin:0 0 20px;font-size:15px;line-height:24px;color:#344054;">
-          Nous ne trouvons pas de mandat en cours de validité pour <b data-f="client"></b> (N° IFU <span data-f="ifu"></span>).
+        <p data-si="premierMandat" style="margin:0 0 20px;font-size:15px;line-height:24px;color:#344054;">
+          Nous ne trouvons pas de mandat en cours de validité pour <b data-f="client"></b> (SIRET <span data-f="siret"></span>).
           Vous trouverez en pièce jointe un modèle déjà rempli avec ces informations.
         </p>
       </td></tr>

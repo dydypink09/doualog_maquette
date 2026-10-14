@@ -89,7 +89,7 @@
     var lien = d.lienClient ? 'Actif jusqu\'au ' + F.date(d.lienClient.expire) + ' · ' + d.lienClient.consultations + ' consultations' : null;
     return carte('Informations générales', kv([
       [d.type === 'Import' ? 'Importateur' : 'Exportateur', esc(c.nom)],
-      ['N° IFU', c.ifu],   // À VALIDER : IFU ou NINEA (QUESTIONS-ONCLE §1.1 bis)
+      ['N° EORI', c.eori],   // À VALIDER : EORI (douane) à la place du « N° IFU » du CDC ; le SIRET figure sur la fiche client et la facture
       d.bl ? ['BL', d.bl] : d.lta ? ['LTA', d.lta] : d.booking ? ['Booking', d.booking] : [d.mode === 'Aérien' ? 'LTA' : 'BL', null],
       d.mode === 'Aérien' ? ['Vol', d.vol] : ['Conteneur', d.conteneur],
       d.mode === 'Aérien' ? null : ['Navire', d.navire],
@@ -113,18 +113,20 @@
     if (d.docs.certificatOrigine || demandeControle) cles.push('certificatOrigine');
     var manquants = 0;
     var lignes = cles.map(function (k) {
-      var ok = d.docs[k];
+      var ok = k === 'mandat' ? D.mandatOk(d) : d.docs[k];
       if (!ok) manquants++;
-      var note = !ok && k === 'certificatOrigine' && demandeControle ? ' — demandé par la douane' : (!ok && k === 'mandat' && d.salleAttente && d.salleAttente.mandatDemande ? ' — demandé le ' + F.date(d.salleAttente.mandatDemande) : '');
+      var note = !ok && k === 'certificatOrigine' && demandeControle ? ' — demandé par la douane' : '';
       return '<li class="c-doc ' + (ok ? 'c-doc--ok' : 'c-doc--missing') + '"><span class="c-doc__state">' + icon(ok ? 'check' : 'x') + '</span>' +
-        '<span class="c-doc__name">' + D.documents[k].libelle + note + '</span>' +
+        '<span class="c-doc__name">' + (k === 'mandat' ? '<a href="E12-mandats.html?id=' + d.client + '" title="Ouvrir le mandat du client">' + D.documents[k].libelle + '</a>' + (ok ? '' : ' · ' + D.etatMandat(D.client(d)).libelle.toLowerCase() + (D.client(d).mandat.demande ? ' le ' + F.date(D.client(d).mandat.demande.date) : '')) : D.documents[k].libelle) + note + '</span>' +
         '<span class="c-doc__actions">' + (ok
           ? '<button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" type="button" data-d="telecharger" aria-label="Télécharger ' + D.documents[k].libelle + '">' + icon('download', 'c-icon--sm') + '</button>'
+          : k === 'mandat' ? '<a class="c-btn c-btn--sm" href="E12-mandats.html?id=' + d.client + '">' + icon('mandat', 'c-icon--sm') + 'Mandats</a>'
           : '<button class="c-btn c-btn--sm" type="button" data-d="document" data-doc="' + k + '">' + icon('upload', 'c-icon--sm') + 'Ajouter</button>') + '</span></li>';
     }).join('');
     var titre = 'Documents' + (manquants ? ' <span class="c-count c-count--alert" title="' + manquants + ' manquant(s)">' + manquants + '</span>' : '');
     /* Salle d'attente : pas d'onglets, le bloc Documents est mis en évidence */
-    return carte(titre, '<ul class="c-doclist c-doclist--compact">' + lignes + '</ul>', '', '', ' id="bloc-documents"' + (D.enSalleAttente(d) ? ' data-focus' : ''));
+    return carte(titre, '<ul class="c-doclist c-doclist--compact">' + lignes + '</ul>', '',
+      '<a class="c-btn c-btn--sm c-btn--ghost" href="E13-documents.html?dossier=' + d.id + '">' + icon('document', 'c-icon--sm') + 'Tous les documents du dossier</a>', ' id="bloc-documents"' + (D.enSalleAttente(d) ? ' data-focus' : ''));
   }
 
   /* ── Bloc Déclaration / Contrôle (US-22, 23, 24) ─────────── */
@@ -182,24 +184,12 @@
 
   /* ── Messagerie dossier (US-20, 21) ──────────────────────── */
   var CAT = { entrant: ['info', 'inbox', 'Reçu'], sortant: ['success', 'send', 'Envoyé'], auto: ['special', 'mail', 'Automatique'], logistique: ['warning', 'ship', 'Logistique'] };
-  function messages(d) {
-    if (!D.messages[d.id]) {
-      /* Dossiers sans fil détaillé : accusé de réception (toujours envoyé, CDC §3) + demande d'information éventuelle */
-      var m = [{ id: 'a', date: d.reception, categorie: 'entrant', de: D.client(d).email, objet: 'Envoi des documents — ' + d.marchandise },
-               { id: 'b', date: d.reception, categorie: 'auto', de: D.config.boiteEmail, objet: '[' + d.id + '] Accusé de réception de votre envoi' }];
-      if (d.salleAttente) d.salleAttente.envois.forEach(function (x, i) {
-        m.push({ id: 'r' + i, date: x, categorie: 'auto', de: D.config.boiteEmail, objet: (i ? 'Relance n°' + i + ' — ' : '') + '[' + d.id + '] Documents manquants pour le traitement de votre dossier' });
-      });
-      if (d.salleAttente && d.salleAttente.mandatDemande) m.push({ id: 'md', date: d.salleAttente.mandatDemande, categorie: 'auto', de: D.config.boiteEmail, objet: '[' + d.id + '] Mandat de représentation en douane à signer' });
-      if (d.controle && d.controle.demandeEnvoyee) m.push({ id: 'c', date: d.controle.demandeEnvoyee, categorie: 'auto', de: D.config.boiteEmail, objet: '[' + d.id + '] Information demandée par la douane' });
-      D.messages[d.id] = m;
-    }
-    return D.messages[d.id].slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; });
-  }
+  /* Même source que la boîte centrale E11 : data.js > messagesDossier (fil type généré pour les dossiers sans fil détaillé) */
+  function messages(d) { return D.messagesDossier(d).slice().sort(function (a, b) { return a.date < b.date ? 1 : -1; }); }
   function adresse(de) { var m = /<([^>]+)>/.exec(de); return m ? m[1] : de; }
   function msgItem(m) {
     var c = CAT[m.categorie] || CAT.auto;
-    return '<li class="c-msg c-msg--' + c[0] + '"><span class="c-msg__icon" title="' + c[2] + '">' + icon(c[1]) + '</span>' +
+    return '<li class="c-msg c-msg--' + c[0] + (D.estNonLu(m) ? ' is-unread' : '') + '"><span class="c-msg__icon" title="' + c[2] + '">' + icon(c[1]) + '</span>' +
       '<span class="c-msg__from">' + esc(adresse(m.de)) + '</span><span class="c-msg__date">' + dh(m.date) + '</span>' +
       '<span class="c-msg__text">' + esc(m.objet) + (m.pj && m.pj.length ? ' · ' + icon('paperclip', 'c-icon--sm') + m.pj.length : '') + '</span></li>';
   }
@@ -336,7 +326,8 @@
   function ouvrirMessages() {
     var d = D.dossier(ouvert), m = messages(d);
     $('dossier-drawer-titre').textContent = 'Messagerie — ' + d.id;
-    $('dossier-drawer-corps').innerHTML = '<ul class="c-msglist c-msglist--wrap">' + m.map(msgItem).join('') + '</ul>';
+    $('dossier-drawer-corps').innerHTML = '<ul class="c-msglist c-msglist--wrap">' + m.map(msgItem).join('') + '</ul>' +
+      '<p class="u-mt-3"><a class="c-btn c-btn--sm" href="E11-messagerie.html?dossier=' + d.id + '">' + icon('mail', 'c-icon--sm') + 'Ouvrir dans la messagerie</a></p>';
     $('dossier-drawer').classList.add('is-open');
   }
 
@@ -363,6 +354,9 @@
     journal(d);
     cles.forEach(function (k) {
       d.docs[k] = true;
+      d.docsInfo = d.docsInfo || {};
+      d.docsInfo[k] = source === 'client' ? { provenance: 'Email client', date: now, par: D.client(d).contact, origine: D.client(d).contact + ' <' + D.client(d).email + '>' }
+        : { provenance: 'Ajout manuel', date: now, par: u.nom };
       D.historique[d.id].push({ date: now, acteur: source === 'client' ? 'Client (email)' : u.nom, type: 'creation', texte: 'Document reçu : ' + D.documents[k].libelle + (source === 'client' ? ' (réponse du client par email).' : ' (ajouté par ' + u.nom + ').') });
     });
     var complet = D.enSalleAttente(d) && D.documentsManquants(d).length === 0;

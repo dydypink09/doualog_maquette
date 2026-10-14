@@ -361,13 +361,13 @@
     $('tbody-attente').innerHTML = sa.map(function (d) {
       var r = D.relances(d), lien = LIEN_DOSSIER + d.id, c = D.client(d);
       var manquants = D.documentsManquants(d).filter(function (k) { return k !== 'mandat'; })
-        .map(function (k) { return '<span class="c-badge c-badge--danger">' + D.documents[k].libelle + '</span>'; }).join(' ');
+        .map(function (k) { return '<a href="E13-documents.html?doc=' + d.id + ':' + k + '" title="Ouvrir dans Documents"><span class="c-badge c-badge--danger">' + D.documents[k].libelle + '</span></a>'; }).join(' ');
       var relances = '<b>' + (r.nombre ? r.nombre + ' relance' + (r.nombre > 1 ? 's' : '') : 'Demande initiale') + '</b>' +
         '<div class="c-field__help">dernier envoi ' + F.dateCourte(r.dernier) + ' · prochaine ' + F.dateCourte(r.prochaine) + '</div>';
-      var mandat = d.docs.mandat
-        ? '<span class="c-badge c-badge--success">Trouvé</span>' + '<div class="c-field__help">valide jusqu\'au ' + F.date(c.mandat.jusquau).slice(0, 6) + c.mandat.jusquau.slice(2, 4) + '</div>'
-        : '<span class="c-badge c-badge--danger">Absent</span><div class="c-field__help">' + (d.salleAttente.mandatDemande ? 'demandé le ' + F.dateCourte(d.salleAttente.mandatDemande) : 'à demander') + '</div>';
-      var cls = !d.docs.mandat ? 'is-alert' : (r.nombre >= 2 ? 'is-warning' : '');   // mandat absent = bloquant · 2 relances sans réponse = vigilance
+      var mandat = D.mandatOk(d)
+        ? '<a href="E12-mandats.html?id=' + d.client + '" title="Ouvrir le mandat"><span class="c-badge c-badge--success">Trouvé</span></a>' + '<div class="c-field__help">valide jusqu\'au ' + F.date(c.mandat.jusquau).slice(0, 6) + c.mandat.jusquau.slice(2, 4) + '</div>'
+        : '<a href="E12-mandats.html?id=' + d.client + '" title="Ouvrir le mandat">' + (function (e) { return '<span class="c-badge c-badge--' + e.ton + '">' + e.libelle + '</span>'; })(D.etatMandat(c)) + '</a><div class="c-field__help">' + (d.salleAttente.mandatDemande ? 'demandé le ' + F.dateCourte(d.salleAttente.mandatDemande) : 'à demander') + '</div>';
+      var cls = !D.mandatOk(d) ? 'is-alert' : (r.nombre >= 2 ? 'is-warning' : '');   // mandat absent = bloquant · 2 relances sans réponse = vigilance
       return '<tr class="' + cls + '" data-ligne="' + d.id + '"><td><a class="c-ref" data-ouvrir="' + d.id + '" href="' + lien + '">' + d.id + '</a></td>' +
         '<td>' + B('type', d.type) + '</td>' +
         '<td class="is-wrap">' + esc(c.nom) + '</td>' +

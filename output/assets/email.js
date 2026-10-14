@@ -24,7 +24,7 @@
     function dh(iso) { return F.date(iso) + ' à ' + F.heure(iso); }
 
     var v = {
-      id: d.id, client: c.nom, contact: c.contact, emailClient: c.email, ifu: c.ifu,
+      id: d.id, client: c.nom, contact: c.contact, emailClient: c.email, siret: c.siret, eori: c.eori,
       boite: D.config.boiteEmail, ville: D.config.ville, pays: D.config.pays,
       reception: dh(d.reception), receptionDate: F.date(d.reception),
       refTransport: [refT, transportLib, d.eta ? 'ETA ' + F.date(d.eta) : ''].filter(Boolean).join(' · '),
@@ -34,7 +34,8 @@
       envoiInitial: envois[0] ? dh(envois[0]) : '', envoiInitialDate: envois[0] ? F.date(envois[0]) : '',
       envoiRelance: envois[relance] ? dh(envois[relance]) : '', relanceN: relance,
       prochaine: sa ? F.date(sa.prochaineRelance) : '',
-      mandatDemande: sa && sa.mandatDemande ? dh(sa.mandatDemande) : dh(d.reception),
+      mandatDemande: dh((c.mandat.demande && c.mandat.demande.date) || (sa && sa.mandatDemande) || (D.etatMandat(c).couvert ? D.config.aujourdhui : d.reception)),   // renouvellement pas encore envoyé : aperçu daté du jour
+      mandatFin: c.mandat.jusquau ? F.date(c.mandat.jusquau) : '', mandatNum: c.mandat.num || '',
       nbRecus: 0, nbManquants: 0
     };
 
@@ -57,7 +58,8 @@
       suivi: 'X03-suivi-public.html',
       mailto: 'mailto:' + D.config.boiteEmail + '?subject=' + encodeURIComponent('[' + d.id + '] ')
     };
-    var conditions = { relance: relance > 0, initial: relance === 0, incomplet: manquants.length > 0 || !d.docs.mandat, complet: manquants.length === 0 && d.docs.mandat };
+    var conditions = { relance: relance > 0, initial: relance === 0, incomplet: manquants.length > 0 || !D.mandatOk(d), complet: manquants.length === 0 && D.mandatOk(d),
+      renouvellement: D.etatMandat(c).couvert, premierMandat: !D.etatMandat(c).couvert };
 
     if (ot) {
       var tid = p.get('t') || (ot.offres[0] && ot.offres[0].transporteur) || 't1', tr = D.transporteurs[tid];

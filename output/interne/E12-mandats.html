@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mandats — DOUALOG Control Tower</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<script src="../assets/icons.js"></script>
+<script src="../assets/data.js"></script>
+<script src="../assets/shell.js"></script>
+<script src="../assets/demo.js"></script>
+</head>
+<body>
+<!-- E12 · Mandats de représentation en douane (CDC §3.4) : 4 indicateurs qui filtrent la liste, tableau des mandats par client,
+     fiche mandat en panneau pleine hauteur (comme le dossier). Le mandat n'est pas obligatoire pour créer un dossier :
+     sans mandat valide, le système envoie le modèle DOUALOG (X09) ; le client signe sur son lien personnel (X04) avec un code de confirmation.
+     ?id=c11 ouvre la fiche · ?filtre=valides|bientot|attente|absents filtre la liste · &action=demande|depot ouvre l'action sur la fiche.
+     Données : data.js > clients[].mandat, etatMandat, historiqueMandat ; actions gardées dans la mémoire de démo. -->
+<!-- À VALIDER : durée d'un mandat (1 an), alerte 30 jours avant l'échéance, un mandat par client (pas par type d'opération),
+     signature papier acceptée, demande sans dossier en cours (le lien personnel est rattaché à un dossier), texte juridique du modèle
+     (représentation directe), droits d'accès (ouvert à tous les profils comme Clients) — QUESTIONS-ONCLE.md -->
+<div class="c-app">
+  <header class="c-topbar" id="topbar"></header>
+  <nav class="c-sidebar" id="sidebar" aria-label="Navigation principale"></nav>
+
+  <main class="c-main">
+    <div class="c-page-head">
+      <div class="c-page-head__title"><h1>Mandats</h1><span class="c-page-head__meta" id="sous-titre"></span></div>
+    </div>
+
+    <div class="c-alert" id="msg" role="status" hidden></div>
+
+    <div class="c-stats">
+      <div class="c-stats__group c-stats__group--4" id="stats" role="group" aria-label="État des mandats — un clic filtre la liste"></div>
+    </div>
+
+    <section class="c-list" aria-labelledby="liste-titre">
+      <div class="c-list__head">
+        <h2 class="c-block-title" id="liste-titre">Mandats de représentation</h2>
+        <span class="c-list__meta" id="meta"></span>
+      </div>
+      <div class="c-toolbar">
+        <div class="c-input-icon c-toolbar__search">
+          <svg class="c-icon" aria-hidden="true"><use href="#i-search"></use></svg>
+          <input class="c-input" id="search" type="search" placeholder="Client ou SIRET" aria-label="Rechercher un client ou un SIRET">
+        </div>
+        <div class="u-contents" id="quick" role="group" aria-label="Filtres rapides"></div>
+      </div>
+      <div class="c-table-wrap">
+        <table class="c-table c-table--sticky">
+          <thead><tr>
+            <th>Client · SIRET</th><th>Statut</th><th>Signé le · mode</th><th>Expire le</th><th>Signataire</th>
+            <th class="is-num" title="Dossiers en cours du client">Dossiers</th><th>Dernière action</th><th class="is-center">Actions</th>
+          </tr></thead>
+          <tbody id="tbody"></tbody>
+        </table>
+        <div class="c-empty" id="empty" hidden>
+          <svg class="c-icon" aria-hidden="true"><use href="#i-mandat"></use></svg>
+          <p class="c-empty__title">Aucun mandat ne correspond</p>
+          <p class="c-empty__text">Modifiez la recherche ou choisissez un autre filtre.</p>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<!-- ══ Fiche mandat : panneau pleine hauteur sous le header ══ -->
+<aside class="c-panel" id="fiche" aria-label="Fiche mandat"></aside>
+
+<!-- ══ Document (mandat signé ou modèle) / aperçu de l'email de demande ══ -->
+<aside class="c-drawer c-drawer--wide" id="volet" aria-labelledby="volet-titre">
+  <div class="c-drawer__head">
+    <h2 class="c-block-title" id="volet-titre"></h2>
+    <button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" type="button" data-fermer-volet aria-label="Fermer"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></button>
+  </div>
+  <div class="c-drawer__body u-stack" id="volet-corps"></div>
+  <div class="c-drawer__foot" id="volet-pied"></div>
+</aside>
+
+<!-- ══ Modale : ajouter un mandat signé sur papier ══ -->
+<div class="c-overlay" id="modale-depot" hidden>
+  <div class="c-modal" role="dialog" aria-modal="true" aria-labelledby="depot-titre">
+    <div class="c-modal__head"><h3 id="depot-titre">Ajouter un mandat signé</h3>
+      <button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" type="button" data-fermer-modale aria-label="Fermer"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></button></div>
+    <div class="c-modal__body">
+      <p id="depot-intro"></p>
+      <label class="c-dropzone"><svg class="c-icon" aria-hidden="true"><use href="#i-upload"></use></svg><span class="c-dropzone__title" id="depot-fichier-nom">Scan du mandat signé</span><span>PDF, JPG ou PNG, 10 Mo maximum</span>
+        <input type="file" class="u-sr" id="depot-fichier" accept="image/*,application/pdf"></label>
+      <div class="c-field"><label class="c-field__label" for="depot-signataire">Signataire <span class="is-required">*</span></label><input class="c-input" id="depot-signataire" autocomplete="off"></div>
+      <div class="c-field"><label class="c-field__label" for="depot-fonction">Fonction <span class="is-required">*</span></label><input class="c-input" id="depot-fonction" autocomplete="off"></div>
+      <div class="c-form-grid">
+        <div class="c-field"><label class="c-field__label" for="depot-signe">Signé le <span class="is-required">*</span></label><input class="c-input" id="depot-signe" type="date"></div>
+        <div class="c-field"><label class="c-field__label" for="depot-fin">Valide jusqu'au <span class="is-required">*</span></label><input class="c-input" id="depot-fin" type="date"></div>
+      </div>
+      <p class="c-field__help">La date de fin est proposée à un an de la signature. Le mandat servira à tous les dossiers en cours de ce client.</p>
+    </div>
+    <div class="c-modal__foot"><button class="c-btn c-btn--ghost" type="button" data-fermer-modale>Annuler</button><button class="c-btn c-btn--primary" type="button" id="depot-ok">Enregistrer le mandat</button></div>
+  </div>
+</div>
+
+<!-- ══ Modale : révoquer ══ -->
+<div class="c-overlay" id="modale-revoquer" hidden>
+  <div class="c-modal" role="dialog" aria-modal="true" aria-labelledby="revoquer-titre">
+    <div class="c-modal__head"><h3 id="revoquer-titre">Révoquer le mandat ?</h3>
+      <button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" type="button" data-fermer-modale aria-label="Fermer"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></button></div>
+    <div class="c-modal__body"><p id="revoquer-intro"></p></div>
+    <div class="c-modal__foot"><button class="c-btn c-btn--ghost" type="button" data-fermer-modale>Annuler</button><button class="c-btn c-btn--danger" type="button" id="revoquer-ok">Révoquer le mandat</button></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var D = window.DOUALOG, F = D.fmt, esc = D.esc, SH = window.DOUALOG_SHELL;
+  function $(id) { return document.getElementById(id); }
+  function icon(n, cls) { return '<svg class="c-icon' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#i-' + n + '"></use></svg>'; }
+  var DASH = '<span class="c-dash">—</span>';
+  var AUJ = D.config.aujourdhui.slice(0, 10);
+
+  SH.init({ actif: 'mandats' });
+  function moi() { return D.equipe[D.acces[SH.role()].utilisateur].nom; }
+
+  /* ── Lignes : un mandat par client ── */
+  var ORDRE = ['expire', 'absent', 'relance', 'demande', 'bientot', 'valide'];
+  function ligne(id) {
+    var c = D.clients[id], e = D.etatMandat(c), h = D.historiqueMandat(id);
+    var ds = D.dossiersClient(id).sort(function (a, b) { return a.reception < b.reception ? 1 : -1; });
+    var enCours = ds.filter(function (d) { return d.statut !== 'Clôturé'; });
+    return { id: id, c: c, m: c.mandat, e: e, h: h, dernier: h[h.length - 1] || null, dossiers: ds, enCours: enCours,
+      attente: enCours.filter(function (d) { return !D.mandatOk(d); }) };
+  }
+  var lignes = [];
+  function charger() {
+    lignes = Object.keys(D.clients).map(ligne).sort(function (a, b) {
+      return ORDRE.indexOf(a.e.cle) - ORDRE.indexOf(b.e.cle) || a.c.nom.localeCompare(b.c.nom, 'fr');
+    });
+  }
+
+  /* Indicateurs : un clic filtre la liste (un second clic retire le filtre) */
+  var TUILES = [
+    { id: 'valides', label: 'Valides',                 ton: 'green',  icone: 'check', f: function (l) { return l.e.couvert && !l.e.bientot; } },
+    { id: 'bientot', label: 'Expirent dans 30 jours',  ton: 'orange', icone: 'clock', f: function (l) { return l.e.bientot; } },
+    { id: 'attente', label: 'En attente de signature', ton: 'blue',   icone: 'send',  f: function (l) { return l.e.cle === 'demande' || l.e.cle === 'relance'; } },
+    { id: 'absents', label: 'Absents / expirés',       ton: 'red',    icone: 'alert', f: function (l) { return !l.e.couvert && !l.m.demande; } }
+  ];
+  var RAPIDES = [
+    { id: 'tous',     label: 'Tous les clients',        f: function () { return true; } },
+    { id: 'dossiers', label: 'Dossiers en attente',     f: function (l) { return l.attente.length > 0; } },
+    { id: 'ligne',    label: 'Signés en ligne',          f: function (l) { return l.e.couvert && l.m.mode === 'en ligne'; } },
+    { id: 'papier',   label: 'Papier scanné',            f: function (l) { return l.e.couvert && l.m.mode === 'papier'; } }
+  ];
+  var p = new URLSearchParams(location.search);
+  var etat = { q: '', tuile: TUILES.filter(function (t) { return t.id === p.get('filtre'); }).length ? p.get('filtre') : null, rapide: 'tous', ouverte: null };
+
+  var TYPES = {
+    recherche:  ['search',  'Aucun mandat trouvé', 'warning'],
+    demande:    ['send',    'Demande envoyée',     ''],
+    relance:    ['refresh', 'Relance envoyée',     'warning'],
+    ouverture:  ['eye',     'Lien ouvert',         ''],
+    code:       ['key',     'Code envoyé',         ''],
+    signature:  ['check',   'Signé en ligne',      'success'],
+    reception:  ['mail',    'Original reçu',       ''],
+    depot:      ['upload',  'Scan déposé',         'success'],
+    alerte:     ['clock',   'Alerte d\'échéance',  'warning'],
+    expiration: ['alert',   'Mandat expiré',       'danger'],
+    revocation: ['x',       'Mandat révoqué',      'danger']
+  };
+  function badge(e) { return '<span class="c-badge c-badge--' + e.ton + '">' + e.libelle + '</span>'; }
+  function mode(m) { return !m.signe || m.revoque ? DASH : m.mode === 'papier' ? 'Papier scanné' : 'En ligne'; }
+  function signe(l) { return l.m.signe && !l.m.revoque; }
+  /* Dossier qui portera le lien de signature : en attente du mandat d'abord, sinon le plus récent en cours */
+  function dossierCible(l) { return (l.attente[0] || l.enCours[0] || null); }
+  function actionRapide(l) {
+    var e = l.e;
+    if (e.cle === 'demande' || e.cle === 'relance') return { a: 'relancer', label: 'Relancer', icone: 'refresh' };
+    if (!e.couvert) return { a: 'demander', label: 'Demander', icone: 'send' };
+    if (e.bientot) return { a: 'demander', label: 'Renouveler', icone: 'refresh' };
+    return null;
+  }
+
+  function render() {
+    var t = TUILES.filter(function (x) { return x.id === etat.tuile; })[0], r = RAPIDES.filter(function (x) { return x.id === etat.rapide; })[0], q = etat.q.toLowerCase();
+    $('stats').innerHTML = TUILES.map(function (x) {
+      var on = x.id === etat.tuile;
+      return '<button class="c-stat c-stat--' + x.ton + (on ? ' is-active' : '') + '" type="button" data-tuile="' + x.id + '" aria-pressed="' + on + '" title="' + x.label + ' — ' + (on ? 'retirer le filtre' : 'filtrer la liste') + '">' +
+        '<span class="c-stat__in"><span class="c-stat__icon">' + icon(x.icone) + '</span><span class="c-stat__value">' + lignes.filter(x.f).length + '</span>' +
+        '<span class="c-stat__label">' + x.label + '</span></span></button>';
+    }).join('');
+    $('quick').innerHTML = RAPIDES.map(function (x) {
+      return '<button class="c-chip' + (x.id === etat.rapide ? ' is-active' : '') + '" type="button" data-rapide="' + x.id + '" aria-pressed="' + (x.id === etat.rapide) + '">' +
+        x.label + ' <span class="c-count">' + lignes.filter(x.f).length + '</span></button>';
+    }).join('');
+    var vis = lignes.filter(function (l) { return (!t || t.f(l)) && r.f(l); }).filter(function (l) {
+      return !q || [l.c.nom, l.c.siret, l.c.siret.replace(/\s/g, '')].join(' ').toLowerCase().indexOf(q) >= 0;
+    });
+    $('tbody').innerHTML = vis.map(function (l) {
+      var cls = !l.e.couvert ? 'is-alert' : (l.e.bientot || l.e.cle === 'relance' ? 'is-warning' : '');
+      var a = actionRapide(l), dn = l.dernier, ty = dn ? TYPES[dn.type] || TYPES.demande : null;
+      return '<tr class="' + cls + '"><td><a class="c-ref" href="?id=' + l.id + '" data-ouvrir="' + l.id + '">' + esc(l.c.nom) + '</a><div class="c-field__help u-num">' + esc(l.c.siret) + '</div></td>' +
+        '<td>' + badge(l.e) + '</td>' +
+        '<td class="u-num">' + (signe(l) ? F.date(l.m.signe) + '<div class="c-field__help">' + mode(l.m) + '</div>' : DASH) + '</td>' +
+        '<td class="u-num">' + (signe(l) ? F.date(l.m.jusquau) + (l.e.couvert && l.e.bientot ? '<div class="c-field__help">dans ' + l.e.jours + ' jours</div>' : '') : DASH) + '</td>' +
+        '<td class="is-wrap">' + (signe(l) ? esc(l.m.signataire) + '<div class="c-field__help">' + esc(l.m.fonction) + '</div>' : DASH) + '</td>' +
+        '<td class="is-num">' + l.enCours.length + (l.attente.length ? '<div class="c-field__help" title="Dossiers qui attendent ce mandat">' + l.attente.length + ' bloqué' + (l.attente.length > 1 ? 's' : '') + '</div>' : '') + '</td>' +
+        '<td class="is-wrap">' + (dn ? ty[1] + '<div class="c-field__help">' + F.date(dn.date) + '</div>' : DASH) + '</td>' +
+        '<td class="is-center u-nowrap">' +
+          (a ? '<button class="c-btn c-btn--icon c-btn--sm" type="button" data-action="' + a.a + '" data-client="' + l.id + '" aria-label="' + a.label + ' — ' + esc(l.c.nom) + '" title="' + a.label + '">' + icon(a.icone, 'c-icon--sm') + '</button> ' : '') +
+          '<a class="c-btn c-btn--icon c-btn--sm" href="?id=' + l.id + '" data-ouvrir="' + l.id + '" aria-label="Ouvrir le mandat de ' + esc(l.c.nom) + '" title="Ouvrir la fiche mandat">' + icon('eye', 'c-icon--sm') + '</a></td></tr>';
+    }).join('');
+    $('empty').hidden = vis.length > 0;
+    $('meta').textContent = vis.length + ' client' + (vis.length > 1 ? 's' : '') + (t ? ' · ' + t.label.toLowerCase() : '') + ' · à traiter en premier';
+    var n = D.mandatsATraiter().length;
+    $('sous-titre').textContent = lignes.length + ' clients · ' + n + ' mandat' + (n > 1 ? 's' : '') + ' à traiter';
+  }
+
+  /* ── Messages (au-dessus de la liste, ou en tête de la fiche ouverte) ── */
+  var annonce = null;
+  function alerte(a) {
+    return '<div class="c-alert c-alert--' + a.ton + '" role="status">' + icon(a.ton === 'success' ? 'valide' : a.ton === 'danger' ? 'alert' : 'info') +
+      '<div><div class="c-alert__title">' + a.titre + '</div>' + (a.texte || '') + '</div>' +
+      '<div class="c-alert__actions"><button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" type="button" data-fermer-msg aria-label="Fermer le message">' + icon('x', 'c-icon--sm') + '</button></div></div>';
+  }
+  function annoncer(a) {
+    annonce = a;
+    if (etat.ouverte) { ouvrir(etat.ouverte); return; }
+    $('msg').outerHTML = a ? alerte(a).replace('<div class="c-alert', '<div id="msg" class="c-alert') : '<div class="c-alert" id="msg" role="status" hidden></div>';
+  }
+
+  /* ── Fiche mandat ── */
+  function carte(titre, corps, actions, pied, cls) {
+    return '<section class="c-card' + (cls ? ' ' + cls : '') + '"><div class="c-card__head"><h3>' + titre + '</h3>' + (actions ? '<div class="c-card__actions">' + actions + '</div>' : '') + '</div>' +
+      '<div class="c-card__body">' + corps + '</div>' + (pied ? '<div class="c-card__foot">' + pied + '</div>' : '') + '</section>';
+  }
+  function kv(rows) {
+    return '<dl class="c-kv c-kv--rows">' + rows.filter(Boolean).map(function (r) { return '<div><dt>' + r[0] + '</dt><dd>' + (r[1] === null || r[1] === '' ? DASH : r[1]) + '</dd></div>'; }).join('') + '</dl>';
+  }
+  function nomFichier(l) { return signe(l) ? (l.m.mode === 'papier' && l.m.fichier ? l.m.fichier : 'Mandat_' + l.m.num + '_' + l.c.nom.replace(/[^A-Za-zÀ-ÿ0-9]+/g, '_') + '.pdf') : 'Modele_mandat_DOUALOG_' + l.c.nom.replace(/[^A-Za-zÀ-ÿ0-9]+/g, '_') + '.pdf'; }
+
+  function bouton(a, label, ic, cls) { return '<button class="c-btn' + (cls ? ' ' + cls : '') + '" type="button" data-action="' + a + '" data-client="' + etat.ouverte + '">' + icon(ic) + label + '</button>'; }
+  function fiche(l) {
+    var m = l.m, e = l.e, ar = actionRapide(l);
+    var actions = (ar ? bouton(ar.a, ar.a === 'demander' && !e.couvert ? 'Envoyer une demande' : ar.label, ar.icone, 'c-btn--primary') : bouton('demander', 'Renouveler', 'refresh')) +
+      bouton('depot', 'Ajouter un mandat signé', 'upload') +
+      (e.couvert ? bouton('revoquer', 'Révoquer', 'x', 'c-btn--ghost') : '');
+    var bandeau = '<div class="c-banner"><div class="c-banner__main"><div class="c-banner__top"><span class="c-banner__ref">' + esc(l.c.nom) + '</span>' + badge(e) + '</div>' +
+      '<div class="c-banner__meta"><span>Mandat : <b>' + (signe(l) ? m.num : 'aucun') + '</b></span>' +
+      '<span>Signé le : <b>' + (signe(l) ? F.date(m.signe) : '—') + '</b></span>' +
+      '<span>Expire le : <b>' + (signe(l) ? F.date(m.jusquau) + (e.jours >= 0 ? ' (dans ' + e.jours + ' j)' : ' (expiré)') : '—') + '</b></span>' +
+      '<span>SIRET : <b>' + esc(l.c.siret) + '</b></span><span>Dossiers en cours : <b>' + l.enCours.length + '</b></span></div></div>' +
+      '<div class="c-banner__actions">' + actions +
+      '<button class="c-btn c-btn--icon" type="button" data-fermer aria-label="Fermer la fiche" title="Fermer">' + icon('chevron-down') + '</button></div></div>';
+
+    /* Document : mandat signé, ou modèle à faire signer */
+    var doc = carte('Document',
+      '<div class="u-stack"><span class="c-file"><span class="c-file__type">PDF</span><span class="c-file__nom">' + esc(nomFichier(l)) + '</span></span>' +
+      kv([['N°', signe(l) ? m.num : 'modèle non signé'], ['Type', 'Représentation directe'], ['Validité', signe(l) ? 'du ' + F.date(m.signe) + ' au ' + F.date(m.jusquau) : null],
+        ['Client', esc(l.c.nom)]]) + '</div>', '',
+      '<button class="c-btn c-btn--sm" type="button" data-action="voir" data-client="' + l.id + '">' + icon('eye', 'c-icon--sm') + 'Voir</button>' +
+      '<button class="c-btn c-btn--sm c-btn--ghost" type="button" data-action="telecharger" data-client="' + l.id + '">' + icon('download', 'c-icon--sm') + 'Télécharger</button>' +
+      (signe(l) ? '<a class="c-btn c-btn--sm c-btn--ghost" href="E13-documents.html?doc=MDT:' + l.id + '">' + icon('document', 'c-icon--sm') + 'Dans Documents</a>' : ''));
+
+    /* Signature */
+    var corpsSig;
+    if (signe(l)) corpsSig = kv([['Signataire', esc(m.signataire)], ['Fonction', esc(m.fonction)],
+      [m.mode === 'papier' ? 'Signé le' : 'Signé le', m.mode === 'papier' ? F.date(m.signe) + ' (original papier)' : F.date(m.signeLe) + ' à ' + F.heure(m.signeLe)],
+      ['Mode', m.mode === 'papier' ? 'Papier scanné' : 'En ligne — lien personnel et code de confirmation'],
+      m.mode === 'papier' ? ['Scan déposé', F.dateHeure(m.signeLe) + ' par ' + esc(m.deposePar)] : ['Email de confirmation', esc(m.emailConfirmation)],
+      m.dossier ? ['Signé depuis', '<a class="c-ref" href="E01-dossiers.html?id=' + m.dossier + '">' + m.dossier + '</a>'] : null]);
+    else corpsSig = '<p class="c-field__help">' + (m.revoque ? 'Mandat révoqué le ' + F.date(m.revoque) + '.' : 'Aucun mandat signé pour ce client.') + '</p>';
+    if (m.demande) corpsSig += '<div class="c-alert c-alert--info u-mt-3">' + icon('send') + '<div><div class="c-alert__title">' + (m.demande.motif === 'renouvellement' ? 'Renouvellement demandé' : 'Demande de mandat envoyée') + '</div>' +
+      'Envoyée le ' + F.dateHeure(m.demande.date) + ' à ' + esc(l.c.email) + (m.demande.relances.length ? ' · ' + m.demande.relances.length + ' relance' + (m.demande.relances.length > 1 ? 's' : '') + ', la dernière le ' + F.date(m.demande.relances[m.demande.relances.length - 1]) : '') +
+      (m.demande.dossier ? '. Lien de signature : dossier <a class="c-ref" href="E01-dossiers.html?id=' + m.demande.dossier + '">' + m.demande.dossier + '</a>' : '') + '.</div></div>';
+    else if (e.cle === 'expire') corpsSig += '<div class="c-alert c-alert--danger u-mt-3">' + icon('alert') + '<div><div class="c-alert__title">Mandat expiré</div>Les prochains dossiers de ce client attendront un nouveau mandat.</div></div>';
+    else if (e.bientot) corpsSig += '<div class="c-alert c-alert--warning u-mt-3">' + icon('clock') + '<div><div class="c-alert__title">Expire dans ' + e.jours + ' jours</div>Demandez le renouvellement avant le ' + F.date(m.jusquau) + '.</div></div>';
+    var signature = carte('Signature', corpsSig);
+
+    /* Dossiers du client, repère sur ceux qui attendent le mandat */
+    var dossiers = carte('Dossiers concernés <span class="c-count">' + l.dossiers.length + '</span>',
+      l.dossiers.length ? '<table class="c-table c-table--dense"><thead><tr><th>Dossier</th><th>Mandat</th></tr></thead><tbody>' +
+      l.dossiers.map(function (d) {
+        var att = l.attente.indexOf(d) >= 0, fini = d.statut === 'Clôturé';
+        return '<tr' + (att ? ' class="is-alert"' : '') + '><td><a class="c-ref" href="E01-dossiers.html?id=' + d.id + '">' + d.id + '</a><div class="c-field__help">' + esc(d.statut) + '</div></td>' +
+          '<td>' + (att ? '<span class="c-badge c-badge--danger">En attente du mandat</span>' : fini ? '<span class="u-muted">—</span>' : '<span class="c-badge c-badge--success">Couvert</span>') + '</td></tr>';
+      }).join('') + '</tbody></table>' : '<p class="c-field__help">Aucun dossier en 2026 pour ce client.</p>');
+
+    /* Historique (le plus récent en haut) */
+    var histo = carte('Historique <span class="c-count">' + l.h.length + '</span>',
+      l.h.length ? '<ol class="c-timeline">' + l.h.slice().reverse().map(function (x) {
+        var ty = TYPES[x.type] || TYPES.demande;
+        return '<li class="c-timeline__item' + (ty[2] ? ' c-timeline__item--' + ty[2] : '') + '"><span class="c-timeline__icon">' + icon(ty[0]) + '</span><div><div class="c-timeline__time">' + F.dateHeure(x.date) + ' · ' + ty[1] + '</div>' +
+          '<div class="c-timeline__text">' + esc(x.texte) + '</div><div class="c-timeline__actor">' + esc(x.acteur || '') + '</div></div></li>';
+      }).join('') + '</ol>' : '<p class="c-field__help">Aucun événement.</p>', '', '', 'is-wide');
+
+    return bandeau + '<div class="c-panel__body">' + (annonce ? alerte(annonce) : '') +
+      '<div class="c-dgrid c-dgrid--3">' + doc + signature + dossiers + '</div>' +
+      '<div class="c-dgrid c-dgrid--3">' + histo + '</div></div>';
+  }
+
+  var panneau = $('fiche');
+  function ligneDe(id) { return lignes.filter(function (x) { return x.id === id; })[0]; }
+  function ouvrir(id, pousser) {
+    var l = ligneDe(id);
+    if (!l) return;
+    var deja = etat.ouverte === id && panneau.classList.contains('is-open');
+    etat.ouverte = id;
+    panneau.innerHTML = fiche(l);
+    if (!deja) {
+      panneau.classList.add('is-entering', 'is-open');
+      clearTimeout(panneau._t); panneau._t = setTimeout(function () { panneau.classList.remove('is-entering'); }, 800);
+    }
+    document.body.classList.add('has-panel-open');
+    if (pousser) history.replaceState(null, '', '?id=' + id);
+  }
+  function fermer() {
+    etat.ouverte = null; annonce = null;
+    panneau.classList.remove('is-open', 'is-entering');
+    document.body.classList.remove('has-panel-open');
+    history.replaceState(null, '', location.pathname);
+    annoncer(null);
+  }
+  /* Après une action : données, liste, fiche et compteur du menu à jour */
+  function rafraichir(msg) { charger(); render(); SH.majCompteurs(); annoncer(msg); }
+
+  /* ── Volet : document du mandat ── */
+  var volet = $('volet');
+  function ouvrirVolet(titre, corps, pied) { $('volet-titre').textContent = titre; $('volet-corps').innerHTML = corps; $('volet-pied').innerHTML = pied || ''; volet.classList.add('is-open'); }
+  function fermerVolet() { volet.classList.remove('is-open'); }
+  function documentMandat(l) {
+    var m = l.m, c = l.c, s = signe(l);
+    var signature = !s ? 'Modèle à signer par une personne habilitée du client : en ligne sur le lien personnel (code de confirmation envoyé par email), ou sur papier.'
+      : m.mode === 'papier' ? 'Original papier signé le ' + F.date(m.signe) + ' par ' + esc(m.signataire) + ', ' + esc(m.fonction) + '. Scan déposé le ' + F.dateHeure(m.signeLe) + ' par ' + esc(m.deposePar) + '.'
+      : 'Signé électroniquement le ' + F.date(m.signeLe) + ' à ' + F.heure(m.signeLe) + ' par ' + esc(m.signataire) + ', ' + esc(m.fonction) + ', après saisie du code de confirmation envoyé à ' + esc(m.emailConfirmation) + '.';
+    return '<div class="c-invoice' + (s ? '' : ' is-brouillon') + '">' +
+      '<div class="c-invoice__head"><div><img class="c-invoice__logo" src="../assets/img/logo.png" alt="DOUALOG — Douane &amp; Logistique">' +
+        '<div class="c-invoice__emetteur"><b>DOUALOG — Douane &amp; Logistique</b><br>' + D.config.ville + ', ' + D.config.pays + ' · ' + D.config.boiteEmail + '</div></div>' +
+        '<div><div class="c-invoice__title">Mandat</div><div class="c-invoice__num">' + (s ? m.num : 'Modèle') + '</div>' +
+        '<div class="c-invoice__dates">Représentation en douane directe' + (s ? '<br>Valide du ' + F.date(m.signe) + ' au ' + F.date(m.jusquau) : '') + '</div></div></div>' +
+      '<div class="c-invoice__parties">' +
+        '<div><div class="c-invoice__bloc-titre">Mandant</div><b>' + esc(c.nom) + '</b><br>' + esc(c.adresse) + ', ' + esc(c.cp) + ' ' + esc(c.ville) +
+          '<br>SIRET : ' + esc(c.siret) + '<br>EORI : ' + esc(c.eori) + '<br>Représenté par : ' + (s ? esc(m.signataire) + ', ' + esc(m.fonction) : '……………………') + '</div>' +
+        '<div><div class="c-invoice__bloc-titre">Mandataire</div><b>DOUALOG — Douane &amp; Logistique</b><br>Représentant en douane enregistré<br>' + D.config.ville + ', ' + D.config.pays + '<br>SIRET : à compléter</div></div>' +
+      '<div class="u-stack">' +   // À VALIDER : texte juridique du modèle de mandat
+        '<p>Le mandant donne pouvoir au mandataire d\'accomplir, en son nom et pour son compte, les formalités de dédouanement de ses marchandises à l\'import et à l\'export : dépôt des déclarations, échanges avec le service des douanes, réception des décisions (bon à enlever, contrôles), paiement des droits et taxes pour son compte.</p>' +
+        '<p>Le mandant s\'engage à transmettre des informations et des documents exacts et complets. Le présent mandat vaut pour tous les dossiers confiés à DOUALOG pendant sa durée de validité, sauf révocation écrite.</p></div>' +
+      '<div class="c-invoice__mentions">' + signature + '</div></div>';
+  }
+
+  /* ── Volet : aperçu de l'email de demande (X09) avant l'envoi ── */
+  var envoi = null;
+  function preparerDemande(l) {
+    var d = dossierCible(l), renouv = l.e.couvert;
+    envoi = { id: l.id, dossier: d ? d.id : null };
+    var corps = '<p>' + (renouv ? 'Le client reçoit le nouveau mandat à signer avant l\'échéance du ' + F.date(l.m.jusquau) + '.' : 'Le client reçoit le modèle de mandat DOUALOG déjà rempli et un lien pour le signer.') +
+      ' Destinataire : <b>' + esc(l.c.contact) + '</b> &lt;' + esc(l.c.email) + '&gt;.</p>';
+    if (d) corps += '<p class="c-field__help">Le lien de signature est celui du dossier <b>' + d.id + '</b> : le client y confirme sa signature avec un code reçu par email.</p>' +
+      '<iframe class="c-email-preview" title="Aperçu de l\'email de demande de mandat" src="../externe/X09-email-demande-mandat.html?id=' + d.id + '"></iframe>';
+    else corps += '<div class="c-alert c-alert--warning">' + icon('info') + '<div><div class="c-alert__title">Aucun dossier en cours pour ce client</div>Le lien de signature est rattaché à un dossier : l\'email part avec le modèle en pièce jointe, à renvoyer signé. Le scan s\'ajoute ensuite ici.</div></div>';
+    ouvrirVolet(renouv ? 'Renouveler le mandat — ' + l.c.nom : 'Demande de mandat — ' + l.c.nom, corps,
+      '<button class="c-btn c-btn--ghost" type="button" data-fermer-volet>Annuler</button><button class="c-btn c-btn--primary" type="button" data-action="envoyer" data-client="' + l.id + '">' + icon('send') + 'Envoyer la demande</button>');
+  }
+
+  /* ── Modales ── */
+  function ouvrirDepot(l) {
+    $('depot-intro').innerHTML = 'Mandat signé sur papier par <b>' + esc(l.c.nom) + '</b>. Il remplace ' + (signe(l) ? 'le mandat ' + l.m.num : 'la demande en cours') + '.';
+    $('depot-signataire').value = l.c.contact; $('depot-fonction').value = l.c.fonction;
+    $('depot-signe').value = AUJ; $('depot-fin').value = D.finValidite(AUJ);
+    $('depot-fichier').value = ''; $('depot-fichier-nom').textContent = 'Scan du mandat signé';
+    document.querySelectorAll('#modale-depot .c-field').forEach(function (f) { f.classList.remove('is-error'); var er = f.querySelector('.c-field__error'); if (er) er.remove(); });
+    $('modale-depot').hidden = false; $('depot-signataire').focus();
+  }
+  function erreur(id, texte) {
+    var f = $(id).closest('.c-field'); f.classList.add('is-error');
+    if (!f.querySelector('.c-field__error')) f.insertAdjacentHTML('beforeend', '<span class="c-field__error">' + texte + '</span>');
+  }
+  function enregistrerDepot() {
+    var id = etat.ouverte, ok = true;
+    document.querySelectorAll('#modale-depot .c-field').forEach(function (f) { f.classList.remove('is-error'); var er = f.querySelector('.c-field__error'); if (er) er.remove(); });
+    ['depot-signataire', 'depot-fonction', 'depot-signe', 'depot-fin'].forEach(function (k) { if (!$(k).value.trim()) { erreur(k, 'Champ obligatoire.'); ok = false; } });
+    if (ok && $('depot-fin').value <= $('depot-signe').value) { erreur('depot-fin', 'La fin de validité doit suivre la date de signature.'); ok = false; }
+    if (ok && $('depot-fin').value < AUJ) { erreur('depot-fin', 'Ce mandat est déjà expiré.'); ok = false; }
+    if (!ok) return;
+    var f = $('depot-fichier').files[0];
+    D.deposerMandat(id, { signataire: $('depot-signataire').value.trim(), fonction: $('depot-fonction').value.trim(), signe: $('depot-signe').value, jusquau: $('depot-fin').value, fichier: f ? f.name : null }, moi());
+    $('modale-depot').hidden = true;
+    var l = ligne(id);
+    rafraichir({ ton: 'success', titre: 'Mandat ' + l.m.num + ' enregistré', texte: 'Valide jusqu\'au ' + F.date(l.m.jusquau) + '. ' + (l.enCours.length > 1 ? 'Il couvre les ' + l.enCours.length + ' dossiers en cours du client.' : l.enCours.length ? 'Il couvre le dossier en cours du client.' : '') });
+  }
+  function ouvrirRevoquer(l) {
+    $('revoquer-intro').innerHTML = 'Le mandat <b>' + l.m.num + '</b> de <b>' + esc(l.c.nom) + '</b> ne pourra plus être utilisé. ' +
+      (l.enCours.length > 1 ? 'Ses ' + l.enCours.length + ' dossiers en cours attendront un nouveau mandat.' : l.enCours.length ? 'Son dossier en cours attendra un nouveau mandat.' : '') + ' Cette action est enregistrée dans l\'historique.';
+    $('modale-revoquer').hidden = false; $('revoquer-ok').focus();
+  }
+
+  /* ── Clics ── */
+  document.addEventListener('click', function (ev) {
+    var t = ev.target.closest('[data-ouvrir],[data-tuile],[data-rapide],[data-fermer],[data-action],[data-fermer-volet],[data-fermer-modale],[data-fermer-msg]');
+    if (!t) return;
+    if (t.dataset.ouvrir) { ev.preventDefault(); annonce = null; ouvrir(t.dataset.ouvrir, true); return; }
+    if (t.dataset.tuile) { etat.tuile = etat.tuile === t.dataset.tuile ? null : t.dataset.tuile; render(); return; }
+    if (t.dataset.rapide) { etat.rapide = t.dataset.rapide; render(); return; }
+    if (t.hasAttribute('data-fermer')) { fermer(); return; }
+    if (t.hasAttribute('data-fermer-volet')) { fermerVolet(); return; }
+    if (t.hasAttribute('data-fermer-modale')) { t.closest('.c-overlay').hidden = true; return; }
+    if (t.hasAttribute('data-fermer-msg')) { annoncer(null); return; }
+    var a = t.dataset.action, l = ligneDe(t.dataset.client);
+    if (!l) return;
+    if (a === 'voir') ouvrirVolet((signe(l) ? 'Mandat ' + l.m.num : 'Modèle de mandat') + ' — ' + l.c.nom, documentMandat(l),
+      '<button class="c-btn" type="button" data-action="telecharger" data-client="' + l.id + '">' + icon('download') + 'Télécharger</button>');
+    if (a === 'telecharger') annoncer({ ton: 'info', titre: 'Téléchargement de ' + nomFichier(l), texte: 'Dans la maquette, aucun fichier n\'est téléchargé.' });
+    if (a === 'demander') { if (etat.ouverte !== l.id) ouvrir(l.id, true); preparerDemande(l); }
+    if (a === 'envoyer') {
+      D.demanderMandat(l.id, envoi && envoi.dossier, moi()); fermerVolet();
+      if (etat.ouverte !== l.id) ouvrir(l.id, true);
+      rafraichir({ ton: 'success', titre: 'Demande de mandat envoyée à ' + esc(l.c.email), texte: envoi && envoi.dossier ? 'Lien de signature du dossier ' + envoi.dossier + '. <a href="../externe/X09-email-demande-mandat.html?id=' + envoi.dossier + '">Voir l\'email envoyé</a>' : 'Modèle de mandat en pièce jointe.' });
+    }
+    if (a === 'relancer') {
+      D.relancerMandat(l.id, moi());
+      var dm = D.clients[l.id].mandat.demande;
+      rafraichir({ ton: 'success', titre: 'Relance n° ' + dm.relances.length + ' envoyée à ' + esc(l.c.email), texte: dm.dossier ? '<a href="../externe/X09-email-demande-mandat.html?id=' + dm.dossier + '">Voir l\'email</a>' : '' });
+    }
+    if (a === 'depot') ouvrirDepot(l);
+    if (a === 'revoquer') ouvrirRevoquer(l);
+  });
+  $('depot-ok').addEventListener('click', enregistrerDepot);
+  $('depot-signe').addEventListener('change', function () { if (this.value) $('depot-fin').value = D.finValidite(this.value); });
+  $('depot-fichier').addEventListener('change', function () { $('depot-fichier-nom').textContent = this.files[0] ? this.files[0].name : 'Scan du mandat signé'; });
+  $('revoquer-ok').addEventListener('click', function () {
+    var id = etat.ouverte, num = D.clients[id].mandat.num;
+    D.revoquerMandat(id, moi()); $('modale-revoquer').hidden = true;
+    rafraichir({ ton: 'danger', titre: 'Mandat ' + num + ' révoqué', texte: 'Envoyez une demande pour obtenir un nouveau mandat.' });
+  });
+  document.addEventListener('keydown', function (ev) {
+    if (ev.key !== 'Escape') return;
+    var mo = document.querySelector('.c-overlay:not([hidden])');
+    if (mo) mo.hidden = true; else if (volet.classList.contains('is-open')) fermerVolet(); else if (etat.ouverte) fermer();
+  });
+  $('search').addEventListener('input', function () { etat.q = this.value.trim(); render(); });
+
+  charger(); render();
+  if (p.get('id') && ligneDe(p.get('id'))) {
+    ouvrir(p.get('id'));
+    var l0 = ligneDe(p.get('id'));
+    if (p.get('action') === 'demande') preparerDemande(l0);
+    if (p.get('action') === 'depot') ouvrirDepot(l0);
+  }
+})();
+</script>
+</body>
+</html>

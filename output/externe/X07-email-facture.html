@@ -7,7 +7,7 @@
 <!-- X07 · Email facture client · US-36 (P5) — envoyé à l'émission de la facture depuis E06, PDF en pièce jointe.
      ?id=DLG-… (par défaut DLG-2026-0402, facture émise ; pour le fil rouge : émettre la facture de DLG-2026-0412 dans E06).
      HTML d'email : 600 px, tableaux, styles en ligne. Données : ../assets/data.js. -->
-<!-- À VALIDER : coordonnées de paiement (banque, RIB, paiement mobile) · délai d'échéance · relances automatiques à l'échéance (CDC §10.4). -->
+<!-- À VALIDER : coordonnées de paiement (banque, IBAN) · délai d'échéance · relances automatiques à l'échéance (CDC §10.4). -->
 <script src="../assets/data.js"></script>
 <script src="../assets/email.js"></script>
 <script src="../assets/demo.js"></script>
@@ -115,8 +115,8 @@
         <div style="font-size:14px;line-height:20px;font-weight:600;color:#101828;margin-bottom:6px;">Modalités de paiement</div>
         <table role="presentation" width="100%" cellpadding="0" cellspacing="0" border="0" style="background:#F8F9FB;border:1px dashed #E4E7EC;border-radius:8px;">
           <tr><td style="padding:12px 16px;font-size:13px;line-height:21px;color:#344054;">
-            Virement bancaire, chèque ou paiement mobile.<br>
-            <span style="color:#5D6676;">Banque, RIB et numéro de paiement mobile : à compléter.</span><br>
+            Virement bancaire ou chèque.<br>
+            <span style="color:#5D6676;">Coordonnées bancaires (IBAN) : à compléter.</span><br>
             Merci d'indiquer <b data-f="factureNum"></b> et <b data-f="id"></b> en référence de votre règlement.
           </td></tr>
         </table>

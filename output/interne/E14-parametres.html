@@ -1,0 +1,520 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Paramètres — DOUALOG Control Tower</title>
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<script src="../assets/icons.js"></script>
+<script src="../assets/data.js"></script>
+<script src="../assets/shell.js"></script>
+<script src="../assets/demo.js"></script>
+</head>
+<body>
+<!-- E14 · Paramètres : sous-menu vertical (sections) + contenu. Manager et Direction voient et modifient tout ; les autres profils
+     ne voient que « Mon profil ». ?section=profil|societe|utilisateurs|email|documents|delais|modeles|facturation|referentiels|notifications|securite
+     Enregistrer garde les valeurs dans la mémoire de démo (data.js > enregistrerParametres) ; délais, TVA, boîte email, coordonnées
+     de la société et documents obligatoires s'appliquent aux autres écrans (relances, liens client, factures, alertes de mandat, salle d'attente).
+     Badge « À valider » = valeur provisoire, support de discussion avec le client. -->
+<!-- À VALIDER : la Direction modifie les paramètres (le CDC §02 lui donne un accès global en lecture) · tableau des droits par rôle
+     (remplace la matrice manquante) · toutes les valeurs marquées « À valider » — QUESTIONS-ONCLE.md · double authentification différée (CDC §17) -->
+<div class="c-app">
+  <header class="c-topbar" id="topbar"></header>
+  <nav class="c-sidebar" id="sidebar" aria-label="Navigation principale"></nav>
+
+  <main class="c-main">
+    <div class="c-page-head">
+      <div class="c-page-head__title"><h1>Paramètres</h1><span class="c-page-head__meta" id="sous-titre"></span></div>
+    </div>
+    <div class="c-settings">
+      <nav class="c-settings__nav" id="sections" aria-label="Sections des paramètres"></nav>
+      <div class="u-stack" id="contenu"></div>
+    </div>
+  </main>
+</div>
+
+<!-- ══ Modale générique (inviter, modifier le rôle, désactiver) ══ -->
+<div class="c-overlay" id="modale" hidden>
+  <div class="c-modal" role="dialog" aria-modal="true" aria-labelledby="modale-titre">
+    <div class="c-modal__head"><h3 id="modale-titre"></h3>
+      <button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" type="button" data-fermer-modale aria-label="Fermer"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></button></div>
+    <div class="c-modal__body" id="modale-corps"></div>
+    <div class="c-modal__foot"><button class="c-btn c-btn--ghost" type="button" data-fermer-modale>Annuler</button><button class="c-btn c-btn--primary" type="button" id="modale-ok"></button></div>
+  </div>
+</div>
+
+<script>
+(function () {
+  var D = window.DOUALOG, F = D.fmt, esc = D.esc, SH = window.DOUALOG_SHELL, CF = D.config;
+  function $(id) { return document.getElementById(id); }
+  function icon(n, cls) { return '<svg class="c-icon' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#i-' + n + '"></use></svg>'; }
+  var DASH = '<span class="c-dash">—</span>';
+  var AV = ' <span class="c-badge c-badge--warning" title="Valeur provisoire, à confirmer avec DOUALOG">À valider</span>';
+  var HEURE = F.heure(CF.aujourdhui);
+
+  SH.init({ actif: 'parametres' });
+  function role() { return SH.role(); }
+  function admin() { return role() === 'manager' || role() === 'direction'; }
+  function moi() { return D.equipe[D.acces[role()].utilisateur]; }
+  function roleLib(r) { return D.roles.filter(function (x) { return x.id === r; })[0].label; }
+
+  /* ── Briques de formulaire ── */
+  function champ(id, label, valeur, o) {
+    o = o || {};
+    var attrs = ' id="' + id + '"' + (o.type ? ' type="' + o.type + '"' : '') + (o.min !== undefined ? ' min="' + o.min + '"' : '') + (o.lecture ? ' readonly' : '') + (o.placeholder ? ' placeholder="' + esc(o.placeholder) + '"' : '');
+    var input = o.textarea ? '<textarea class="c-textarea"' + attrs + '>' + esc(valeur || '') + '</textarea>' : '<input class="c-input' + (o.type === 'number' ? ' u-num' : '') + '"' + attrs + ' value="' + esc(valeur === null || valeur === undefined ? '' : valeur) + '">';
+    return '<div class="c-field' + (o.large ? ' is-wide' : '') + '"><label class="c-field__label" for="' + id + '">' + label + (o.suffixe ? ' (' + o.suffixe + ')' : '') + (o.av ? AV : '') + '</label>' + input + (o.aide ? '<span class="c-field__help">' + o.aide + '</span>' : '') + '</div>';
+  }
+  function choix(id, label, options, valeur, o) {
+    o = o || {};
+    return '<div class="c-field"><label class="c-field__label" for="' + id + '">' + label + (o.av ? AV : '') + '</label><select class="c-select" id="' + id + '"' + (o.desactive ? ' disabled' : '') + '>' +
+      options.map(function (x) { var v = Array.isArray(x) ? x[0] : x, l = Array.isArray(x) ? x[1] : x; return '<option value="' + esc(v) + '"' + (v === valeur ? ' selected' : '') + '>' + esc(l) + '</option>'; }).join('') + '</select>' +
+      (o.aide ? '<span class="c-field__help">' + o.aide + '</span>' : '') + '</div>';
+  }
+  function coche(id, label, on, o) { o = o || {}; return '<label class="c-check"><input type="checkbox" id="' + id + '"' + (on ? ' checked' : '') + (o.desactive ? ' disabled' : '') + '> ' + label + (o.av ? AV : '') + '</label>'; }
+  function carte(id, titre, intro, corps, o) {
+    o = o || {};
+    return '<section class="c-card" id="carte-' + id + '" aria-labelledby="t-' + id + '"><div class="c-card__head"><h3 id="t-' + id + '">' + titre + '</h3>' + (o.actions ? '<div class="c-card__actions">' + o.actions + '</div>' : '') + '</div>' +
+      '<div class="c-card__body u-stack">' + (intro ? '<p class="c-field__help">' + intro + '</p>' : '') + corps + '</div>' +
+      (o.sansPied ? '' : '<div class="c-card__foot"><span class="c-field__help" id="ok-' + id + '" role="status"></span><button class="c-btn c-btn--primary" type="button" data-enregistrer="' + id + '">Enregistrer</button></div>') + '</section>';
+  }
+  function confirmer(id, texte) { var el = $('ok-' + id); if (el) el.innerHTML = icon('check', 'c-icon--sm') + ' ' + (texte || 'Enregistré à ' + HEURE); }
+  function erreurs(liste) {
+    document.querySelectorAll('#contenu .c-field.is-error').forEach(function (f) { f.classList.remove('is-error'); var e = f.querySelector('.c-field__error'); if (e) e.remove(); });
+    liste.forEach(function (x) { var f = $(x[0]).closest('.c-field'); f.classList.add('is-error'); f.insertAdjacentHTML('beforeend', '<span class="c-field__error">' + x[1] + '</span>'); });
+    if (liste.length) $(liste[0][0]).focus();
+    return liste.length === 0;
+  }
+  function val(id) { return $(id).value.trim(); }
+  function entier(id) { var n = parseInt($(id).value, 10); return isNaN(n) ? null : n; }
+
+  /* ═══ 1. Mon profil ═══ */
+  var NOTIF_PERSO = Object.keys(D.typesNotification);
+  function profil() {
+    var u = moi(), pref = D.parametres('profil-' + role()) || {};
+    return carte('profil', 'Mon profil', 'Vos informations et la façon dont DOUALOG vous prévient.',
+      '<div class="c-form-grid">' + champ('p-nom', 'Nom', pref.nom || u.nom) + champ('p-email', 'Email', pref.email || u.email, { type: 'email' }) +
+        champ('p-role', 'Rôle', roleLib(role()), { lecture: true, aide: 'Le rôle est attribué par le manager (Utilisateurs et rôles).' }) + '</div>' +
+      '<p class="u-label u-mt-3">Mot de passe</p><div class="c-form-grid">' + champ('p-mdp', 'Mot de passe actuel', '', { type: 'password' }) +
+        champ('p-mdp1', 'Nouveau mot de passe', '', { type: 'password', aide: '10 caractères au moins.' }) + champ('p-mdp2', 'Confirmer le nouveau mot de passe', '', { type: 'password' }) + '</div>' +
+      '<p class="u-label u-mt-3">Mes notifications par email</p><div class="u-stack">' +
+        NOTIF_PERSO.map(function (t, i) { return coche('p-n' + i, t, pref.notif ? pref.notif[i] : i < 3); }).join('') +
+        coche('p-resume', 'Résumé quotidien à 8 h (dossiers à traiter, échéances du jour)', pref.resume !== false) + '</div>' +
+      '<p class="c-field__help">Toutes les notifications restent visibles dans l\'application (cloche et page Notifications).</p>');
+  }
+  function sauverProfil() {
+    var e = [];
+    if (!val('p-nom')) e.push(['p-nom', 'Indiquez votre nom.']);
+    if (!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(val('p-email'))) e.push(['p-email', 'Adresse email invalide.']);
+    if (val('p-mdp1') || val('p-mdp2') || val('p-mdp')) {
+      if (!val('p-mdp')) e.push(['p-mdp', 'Indiquez votre mot de passe actuel.']);
+      if (val('p-mdp1').length < 10) e.push(['p-mdp1', '10 caractères au moins.']);
+      else if (val('p-mdp1') !== val('p-mdp2')) e.push(['p-mdp2', 'Les deux mots de passe ne correspondent pas.']);
+    }
+    if (!erreurs(e)) return;
+    var mdp = !!val('p-mdp1');
+    D.enregistrerParametres('profil-' + role(), { nom: val('p-nom'), email: val('p-email'), notif: NOTIF_PERSO.map(function (t, i) { return $('p-n' + i).checked; }), resume: $('p-resume').checked });
+    ['p-mdp', 'p-mdp1', 'p-mdp2'].forEach(function (k) { $(k).value = ''; });
+    confirmer('profil', 'Enregistré à ' + HEURE + (mdp ? ' · mot de passe modifié' : ''));
+  }
+
+  /* ═══ 2. Société ═══ */
+  function societe() {
+    var S = CF.societe;
+    return carte('societe', 'Société', 'Coordonnées de DOUALOG affichées sur les emails et les factures.',
+      '<div class="u-row"><img class="c-invoice__logo" src="../assets/img/logo.png" alt="Logo DOUALOG"><label class="c-btn c-btn--sm">' + icon('upload', 'c-icon--sm') + 'Remplacer le logo<input type="file" class="u-sr" id="s-logo" accept="image/png,image/svg+xml"></label><span class="c-field__help" id="s-logo-nom">PNG ou SVG, fond transparent.</span></div>' +
+      '<div class="c-form-grid">' + champ('s-nom', 'Raison sociale', S.nom) + champ('s-siret', 'SIRET', S.siret, { av: true, placeholder: '000 000 000 00000' }) + champ('s-rcs', 'RCS', S.rcs, { av: true, placeholder: 'RCS Le Havre 000 000 000' }) +
+        champ('s-tva', 'N° TVA intracommunautaire', S.tvaIntra, { av: true, placeholder: 'FR00 000000000' }) + champ('s-eori', 'N° EORI', S.eori, { av: true, placeholder: 'FR000000000000000' }) +
+        champ('s-adresse', 'Adresse', S.adresse, { av: true, placeholder: 'Adresse, code postal, Le Havre', large: true }) + champ('s-tel', 'Téléphone', S.telephone, { av: true, placeholder: '+33 2 …' }) +
+        champ('s-email', 'Email', CF.boiteEmail, { lecture: true, aide: 'C\'est la boîte surveillée : modifiable dans « Boîte email ».' }) + '</div>' +
+      '<p class="u-label u-mt-3">Coordonnées bancaires sur les factures' + AV + '</p><div class="c-form-grid">' + champ('s-banque', 'Banque', S.banque) + champ('s-iban', 'IBAN', S.iban, { placeholder: 'FR76 …' }) + champ('s-bic', 'BIC', S.bic) + '</div>' +
+      '<p class="c-field__help">Laissées vides, ces mentions apparaissent « à compléter » sur l\'aperçu des factures.</p>');
+  }
+  function sauverSociete() {
+    var e = [], siret = val('s-siret').replace(/\s/g, '');
+    if (!val('s-nom')) e.push(['s-nom', 'Indiquez la raison sociale.']);
+    if (siret && !/^\d{14}$/.test(siret)) e.push(['s-siret', 'Le SIRET compte 14 chiffres.']);
+    if (val('s-iban') && !/^[A-Z]{2}\d{2}[A-Z0-9 ]{10,}$/i.test(val('s-iban'))) e.push(['s-iban', 'IBAN invalide (FR76 …).']);
+    if (!erreurs(e)) return;
+    D.enregistrerParametres('config', { societe: { nom: val('s-nom'), siret: val('s-siret'), rcs: val('s-rcs'), tvaIntra: val('s-tva'), eori: val('s-eori'), adresse: val('s-adresse'), telephone: val('s-tel'), banque: val('s-banque'), iban: val('s-iban'), bic: val('s-bic') } });
+    confirmer('societe', 'Enregistré à ' + HEURE + ' · <a href="E06-facturation.html?id=DLG-2026-0412">voir sur une facture</a>');
+  }
+
+  /* ═══ 3. Utilisateurs et rôles ═══ */
+  var STATUTS_U = { actif: ['success', 'Actif'], invite: ['info', 'Invité'], desactive: ['neutral', 'Désactivé'] };
+  /* Droits par rôle (CDC §02) : M = modifie, V = consulte, — = pas d'accès. À VALIDER : remplace la matrice des rôles manquante */
+  var DROITS = [
+    ['Dossiers : informations, responsable', 'M', 'M', 'V', 'V', 'M', 'V'],
+    ['Déclaration, contrôles, BAE / BAS', 'M', 'V', 'V', 'V', 'M', 'V'],
+    ['Documents des dossiers', 'M', 'M', 'V', 'V', 'M', 'V'],
+    ['Messagerie et emails', 'M', 'M', 'M', 'M', 'M', 'V'],
+    ['Ordres de transport, transporteurs', '—', 'V', 'M', '—', 'M', 'V'],
+    ['Facturation et paiements', '—', '—', '—', 'M', 'M', 'V'],
+    ['Clients et mandats', 'M', 'M', 'V', 'V', 'M', 'V'],
+    ['Attribuer un dossier à un déclarant', '—', '—', '—', '—', 'M', '—'],
+    ['Rapports et tableau de pilotage', '—', '—', '—', '—', 'V', 'V'],
+    ['Paramètres', 'Profil', 'Profil', 'Profil', 'Profil', 'M', 'M']
+  ];
+  function droitBadge(v) { return v === 'M' ? '<span class="c-badge c-badge--success">Modifie</span>' : v === 'V' ? '<span class="c-badge c-badge--info">Consulte</span>' : v === 'Profil' ? '<span class="u-muted">Son profil</span>' : DASH; }
+  function utilisateurs() {
+    var ids = Object.keys(D.equipe);
+    var liste = '<table class="c-table c-table--dense"><thead><tr><th>Nom</th><th>Rôle</th><th>Statut</th><th>Dernière connexion</th><th class="is-center">Actions</th></tr></thead><tbody>' +
+      ids.map(function (id) {
+        var u = D.equipe[id], s = STATUTS_U[u.statut || 'actif'];
+        return '<tr' + (u.statut === 'desactive' ? ' class="u-muted"' : '') + '><td>' + esc(u.nom) + '<div class="c-field__help">' + esc(u.email) + '</div></td><td>' + roleLib(u.role) + '</td>' +
+          '<td><span class="c-badge c-badge--' + s[0] + '">' + s[1] + '</span></td>' +
+          '<td class="u-num">' + (u.derniere ? F.dateHeure(u.derniere) : '<span class="u-muted">' + (u.invite ? 'invitation du ' + F.date(u.invite) : 'jamais') + '</span>') + '</td>' +
+          '<td class="is-center u-nowrap"><button class="c-btn c-btn--icon c-btn--sm" type="button" data-u-role="' + id + '" aria-label="Modifier le rôle de ' + esc(u.nom) + '" title="Modifier le rôle">' + icon('edit', 'c-icon--sm') + '</button> ' +
+            (u.statut === 'desactive' ? '<button class="c-btn c-btn--icon c-btn--sm" type="button" data-u-activer="' + id + '" aria-label="Réactiver ' + esc(u.nom) + '" title="Réactiver">' + icon('refresh', 'c-icon--sm') + '</button>'
+              : '<button class="c-btn c-btn--icon c-btn--sm" type="button" data-u-desactiver="' + id + '" aria-label="Désactiver ' + esc(u.nom) + '" title="Désactiver"' + (id === D.acces[role()].utilisateur ? ' disabled' : '') + '>' + icon('lock', 'c-icon--sm') + '</button>') + '</td></tr>';
+      }).join('') + '</tbody></table>';
+    var droits = '<table class="c-table c-table--dense"><thead><tr><th>Ce que l\'on peut faire</th>' + ['Déclarant', 'Opérateur', 'Transport', 'Facturation', 'Manager', 'Direction'].map(function (r) { return '<th>' + r + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      DROITS.map(function (l) { return '<tr><td class="is-wrap">' + l[0] + '</td>' + l.slice(1).map(function (v) { return '<td>' + droitBadge(v) + '</td>'; }).join('') + '</tr>'; }).join('') + '</tbody></table>';
+    return carte('utilisateurs', 'Équipe', ids.length + ' comptes. Un compte désactivé ne peut plus se connecter ; son historique reste visible.', liste,
+        { actions: '<button class="c-btn c-btn--sm c-btn--primary" type="button" data-u-inviter>' + icon('plus', 'c-icon--sm') + 'Inviter</button>', sansPied: true }) +
+      carte('droits', 'Droits par rôle' + AV, 'D\'après le cahier des charges (§02). Lecture seule : ce tableau sert de base de discussion avec la direction.', droits, { sansPied: true });
+  }
+
+  /* ═══ 4. Boîte email ═══ */
+  function email() {
+    var R = CF.reglesEmail;
+    return carte('email', 'Boîte email', 'La boîte que DOUALOG lit pour créer et compléter les dossiers.',
+      '<div class="c-form-grid">' + champ('e-adresse', 'Adresse surveillée', CF.boiteEmail, { type: 'email', av: true }) +
+        '<div class="c-field"><span class="c-field__label">Connexion</span><span class="u-row"><span class="c-badge c-badge--success">Connectée</span><span class="c-field__help" id="e-synchro">dernière synchronisation il y a 2 min (' + F.heure('2026-10-16T10:13') + ')</span></span>' +
+          '<button class="c-btn c-btn--sm u-self-start" type="button" data-tester>' + icon('refresh', 'c-icon--sm') + 'Tester la connexion</button></div></div>' +
+      '<p class="u-label u-mt-3">Règles de rattachement</p><div class="u-stack">' +
+        coche('e-r1', 'Rattacher automatiquement un email à son dossier quand le N° DLG figure dans l\'objet ou le corps', R.rattachementDLG) +
+        coche('e-r2', 'Sans N° DLG : proposer un dossier probable (même client, même BL ou LTA) — à confirmer dans la Messagerie', R.propositionClientBL, { av: true }) +
+        coche('e-r3', 'Créer automatiquement un dossier quand un client connu envoie des pièces jointes sans N° DLG', R.creationAutoPJ, { av: true }) + '</div>' +
+      champ('e-signature', 'Signature des emails sortants', CF.signatureEmail, { textarea: true, aide: 'Ajoutée à la fin des emails envoyés depuis l\'outil (Messagerie, emails automatiques).' }));
+  }
+  function sauverEmail() {
+    if (!erreurs(/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(val('e-adresse')) ? [] : [['e-adresse', 'Adresse email invalide.']])) return;
+    D.enregistrerParametres('config', { boiteEmail: val('e-adresse'), signatureEmail: $('e-signature').value, reglesEmail: { rattachementDLG: $('e-r1').checked, propositionClientBL: $('e-r2').checked, creationAutoPJ: $('e-r3').checked } });
+    confirmer('email', 'Enregistré à ' + HEURE + ' · les emails et la messagerie utilisent ' + esc(val('e-adresse')));
+  }
+
+  /* ═══ 5. Documents obligatoires ═══ */
+  var CLES_DOC = ['facture', 'packing', 'instruction', 'bl', 'bonLivraison', 'certificatOrigine'];
+  function documents() {
+    var autres = D.parametres('typesDocuments') || [];
+    function colonne(sens) {
+      return '<section class="c-card"><div class="c-card__head"><h3>' + sens + '</h3></div><div class="c-card__body"><ul class="c-doclist c-doclist--compact">' +
+        CLES_DOC.map(function (k) { return '<li class="c-doc"><span class="c-doc__name">' + D.documents[k].libelle + '</span><span class="c-doc__actions">' + coche('d-' + sens + '-' + k, 'obligatoire', D.documentsRequis[sens].indexOf(k) >= 0) + '</span></li>'; }).join('') +
+        autres.map(function (a, i) { return '<li class="c-doc"><span class="c-doc__name">' + esc(a.libelle) + ' <span class="c-badge c-badge--neutral">ajouté</span></span><span class="c-doc__actions">' + coche('d-' + sens + '-x' + i, 'obligatoire', a[sens]) + '</span></li>'; }).join('') +
+        '</ul></div></section>';
+    }
+    return carte('documents', 'Documents obligatoires', 'Pré-rempli selon le cahier des charges (§3.2). Un document coché est réclamé au client tant qu\'il manque ; décoché, il reste facultatif. Le mandat est recherché pour chaque client (voir Mandats).',
+      '<div class="c-dgrid c-dgrid--split">' + colonne('Import') + colonne('Export') + '</div>' +
+      '<div class="u-row u-mt-3"><div class="c-field"><label class="c-field__label" for="d-nouveau">Ajouter un type de document</label><input class="c-input" id="d-nouveau" placeholder="Ex. Certificat phytosanitaire"></div>' +
+        '<button class="c-btn u-self-start" type="button" data-ajouter-doc>' + icon('plus') + 'Ajouter</button></div>' +
+      '<p class="c-field__help">Les changements s\'appliquent aux dossiers en cours : la liste des pièces manquantes et la salle d\'attente sont recalculées.</p>');
+  }
+  function sauverDocuments() {
+    var req = { Import: [], Export: [] }, autres = D.parametres('typesDocuments') || [];
+    ['Import', 'Export'].forEach(function (s) {
+      CLES_DOC.forEach(function (k) { if ($('d-' + s + '-' + k).checked) req[s].push(k); });
+      autres.forEach(function (a, i) { a[s] = $('d-' + s + '-x' + i).checked; });
+    });
+    D.enregistrerParametres('documentsRequis', req); D.enregistrerParametres('typesDocuments', autres);
+    var sa = D.salleAttente().length;
+    confirmer('documents', 'Enregistré à ' + HEURE + ' · salle d\'attente : ' + sa + ' dossier' + (sa > 1 ? 's' : ''));
+  }
+
+  /* ═══ 6. Délais et relances ═══ */
+  function delais() {
+    return carte('delais', 'Délais et relances' + AV, 'Valeurs provisoires, à confirmer avec DOUALOG. Elles s\'appliquent aux emails automatiques, aux liens et aux alertes.',
+      '<div class="c-form-grid">' +
+        champ('l-freq', 'Relance des documents manquants', CF.frequenceRelanceJours, { type: 'number', min: 1, suffixe: 'jours', aide: 'Emails de relance au client (salle d\'attente).' }) +
+        champ('l-max', 'Nombre maximum de relances', CF.maxRelances, { type: 'number', min: 1, suffixe: 'relances', aide: 'Ensuite, le déclarant reprend la main.' }) +
+        champ('l-lien', 'Validité des liens client', CF.dureeLienClientJours, { type: 'number', min: 1, suffixe: 'jours', aide: 'Lien personnel envoyé avec l\'accusé de réception.' }) +
+        champ('l-transp', 'Délai de réponse du transporteur', CF.delaiReponseTransporteurHeures, { type: 'number', min: 1, suffixe: 'heures', aide: 'Au-delà, l\'offre est signalée sans réponse.' }) +
+        champ('l-mandat', 'Alerte avant la fin d\'un mandat', CF.alerteMandatJours, { type: 'number', min: 1, suffixe: 'jours', aide: 'Statut « Expire bientôt » dans Mandats.' }) +
+        champ('l-paiement', 'Échéance de paiement des factures', CF.delaiPaiementJours, { type: 'number', min: 0, suffixe: 'jours', aide: 'À compter de l\'émission de la facture.' }) +
+        champ('l-relpay', 'Relance de paiement', CF.relancePaiementJours, { type: 'number', min: 1, suffixe: 'jours', aide: 'Après l\'échéance, puis à la même fréquence.' }) + '</div>');
+  }
+  function sauverDelais() {
+    var ch = { 'l-freq': 'frequenceRelanceJours', 'l-max': 'maxRelances', 'l-lien': 'dureeLienClientJours', 'l-transp': 'delaiReponseTransporteurHeures', 'l-mandat': 'alerteMandatJours', 'l-paiement': 'delaiPaiementJours', 'l-relpay': 'relancePaiementJours' }, o = {}, e = [];
+    Object.keys(ch).forEach(function (id) { var n = entier(id); if (n === null || n < (id === 'l-paiement' ? 0 : 1)) e.push([id, 'Nombre entier attendu.']); else o[ch[id]] = n; });
+    if (!erreurs(e)) return;
+    D.enregistrerParametres('config', o);
+    confirmer('delais', 'Enregistré à ' + HEURE + ' · <a href="E03-salle-attente.html">voir la salle d\'attente</a>');
+  }
+
+  /* ═══ 7. Modèles d'emails ═══ */
+  var VARS = ['{N° DLG}', '{client}', '{contact}', '{lien de suivi}', '{lien de dépôt}', '{documents manquants}', '{date de réception}', '{N° facture}', '{montant}', '{échéance}', '{N° OT}', '{signature}'];
+  var MODELES = [
+    { id: 'ar', nom: 'Accusé de réception', quand: 'À la création du dossier', page: 'X01-email-accuse-reception.html', objet: '[{N° DLG}] Accusé de réception de votre envoi',
+      corps: 'Bonjour {contact},\n\nNous avons bien reçu votre envoi du {date de réception}, enregistré sous le numéro {N° DLG}.\nSuivez votre dossier à tout moment sur votre page personnelle : {lien de suivi}\n\n{signature}' },
+    { id: 'manquants', nom: 'Documents manquants', quand: 'Dossier incomplet', page: 'X02-email-documents-manquants.html', objet: '[{N° DLG}] Documents manquants pour le traitement de votre dossier',
+      corps: 'Bonjour {contact},\n\nPour traiter votre dossier {N° DLG}, il nous manque : {documents manquants}.\nDéposez-les sur votre page : {lien de dépôt}\n\n{signature}' },
+    { id: 'relance', nom: 'Relance documents', quand: 'Tous les ' + CF.frequenceRelanceJours + ' jours sans réponse', page: 'X02-email-documents-manquants.html?relance=1', objet: 'Relance — [{N° DLG}] Documents manquants',
+      corps: 'Bonjour {contact},\n\nSauf erreur, nous n\'avons pas encore reçu : {documents manquants}.\nSans ces pièces, votre dossier {N° DLG} ne peut pas avancer : {lien de dépôt}\n\n{signature}' },
+    { id: 'info', nom: 'Demande d\'information (douane)', quand: 'Contrôle : information manquante', page: 'X08-email-demande-information.html', objet: '[{N° DLG}] La douane demande une information complémentaire',
+      corps: 'Bonjour {contact},\n\nLors du contrôle de votre dossier {N° DLG}, la douane demande une information complémentaire.\nRépondez directement sur votre page : {lien de dépôt}\n\n{signature}' },
+    { id: 'mandat', nom: 'Demande de mandat', quand: 'Aucun mandat valide pour le client', page: 'X09-email-demande-mandat.html', objet: '[{N° DLG}] Mandat de représentation en douane à signer',
+      corps: 'Bonjour {contact},\n\nPour vous représenter auprès de la douane, nous avons besoin d\'un mandat signé par {client}.\nSignez-le en ligne : {lien de dépôt}\n\n{signature}' },
+    { id: 'offre', nom: 'Offre de transport', quand: 'Envoi d\'un ordre de transport', page: 'X05-email-offre-transport.html', objet: '[{N° OT}] Offre de transport — dossier {N° DLG}',
+      corps: 'Bonjour,\n\nNous vous proposons le transport {N° OT} (dossier {N° DLG}).\nAcceptez ou refusez l\'offre en un clic depuis cet email.\n\n{signature}' },
+    { id: 'facture', nom: 'Facture', quand: 'Émission de la facture', page: 'X07-email-facture.html', objet: '[{N° DLG}] Facture {N° facture}',
+      corps: 'Bonjour {contact},\n\nVeuillez trouver ci-jointe la facture {N° facture} d\'un montant de {montant} TTC, payable au plus tard le {échéance}.\n\n{signature}' }
+  ];
+  var modeleChoisi = 'ar';
+  function modeles() {
+    var sauves = D.parametres('modeles') || {};
+    var m = MODELES.filter(function (x) { return x.id === modeleChoisi; })[0], s = sauves[m.id] || {};
+    var liste = '<table class="c-table c-table--dense"><thead><tr><th>Email automatique</th><th>Envoyé quand</th><th class="is-center">Activé</th></tr></thead><tbody>' +
+      MODELES.map(function (x) {
+        var sx = sauves[x.id] || {};
+        return '<tr' + (x.id === modeleChoisi ? ' class="is-unread"' : '') + '><td><a class="c-ref" href="?section=modeles&amp;modele=' + x.id + '" data-modele="' + x.id + '">' + x.nom + '</a></td><td class="is-wrap">' + x.quand + '</td>' +
+          '<td class="is-center"><label class="c-check"><input type="checkbox" data-actif="' + x.id + '"' + (sx.actif === false ? '' : ' checked') + ' aria-label="Activer l\'email ' + esc(x.nom) + '"></label></td></tr>';
+      }).join('') + '</tbody></table>';
+    var editeur = '<div class="u-stack">' + champ('m-objet', 'Objet', s.objet || m.objet) + champ('m-corps', 'Corps du message', s.corps || m.corps, { textarea: true }) +
+      '<div><span class="c-field__label">Insérer une variable</span><div class="u-row u-mt-3">' + VARS.map(function (v) { return '<button class="c-chip" type="button" data-var="' + esc(v) + '">' + esc(v) + '</button>'; }).join('') + '</div></div></div>';
+    var apercu = '<section class="c-card"><div class="c-card__head"><h3>Aperçu</h3><div class="c-card__actions"><a class="c-btn c-btn--sm c-btn--ghost" href="../externe/' + m.page + '">' + icon('external', 'c-icon--sm') + 'Email complet</a></div></div>' +
+      '<div class="c-card__body" id="m-apercu"></div></section>';
+    return carte('modeles', 'Modèles d\'emails', 'Le texte des emails automatiques. Les variables sont remplacées par les données du dossier ; l\'aperçu utilise le dossier DLG-2026-0412.',
+      liste + '<p class="u-label u-mt-3">' + m.nom + '</p><div class="c-dgrid c-dgrid--split">' + editeur + apercu + '</div>');
+  }
+  function exemple(t) {
+    var d = D.dossier('DLG-2026-0412'), c = D.client(d);
+    var v = { '{N° DLG}': d.id, '{client}': c.nom, '{contact}': c.contact, '{lien de suivi}': 'https://suivi.doualog.fr/' + d.id, '{lien de dépôt}': 'https://suivi.doualog.fr/' + d.id + '/depot',
+      '{documents manquants}': 'packing list, bon de livraison', '{date de réception}': F.date(d.reception), '{N° facture}': 'FAC-2026-0196', '{montant}': F.montant(D.facture(d).ttc),
+      '{échéance}': F.date('2026-11-15'), '{N° OT}': 'OT-2026-0156', '{signature}': CF.signatureEmail };
+    return esc(t).replace(/\{[^}]+\}/g, function (k) { return v[k] !== undefined ? '<b>' + esc(v[k]) + '</b>' : k; }).replace(/\n/g, '<br>');
+  }
+  function majApercu() {
+    if (!$('m-apercu')) return;
+    $('m-apercu').innerHTML = '<p class="c-field__help">Objet</p><p><b>' + exemple($('m-objet').value) + '</b></p><p class="c-field__help u-mt-3">Message</p><p>' + exemple($('m-corps').value) + '</p>';
+  }
+  function sauverModeles() {
+    var sauves = D.parametres('modeles') || {};
+    if (!erreurs(val('m-objet') ? [] : [['m-objet', 'L\'objet est obligatoire.']])) return;
+    sauves[modeleChoisi] = { objet: $('m-objet').value, corps: $('m-corps').value, actif: (sauves[modeleChoisi] || {}).actif };
+    document.querySelectorAll('[data-actif]').forEach(function (c) { sauves[c.dataset.actif] = sauves[c.dataset.actif] || {}; sauves[c.dataset.actif].actif = c.checked; });
+    D.enregistrerParametres('modeles', sauves);
+    confirmer('modeles');
+  }
+
+  /* ═══ 8. Facturation ═══ */
+  function facturation() {
+    var prix = D.parametres('prestations') || {};
+    var cat = '<table class="c-table c-table--dense"><thead><tr><th>Prestation</th><th>TVA</th><th class="is-num">Prix par défaut HT</th></tr></thead><tbody>' +
+      Object.keys(D.prestations).map(function (k) {
+        var p = D.prestations[k], def = prix[k] !== undefined ? prix[k] : tarif(k);
+        return '<tr><td class="is-wrap">' + esc(p.libelle) + '</td><td>' + (p.tva ? 'Oui' : '<span class="u-muted">Non (débours)</span>') + '</td>' +
+          '<td class="is-num">' + (p.tva ? '<input class="c-input u-num" id="f-p-' + k + '" type="number" min="0" value="' + (def === null ? '' : def) + '" placeholder="au réel" aria-label="Prix par défaut : ' + esc(p.libelle) + '">' : '<span class="u-muted">au réel</span>') + '</td></tr>';
+      }).join('') + '</tbody></table>';
+    return carte('facturation', 'Facturation', 'Réglages des factures émises par DOUALOG (Facturation).',
+      '<div class="c-form-grid">' + choix('f-devise', 'Devise', [['€', 'Euro (€)']], CF.devise, { desactive: true, aide: 'Une seule devise en V1.' }) +
+        champ('f-tva', 'Taux de TVA sur les prestations', Math.round(CF.tva * 1000) / 10, { type: 'number', min: 0, suffixe: '%', av: true, aide: 'Les débours (droits, frais portuaires) restent hors TVA.' }) +
+        champ('f-num', 'Format de numérotation', CF.numeroFacture, { aide: 'Prochain numéro : ' + D.numeroFactureSuivant() + '. Séquentiel, sans trou.' }) + '</div>' +
+      champ('f-mentions', 'Mentions légales', D.parametres('mentions') || 'Payable au plus tard à l\'échéance, par virement bancaire ou chèque. En cas de retard : pénalités au taux légal et indemnité forfaitaire de 40 € pour frais de recouvrement. Merci de rappeler le numéro de facture et le N° DLG lors de votre règlement.', { textarea: true, av: true }) +
+      '<p class="u-label u-mt-3">Catalogue des prestations' + AV + '</p>' + cat +
+      '<p class="c-field__help">Prix appliqués quand le client n\'a pas de prix convenu (fiche client). Vide = au réel, selon le dossier.</p>');
+  }
+  function tarif(k) { var t = D.tarifsClient('__').filter(function (x) { return x.prestation === k; })[0]; return t ? t.montant : null; }
+  function sauverFacturation() {
+    var tva = parseFloat(String(val('f-tva')).replace(',', '.')), e = [];
+    if (isNaN(tva) || tva < 0 || tva > 30) e.push(['f-tva', 'Taux entre 0 et 30 %.']);
+    if (!/\{NNNN\}/.test(val('f-num'))) e.push(['f-num', 'Le format doit contenir {NNNN} (numéro séquentiel).']);
+    if (!erreurs(e)) return;
+    var prix = {};
+    Object.keys(D.prestations).forEach(function (k) { var el = $('f-p-' + k); if (el) prix[k] = el.value === '' ? null : Math.max(0, parseFloat(el.value)); });
+    D.enregistrerParametres('config', { tva: tva / 100, tvaLibelle: 'TVA ' + String(tva).replace('.', ',') + ' %', numeroFacture: val('f-num') });
+    D.enregistrerParametres('prestations', prix); D.enregistrerParametres('mentions', $('f-mentions').value);
+    confirmer('facturation', 'Enregistré à ' + HEURE + ' · <a href="E06-facturation.html?id=DLG-2026-0412">voir l\'aperçu d\'une facture</a>');
+  }
+
+  /* ═══ 9. Référentiels ═══ */
+  var REF = {
+    compagnies: { titre: 'Compagnies maritimes et aériennes', cols: [['nom', 'Nom'], ['mode', 'Mode', ['Maritime', 'Aérien']], ['email', 'Email de l\'agence']],
+      lignes: function () { return Object.keys(D.compagnies).map(function (k) { return { nom: D.compagnies[k].nom, mode: D.compagnies[k].mode, email: D.compagnies[k].email }; }); } },
+    lieux: { titre: 'Ports et aéroports', cols: [['nom', 'Nom'], ['code', 'Code (UN/LOCODE)'], ['type', 'Type', ['Port', 'Aéroport']]],
+      lignes: function () { return [{ nom: CF.port, code: 'FRLEH', type: 'Port' }, { nom: 'Port de Rouen', code: 'FRURO', type: 'Port' }, { nom: 'Port de Marseille-Fos', code: 'FRFOS', type: 'Port' },
+        { nom: CF.aeroport, code: 'FRCDG', type: 'Aéroport' }, { nom: 'Aéroport Lyon-Saint-Exupéry', code: 'FRLYS', type: 'Aéroport' }]; } },
+    incoterms: { titre: 'Incoterms (2020)', cols: [['code', 'Code'], ['nom', 'Libellé']],
+      lignes: function () { return [['EXW', 'À l\'usine'], ['FCA', 'Franco transporteur'], ['CPT', 'Port payé jusqu\'à'], ['CIP', 'Port payé, assurance comprise, jusqu\'à'], ['DAP', 'Rendu au lieu de destination'], ['DPU', 'Rendu au lieu de destination déchargé'],
+        ['DDP', 'Rendu droits acquittés'], ['FAS', 'Franco le long du navire'], ['FOB', 'Franco à bord'], ['CFR', 'Coût et fret'], ['CIF', 'Coût, assurance et fret']].map(function (x) { return { code: x[0], nom: x[1] }; }); } },
+    controles: { titre: 'Types de contrôle douanier', cols: [['nom', 'Type'], ['desc', 'Description']],
+      lignes: function () { return [{ nom: 'Aucun', desc: 'Pas de contrôle : la déclaration est acceptée telle quelle.' }, { nom: 'Documentaire', desc: 'Vérification des documents par la douane.' }, { nom: 'Physique', desc: 'Visite de la marchandise au terminal.' }]; } }
+  };
+  var refEdition = {};
+  function refLignes(k) { var s = D.parametres('referentiels') || {}; return s[k] || REF[k].lignes(); }
+  function referentiels() {
+    return Object.keys(REF).map(function (k) {
+      var R = REF[k], lignes = refEdition[k] || refLignes(k);
+      return carte('ref-' + k, R.titre + ' <span class="c-count">' + lignes.length + '</span>', '',
+        '<table class="c-table c-table--dense"><thead><tr>' + R.cols.map(function (c) { return '<th>' + c[1] + '</th>'; }).join('') + '<th class="is-center"><span class="u-sr">Actions</span></th></tr></thead><tbody>' +
+        lignes.map(function (l, i) {
+          var ed = l._edit;
+          return '<tr>' + R.cols.map(function (c) {
+            if (!ed) return '<td class="is-wrap">' + (esc(l[c[0]] || '') || DASH) + '</td>';
+            if (c[2]) return '<td><select class="c-select" data-ref="' + k + '" data-i="' + i + '" data-c="' + c[0] + '" aria-label="' + c[1] + '">' + c[2].map(function (o) { return '<option' + (o === l[c[0]] ? ' selected' : '') + '>' + o + '</option>'; }).join('') + '</select></td>';
+            return '<td><input class="c-input" data-ref="' + k + '" data-i="' + i + '" data-c="' + c[0] + '" value="' + esc(l[c[0]] || '') + '" aria-label="' + c[1] + '"></td>';
+          }).join('') + '<td class="is-center">' + (ed ? '' : '<button class="c-btn c-btn--icon c-btn--sm" type="button" data-ref-modifier="' + k + '" data-i="' + i + '" aria-label="Modifier" title="Modifier">' + icon('edit', 'c-icon--sm') + '</button>') + '</td></tr>';
+        }).join('') + '</tbody></table>', { actions: '<button class="c-btn c-btn--sm" type="button" data-ref-ajouter="' + k + '">' + icon('plus', 'c-icon--sm') + 'Ajouter</button>' });
+    }).join('');
+  }
+  function lireRef(k) {
+    var lignes = (refEdition[k] || refLignes(k)).map(function (l) { var o = {}; for (var c in l) o[c] = l[c]; return o; });
+    document.querySelectorAll('[data-ref="' + k + '"]').forEach(function (el) { lignes[+el.dataset.i][el.dataset.c] = el.value.trim(); });
+    return lignes;
+  }
+  function sauverRef(k) {
+    var lignes = lireRef(k).filter(function (l) { return REF[k].cols.some(function (c) { return l[c[0]] && !c[2]; }); }).map(function (l) { delete l._edit; return l; });
+    var s = D.parametres('referentiels') || {}; s[k] = lignes; D.enregistrerParametres('referentiels', s);
+    delete refEdition[k]; afficher('referentiels'); confirmer('ref-' + k);
+  }
+
+  /* ═══ 10. Notifications ═══ */
+  var EVENEMENTS = Object.keys(D.typesNotification).concat(['Email non rattaché à un dossier', 'Pièce jointe à classer', 'Mandat à renouveler ou absent', 'Offre de transport sans réponse']);
+  var DEF_NOTIF = {   // rôles qui reçoivent chaque événement (application ; email = les mêmes sauf mention) — À VALIDER
+    app: [['declarant', 'operateur', 'manager'], ['declarant', 'operateur'], ['declarant'], ['transport', 'operateur'], ['facturation', 'declarant', 'manager'], ['facturation', 'manager'],
+      ['declarant', 'operateur'], ['declarant', 'operateur'], ['declarant', 'manager'], ['transport']],
+    email: [['declarant', 'manager'], ['declarant'], [], ['transport'], ['facturation'], ['facturation'], [], [], ['manager'], ['transport', 'manager']]
+  };
+  var canal = 'app';
+  function notifications() {
+    var s = D.parametres('notifications') || DEF_NOTIF, m = s[canal];
+    return carte('notifications', 'Qui est prévenu de quoi' + AV, 'Cochez les rôles qui reçoivent chaque événement. Chacun peut ensuite réduire ses emails dans « Mon profil ».',
+      '<div class="c-segmented" role="group" aria-label="Canal">' + [['app', 'Dans l\'application'], ['email', 'Par email']].map(function (c) { return '<button type="button" class="c-segmented__opt" data-canal="' + c[0] + '" aria-pressed="' + (canal === c[0]) + '">' + c[1] + '</button>'; }).join('') + '</div>' +
+      '<table class="c-table c-table--dense"><thead><tr><th>Événement</th>' + D.roles.map(function (r) { return '<th class="is-center">' + r.label + '</th>'; }).join('') + '</tr></thead><tbody>' +
+      EVENEMENTS.map(function (ev, i) {
+        return '<tr><td class="is-wrap">' + esc(ev) + '</td>' + D.roles.map(function (r) {
+          return '<td class="is-center"><label class="c-check"><input type="checkbox" data-n="' + i + '" data-r="' + r.id + '"' + (m[i].indexOf(r.id) >= 0 ? ' checked' : '') + ' aria-label="' + esc(ev) + ' — ' + r.label + '"></label></td>';
+        }).join('') + '</tr>';
+      }).join('') + '</tbody></table>');
+  }
+  function lireNotif() {
+    var s = JSON.parse(JSON.stringify(D.parametres('notifications') || DEF_NOTIF));
+    s[canal] = EVENEMENTS.map(function (ev, i) { return D.roles.map(function (r) { return r.id; }).filter(function (r) { return document.querySelector('[data-n="' + i + '"][data-r="' + r + '"]').checked; }); });
+    return s;
+  }
+  function sauverNotifications() { D.enregistrerParametres('notifications', lireNotif()); confirmer('notifications'); }
+
+  /* ═══ 11. Sécurité ═══ */
+  function securite() {
+    var j = [['2026-10-16T09:20', 'u6', 'Réussie'], ['2026-10-16T08:11', 'u2', 'Réussie'], ['2026-10-16T08:09', 'u2', 'Mot de passe incorrect'], ['2026-10-16T08:02', 'u1', 'Réussie'],
+      ['2026-10-16T07:54', 'u3', 'Réussie'], ['2026-10-16T07:31', 'u4', 'Réussie'], ['2026-10-15T17:48', 'u5', 'Réussie'], ['2026-10-15T08:05', 'u1', 'Réussie'], ['2026-10-14T18:05', 'u7', 'Réussie'], ['2026-10-14T11:42', null, 'Compte inconnu']];
+    var app = ['Edge · Windows', 'Chrome · Windows', 'Safari · iPhone', 'Chrome · macOS'];
+    return carte('journal', 'Connexions récentes', 'Les 10 dernières tentatives de connexion à l\'outil.',
+      '<table class="c-table c-table--dense"><thead><tr><th>Date</th><th>Utilisateur</th><th>Appareil</th><th>Adresse IP</th><th>Résultat</th></tr></thead><tbody>' +
+      j.map(function (x, i) {
+        var u = x[1] ? D.equipe[x[1]] : null, ok = x[2] === 'Réussie';
+        return '<tr' + (ok ? '' : ' class="is-warning"') + '><td class="u-num">' + F.dateHeure(x[0]) + '</td><td>' + (u ? esc(u.nom) : '<span class="u-muted">contact@exemple.fr</span>') + '</td><td>' + app[i % app.length] + '</td>' +
+          '<td class="u-num">' + (x[1] ? '90.84.12.' + (40 + i * 3) : '185.220.101.7') + '</td><td><span class="c-badge c-badge--' + (ok ? 'success' : 'warning') + '">' + x[2] + '</span></td></tr>';
+      }).join('') + '</tbody></table>', { sansPied: true }) +
+      carte('mfa', 'Double authentification', 'Un code à usage unique demandé à chaque connexion, en plus du mot de passe.',
+        coche('mfa', 'Exiger la double authentification pour toute l\'équipe', false, { desactive: true }) + '<span class="c-badge c-badge--neutral u-self-start">Prévu dans une version suivante</span>', { sansPied: true });
+  }
+
+  /* ── Sections et sous-menu ── */
+  var SECTIONS = [
+    { id: 'profil', label: 'Mon profil', icone: 'user', rendu: profil, sauver: sauverProfil, tous: true },
+    { id: 'societe', label: 'Société', icone: 'clients', rendu: societe, sauver: sauverSociete },
+    { id: 'utilisateurs', label: 'Utilisateurs et rôles', icone: 'user', rendu: utilisateurs },
+    { id: 'email', label: 'Boîte email', icone: 'mail', rendu: email, sauver: sauverEmail },
+    { id: 'documents', label: 'Documents obligatoires', icone: 'document', rendu: documents, sauver: sauverDocuments },
+    { id: 'delais', label: 'Délais et relances', icone: 'clock', rendu: delais, sauver: sauverDelais },
+    { id: 'modeles', label: 'Modèles d\'emails', icone: 'edit', rendu: modeles, sauver: sauverModeles },
+    { id: 'facturation', label: 'Facturation', icone: 'facture', rendu: facturation, sauver: sauverFacturation },
+    { id: 'referentiels', label: 'Référentiels', icone: 'package', rendu: referentiels },
+    { id: 'notifications', label: 'Notifications', icone: 'bell', rendu: notifications, sauver: sauverNotifications },
+    { id: 'securite', label: 'Sécurité', icone: 'lock', rendu: securite }
+  ];
+  var p = new URLSearchParams(location.search), courante = p.get('section') || 'profil';
+  if (p.get('modele')) modeleChoisi = p.get('modele');
+  function permises() { return SECTIONS.filter(function (s) { return s.tous || admin(); }); }
+  function afficher(id) {
+    if (!permises().some(function (s) { return s.id === id; })) id = 'profil';
+    courante = id;
+    $('sections').innerHTML = permises().map(function (s) {
+      return '<button class="c-mailbox__filtre' + (s.id === id ? ' is-active' : '') + '" type="button" data-section="' + s.id + '"' + (s.id === id ? ' aria-current="page"' : '') + '>' + icon(s.icone) + s.label + '</button>';
+    }).join('') + (admin() ? '' : '<p class="c-field__help">Les autres paramètres sont réservés au manager et à la direction.</p>');
+    $('contenu').innerHTML = SECTIONS.filter(function (s) { return s.id === id; })[0].rendu();
+    $('sous-titre').textContent = admin() ? roleLib(role()) + ' · vous pouvez modifier tous les paramètres' : 'Mon profil';
+    majApercu();
+  }
+
+  /* ── Événements ── */
+  document.addEventListener('click', function (ev) {
+    var t = ev.target.closest('[data-section],[data-enregistrer],[data-modele],[data-var],[data-canal],[data-tester],[data-ajouter-doc],[data-ref-ajouter],[data-ref-modifier],[data-u-inviter],[data-u-role],[data-u-desactiver],[data-u-activer],[data-fermer-modale]');
+    if (!t) return;
+    if (t.dataset.section) { afficher(t.dataset.section); history.replaceState(null, '', '?section=' + t.dataset.section); window.scrollTo(0, 0); return; }
+    if (t.dataset.enregistrer) {
+      var id = t.dataset.enregistrer;
+      if (id.indexOf('ref-') === 0) { sauverRef(id.slice(4)); return; }
+      SECTIONS.filter(function (s) { return s.id === id; })[0].sauver(); return;
+    }
+    if (t.dataset.modele) { ev.preventDefault(); modeleChoisi = t.dataset.modele; afficher('modeles'); return; }
+    if (t.dataset.var) {
+      var c = $('m-corps'), a = c.selectionStart || c.value.length;
+      c.value = c.value.slice(0, a) + t.dataset.var + c.value.slice(c.selectionEnd || a); c.focus(); c.selectionStart = c.selectionEnd = a + t.dataset.var.length; majApercu(); return;
+    }
+    if (t.dataset.canal) { var lu = lireNotif(); D.enregistrerParametres('notifications', lu); canal = t.dataset.canal; afficher('notifications'); return; }
+    if (t.hasAttribute('data-tester')) { $('e-synchro').textContent = 'connexion vérifiée à ' + HEURE + ' · 0 email en attente de lecture'; return; }
+    if (t.hasAttribute('data-ajouter-doc')) {
+      var lib = val('d-nouveau');
+      if (!erreurs(lib ? [] : [['d-nouveau', 'Indiquez le nom du document.']])) return;
+      var autres = D.parametres('typesDocuments') || [];
+      autres.push({ libelle: lib, Import: false, Export: false }); D.enregistrerParametres('typesDocuments', autres);
+      afficher('documents'); confirmer('documents', '« ' + esc(lib) + ' » ajouté, facultatif. Cochez-le pour le rendre obligatoire.'); return;
+    }
+    if (t.dataset.refAjouter) { var k = t.dataset.refAjouter, l = lireRef(k), n = {}; REF[k].cols.forEach(function (c) { n[c[0]] = c[2] ? c[2][0] : ''; }); n._edit = true; l.push(n); refEdition[k] = l; afficher('referentiels'); var ins = document.querySelectorAll('[data-ref="' + k + '"]'); if (ins.length) ins[ins.length - REF[k].cols.length].focus(); return; }
+    if (t.dataset.refModifier) { var k2 = t.dataset.refModifier, l2 = lireRef(k2); l2[+t.dataset.i]._edit = true; refEdition[k2] = l2; afficher('referentiels'); return; }
+    if (t.hasAttribute('data-u-inviter')) { modaleUtilisateur('inviter'); return; }
+    if (t.dataset.uRole) { modaleUtilisateur('role', t.dataset.uRole); return; }
+    if (t.dataset.uDesactiver) { modaleUtilisateur('desactiver', t.dataset.uDesactiver); return; }
+    if (t.dataset.uActiver) { changerUtilisateur(t.dataset.uActiver, { statut: 'actif' }); return; }
+    if (t.hasAttribute('data-fermer-modale')) { $('modale').hidden = true; return; }
+  });
+  document.addEventListener('input', function (ev) { if (ev.target.id === 'm-objet' || ev.target.id === 'm-corps') majApercu(); });
+  document.addEventListener('change', function (ev) { if (ev.target.id === 's-logo' && ev.target.files[0]) $('s-logo-nom').textContent = ev.target.files[0].name + ' — sera utilisé après enregistrement.'; });
+  document.addEventListener('keydown', function (ev) { if (ev.key === 'Escape' && !$('modale').hidden) $('modale').hidden = true; });
+  document.addEventListener('dlg:role', function () { afficher(courante); });
+
+  /* ── Utilisateurs : inviter, modifier le rôle, désactiver ── */
+  var action = null;
+  function optionsRoles() { return D.roles.map(function (r) { return [r.id, r.label]; }); }
+  function modaleUtilisateur(type, id) {
+    action = { type: type, id: id };
+    var u = id ? D.equipe[id] : null;
+    $('modale-titre').textContent = type === 'inviter' ? 'Inviter un membre de l\'équipe' : type === 'role' ? 'Modifier le rôle de ' + u.nom : 'Désactiver ' + u.nom + ' ?';
+    $('modale-corps').innerHTML = type === 'inviter'
+      ? '<div class="c-field"><label class="c-field__label" for="i-nom">Nom</label><input class="c-input" id="i-nom"></div>' + champ('i-email', 'Email', '', { type: 'email', placeholder: 'prenom.nom@doualog.fr' }) + choix('i-role', 'Rôle', optionsRoles(), 'declarant') +
+        '<p class="c-field__help">Un email d\'invitation lui permet de choisir son mot de passe.</p>'
+      : type === 'role' ? choix('i-role', 'Rôle', optionsRoles(), u.role, { aide: 'Le menu et les droits changent à sa prochaine connexion.' })
+      : '<p>' + esc(u.nom) + ' ne pourra plus se connecter. Ses dossiers et son historique restent visibles ; pensez à réattribuer ses dossiers en cours.</p>';
+    $('modale-ok').textContent = type === 'inviter' ? 'Envoyer l\'invitation' : type === 'role' ? 'Enregistrer' : 'Désactiver';
+    $('modale-ok').className = 'c-btn ' + (type === 'desactiver' ? 'c-btn--danger' : 'c-btn--primary');
+    $('modale').hidden = false; var f = $('modale-corps').querySelector('input,select'); if (f) f.focus(); else $('modale-ok').focus();
+  }
+  function changerUtilisateur(id, champs) {
+    var u = {}, x; for (x in D.equipe[id]) u[x] = D.equipe[id][x]; for (x in champs) u[x] = champs[x];
+    var o = {}; o[id] = u; D.enregistrerParametres('equipe', o); afficher('utilisateurs');
+  }
+  $('modale-ok').addEventListener('click', function () {
+    var a = action;
+    if (a.type === 'inviter') {
+      var nom = $('i-nom').value.trim(), mail = $('i-email').value.trim(), e = [];
+      if (!nom) e.push(['i-nom', 'Indiquez le nom.']);
+      if (!/^[^@\s]+@[^@\s]+\.[a-z]{2,}$/i.test(mail)) e.push(['i-email', 'Adresse email invalide.']);
+      if (e.length) { e.forEach(function (x) { var f = $(x[0]).closest('.c-field'); if (!f.classList.contains('is-error')) { f.classList.add('is-error'); f.insertAdjacentHTML('beforeend', '<span class="c-field__error">' + x[1] + '</span>'); } }); return; }
+      var id = 'u' + (Object.keys(D.equipe).length + 1), o = {};
+      o[id] = { nom: nom, initiales: nom.split(/\s+/).map(function (w) { return w.charAt(0); }).slice(0, 2).join('').toUpperCase(), role: $('i-role').value, email: mail, statut: 'invite', derniere: null, invite: D.config.aujourdhui };
+      D.enregistrerParametres('equipe', o);
+      $('modale').hidden = true; afficher('utilisateurs');
+      $('carte-utilisateurs').querySelector('.c-card__body').insertAdjacentHTML('afterbegin', '<div class="c-alert c-alert--success" role="status">' + icon('valide') + '<div>Invitation envoyée à ' + esc(mail) + '.</div></div>');
+      return;
+    }
+    $('modale').hidden = true;
+    changerUtilisateur(a.id, a.type === 'role' ? { role: $('i-role').value } : { statut: 'desactive' });
+  });
+
+  afficher(courante);
+})();
+</script>
+</body>
+</html>
