@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tableau de bord — DOUALOG Control Tower</title>
+<link rel="icon" type="image/png" href="../assets/img/favicon.png">
 <link rel="stylesheet" href="../assets/tokens.css">
 <link rel="stylesheet" href="../assets/components.css">
 <script src="../assets/icons.js"></script>
@@ -108,6 +109,32 @@
       </div>
     </section>
   </main>
+
+<!-- ══ Modale : nouveau dossier (création manuelle) ══
+     À VALIDER : le CDC ne prévoit que la création automatique (email avec pièces jointes) ; la création à la main sert aux demandes
+     reçues par téléphone ou remises en main propre (QUESTIONS-ONCLE.md). Pièce obligatoire manquante → salle d'attente + demande au client. -->
+<div class="c-overlay" id="modale-nouveau" hidden>
+  <div class="c-modal" role="dialog" aria-modal="true" aria-labelledby="nouveau-titre">
+    <div class="c-modal__head"><h3 id="nouveau-titre">Nouveau dossier</h3>
+      <button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" type="button" data-fermer-nouveau aria-label="Fermer"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></button></div>
+    <div class="c-modal__body">
+      <p class="c-field__help">Les dossiers se créent d'eux-mêmes à la réception d'un email avec pièces jointes. Utilisez ce formulaire pour une demande reçue par téléphone ou remise en main propre.</p>
+      <div class="c-field"><label class="c-field__label" for="n-client">Client <span class="is-required">*</span></label><select class="c-select" id="n-client"></select></div>
+      <div class="c-form-grid">
+        <div class="c-field"><label class="c-field__label" for="n-type">Type</label><select class="c-select" id="n-type"><option>Import</option><option>Export</option></select></div>
+        <div class="c-field"><label class="c-field__label" for="n-mode">Mode</label><select class="c-select" id="n-mode"><option>Maritime</option><option>Aérien</option></select></div>
+      </div>
+      <div class="c-form-grid">
+        <div class="c-field"><label class="c-field__label" for="n-ref" id="n-ref-label">N° de BL</label><input class="c-input" id="n-ref" autocomplete="off"><span class="c-field__help">Facultatif, peut être ajouté plus tard.</span></div>
+        <div class="c-field"><label class="c-field__label" for="n-resp">Déclarant</label><select class="c-select" id="n-resp"></select></div>
+      </div>
+      <div class="c-field"><label class="c-field__label" for="n-march">Marchandise</label><input class="c-input" id="n-march" autocomplete="off" placeholder="Ex. : pièces détachées automobiles"></div>
+      <fieldset class="c-fieldset"><legend class="c-field__label">Pièces déjà reçues</legend><div class="c-checks" id="n-pieces"></div>
+        <span class="c-field__help">S'il manque une pièce obligatoire, le dossier va en salle d'attente et le client reçoit la liste des pièces à envoyer.</span></fieldset>
+    </div>
+    <div class="c-modal__foot"><button class="c-btn c-btn--ghost" type="button" data-fermer-nouveau>Annuler</button><button class="c-btn c-btn--primary" type="button" id="nouveau-ok">Créer le dossier</button></div>
+  </div>
+</div>
 </div>
 
 <!-- ══ Filtres multicritères (panneau latéral) ══ -->
@@ -161,6 +188,10 @@
   }
   var ORDRE_STATUT = Object.keys(D.statuts.dossier);
   function dateHeure(iso) { return F.date(iso) + ' ' + F.heure(iso); }
+  /* Dates du tableau en format court (jj/mm, l'année est celle de l'en-tête « au 16/10/2026 ») : la liste tient sur un écran de 1 440 px ;
+     date complète au survol (title) */
+  function courteHeure(iso) { return F.dateCourte(iso) + ' ' + F.heure(iso); }
+  function cellDate(iso) { return iso ? '<span title="' + F.date(iso) + '">' + F.dateCourte(iso) + '</span>' : DASH; }
 
   /* ── Colonnes : CDC §05 + Statut après Client (C3) ───────── */
   var COLS = [
@@ -169,14 +200,14 @@
     { k: 'client',      label: 'Client',              val: function (d) { return D.client(d).nom; } },
     { k: 'statut',      label: 'Statut',              val: function (d) { return ORDRE_STATUT.indexOf(d.statut); } },
     { k: 'reception',   label: 'Réception',           val: function (d) { return d.reception; } },
-    { k: 'stockee',     label: 'Déclaration stockée', val: function (d) { return d.declStockee; } },
+    { k: 'stockee',     label: 'Décl. stockée', titre: 'Déclaration stockée', val: function (d) { return d.declStockee; } },
     { k: 'anticipe',    label: 'Anticipé',            val: function (d) { return d.declAnticipee; } },
     { k: 'controle',    label: 'Contrôle',            val: function (d) { return d.controle ? d.controle.type + (d.controle.resultat || '') : null; } },
     { k: 'bae',         label: 'BAE',                 val: function (d) { return d.bae ? d.bae.date : null; } },
     { k: 'bas',         label: 'BAS',                 val: function (d) { return d.bas ? d.bas.date : null; } },
     { k: 'transport',   label: 'Transport',           val: function (d) { return d.transport ? (d.transport.statut === 'Pas de livraison' ? 99 : D.ordreTransport.indexOf(d.transport.statut)) : null; } },
     { k: 'livraison',   label: 'Livraison',           val: function (d) { return d.livraison; } },
-    { k: 'responsable', label: 'Responsable',         val: function (d) { return D.responsable(d).nom; } },
+    { k: 'responsable', label: 'Déclarant', titre: 'Responsable du dossier',         val: function (d) { return D.responsable(d).nom; } },
     { k: 'alertes',     label: 'Alertes',             val: function (d) { return D.alertes(d.id); }, cls: 'is-center' },
     { k: 'actions',     label: 'Actions' }
   ];
@@ -199,7 +230,7 @@
     { k: 'statut',      label: 'Statut',      options: ORDRE_STATUT.filter(function (s) { return s !== 'En attente de documents'; }), val: function (d) { return d.statut; } },
     { k: 'controle',    label: 'Contrôle',    options: ['Aucun', 'Physique', 'Documentaire', 'Non renseigné'], val: function (d) { return d.controle ? d.controle.type : 'Non renseigné'; } },
     { k: 'transport',   label: 'Transport',   options: D.ordreTransport.concat(['Pas de livraison', 'Sans ordre de transport']), val: function (d) { return d.transport ? d.transport.statut : 'Sans ordre de transport'; } },
-    { k: 'responsable', label: 'Responsable', options: Object.keys(D.equipe).filter(function (k) { return D.equipe[k].role === 'declarant'; }).map(function (k) { return D.equipe[k].nom; }), val: function (d) { return D.responsable(d).nom; } }
+    { k: 'responsable', label: 'Déclarant', options: Object.keys(D.equipe).filter(function (k) { return D.equipe[k].role === 'declarant'; }).map(function (k) { return D.equipe[k].nom; }), val: function (d) { return D.responsable(d).nom; } }
   ];
 
   function normaliser(s) { return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase(); }
@@ -235,14 +266,14 @@
   }
   function cellStockee(d, dessous) {
     if (!d.declStockee) return DASH;
-    return tip(dateHeure(d.declStockee), '<b>Déclaration stockée</b><br>le ' + F.date(d.declStockee) + ' à ' + F.heure(d.declStockee), dessous);
+    return tip(courteHeure(d.declStockee), '<b>Déclaration stockée</b><br>le ' + F.date(d.declStockee) + ' à ' + F.heure(d.declStockee), dessous);
   }
   function cellAnticipe(d, dessous) {
     if (!d.declAnticipee) return DASH;
     var eta = d.mode === 'Aérien'
       ? 'ETA vol ' + d.vol + ' : ' + F.date(d.eta) + '<br>LTA ' + d.lta
       : 'ETA navire ' + d.navire + ' : ' + F.date(d.eta) + (d.conteneur ? '<br>Conteneur ' + d.conteneur : '');
-    return tip(dateHeure(d.declAnticipee), '<b>Déclaration anticipée</b><br>le ' + F.date(d.declAnticipee) + ' à ' + F.heure(d.declAnticipee) + '<br>' + eta, dessous);
+    return tip(courteHeure(d.declAnticipee), '<b>Déclaration anticipée</b><br>le ' + F.date(d.declAnticipee) + ' à ' + F.heure(d.declAnticipee) + '<br>' + eta, dessous);
   }
   /* Contrôle : type en texte coloré selon le résultat + date (image) */
   function cellControle(d) {
@@ -251,7 +282,7 @@
     if (c.type === 'Aucun') return '<span class="c-ctrl c-ctrl--success"><span class="c-ctrl__type">Aucun contrôle</span></span>';
     var ton = D.statuts.resultat[c.resultat] || 'neutral';
     return '<span class="c-ctrl c-ctrl--' + ton + '"><span class="c-ctrl__type">' + c.type + ' · ' + c.resultat.toLowerCase() + '</span>' +
-      '<span class="c-ctrl__date">' + F.date(c.date) + '</span></span>';
+      '<span class="c-ctrl__date" title="' + F.date(c.date) + '">' + F.dateCourte(c.date) + '</span></span>';
   }
   function classeLigne(d) {
     var ouvert = window.DOUALOG_DOSSIER.ouvert();
@@ -271,14 +302,14 @@
       '<td>' + B('type', d.type) + '</td>' +
       '<td>' + esc(D.client(d).nom) + '</td>' +
       '<td>' + B('dossier', d.statut) + '</td>' +
-      '<td class="u-num">' + dateHeure(d.reception) + '</td>' +
+      '<td class="u-num" title="' + dateHeure(d.reception) + '">' + courteHeure(d.reception) + '</td>' +
       '<td class="u-num">' + cellStockee(d, dessous) + '</td>' +
       '<td class="u-num">' + cellAnticipe(d, dessous) + '</td>' +
       '<td>' + cellControle(d) + '</td>' +
-      '<td class="u-num">' + (d.bae ? F.date(d.bae.date) : DASH) + '</td>' +
-      '<td class="u-num">' + (d.bas ? F.date(d.bas.date) : DASH) + '</td>' +
+      '<td class="u-num">' + cellDate(d.bae && d.bae.date) + '</td>' +
+      '<td class="u-num">' + cellDate(d.bas && d.bas.date) + '</td>' +
       '<td>' + (d.transport ? B('transport', d.transport.statut) : DASH) + '</td>' +
-      '<td class="u-num">' + (d.livraison ? F.date(d.livraison) : DASH) + '</td>' +
+      '<td class="u-num">' + cellDate(d.livraison) + '</td>' +
       '<td>' + D.responsable(d).nom + '</td>' +
       '<td class="is-center">' + (n ? '<span class="c-count c-count--alert" title="' + n + ' notification(s) non lue(s)">' + n + '</span>' : DASH) + '</td>' +
       '<td class="is-center">' + boutonOeil(lien, d.id) + '</td>' +
@@ -302,7 +333,7 @@
       if (c.k === 'actions') return '<th class="is-center">' + c.label + '</th>';
       var actif = etat.tri === c.k, ic = actif ? (etat.sens > 0 ? 'chevron-up' : 'chevron-down') : 'sort';
       var aria = actif ? (etat.sens > 0 ? 'ascending' : 'descending') : 'none';
-      return '<th class="' + (c.cls || '') + '" aria-sort="' + aria + '"><button class="c-th-sort' + (actif ? ' is-sorted' : '') + '" type="button" data-sort="' + c.k + '">' + c.label + ' ' + icon(ic) + '</button></th>';
+      return '<th class="' + (c.cls || '') + '" aria-sort="' + aria + '"' + (c.titre ? ' title="' + c.titre + '"' : '') + '><button class="c-th-sort' + (actif ? ' is-sorted' : '') + '" type="button" data-sort="' + c.k + '">' + c.label + ' ' + icon(ic) + '</button></th>';
     }).join('');
   }
 
@@ -371,7 +402,7 @@
       return '<tr class="' + cls + '" data-ligne="' + d.id + '"><td><a class="c-ref" data-ouvrir="' + d.id + '" href="' + lien + '">' + d.id + '</a></td>' +
         '<td>' + B('type', d.type) + '</td>' +
         '<td class="is-wrap">' + esc(c.nom) + '</td>' +
-        '<td class="u-num">' + dateHeure(d.reception) + '</td>' +
+        '<td class="u-num" title="' + dateHeure(d.reception) + '">' + courteHeure(d.reception) + '</td>' +
         '<td class="is-wrap">' + (manquants || DASH) + '</td>' +
         '<td>' + relances + '</td>' +
         '<td>' + mandat + '</td>' +
@@ -477,10 +508,57 @@
     message('Export Excel et PDF — prévus dans une prochaine version',
       'Ils reprendront la liste telle qu\'elle est affichée : ' + filtrer().length + ' dossier(s), avec la recherche et les filtres en cours.');
   });
-  $('new-dossier').addEventListener('click', function () {
-    message('Création manuelle d\'un dossier — à définir avec DOUALOG',
-      'Aujourd\'hui, chaque dossier est créé automatiquement à la réception d\'un email avec pièces jointes sur ' + D.config.boiteEmail + '.');
-  });
+  /* ── Nouveau dossier (création manuelle) ─────────────────── */
+  function majPieces() {
+    var type = $('n-type').value, mode = $('n-mode').value;
+    $('n-ref-label').textContent = mode === 'Aérien' ? 'N° de LTA' : type === 'Export' ? 'N° de booking' : 'N° de BL';
+    var deja = {};
+    document.querySelectorAll('#n-pieces input:checked').forEach(function (x) { deja[x.value] = true; });
+    $('n-pieces').innerHTML = D.documentsRequis[type].map(function (k) {
+      return '<label class="c-check"><input type="checkbox" value="' + k + '"' + (deja[k] ? ' checked' : '') + '> ' + D.documents[k].libelle + '</label>';
+    }).join('');
+  }
+  function ouvrirNouveau() {
+    var u = D.acces[window.DOUALOG_SHELL.role()].utilisateur;
+    $('n-client').innerHTML = '<option value="">Choisir un client</option>' + Object.keys(D.clients)
+      .sort(function (a, b) { return D.clients[a].nom.localeCompare(D.clients[b].nom, 'fr'); })
+      .map(function (k) { return '<option value="' + k + '">' + esc(D.clients[k].nom) + '</option>'; }).join('');
+    $('n-resp').innerHTML = Object.keys(D.equipe).filter(function (k) { return D.equipe[k].role === 'declarant' && D.equipe[k].statut === 'actif'; })
+      .map(function (k) { return '<option value="' + k + '"' + (k === u ? ' selected' : '') + '>' + esc(D.equipe[k].nom) + '</option>'; }).join('');
+    $('n-ref').value = ''; $('n-march').value = ''; $('n-pieces').innerHTML = '';
+    erreurClient(false);
+    majPieces();
+    $('modale-nouveau').hidden = false; $('n-client').focus();
+  }
+  function erreurClient(on) {
+    var champ = $('n-client').closest('.c-field'), err = champ.querySelector('.c-field__error');
+    if (err) err.remove();
+    champ.classList.toggle('is-error', on);
+    if (on) champ.insertAdjacentHTML('beforeend', '<span class="c-field__error">Choisissez le client.</span>');
+  }
+  function creerNouveau() {
+    if (!$('n-client').value) { erreurClient(true); $('n-client').focus(); return; }
+    var recus = [];
+    document.querySelectorAll('#n-pieces input:checked').forEach(function (x) { recus.push(x.value); });
+    var d = D.creerDossier({ client: $('n-client').value, type: $('n-type').value, mode: $('n-mode').value, ref: $('n-ref').value.trim(),
+      marchandise: $('n-march').value.trim(), responsable: $('n-resp').value, recus: recus });
+    $('modale-nouveau').hidden = true;
+    liste = D.tableauDeBord(); renderAttente(); render();
+    if (D.enSalleAttente(d)) {
+      ouvrirOnglet('attente');
+      message('Dossier ' + d.id + ' créé, en salle d\'attente', 'Pièces manquantes : ' + D.documentsManquants(d).map(function (k) { return D.documents[k].libelle.toLowerCase(); }).join(', ') +
+        '. ' + D.client(d).nom + ' reçoit l\'accusé de réception et la liste des pièces à envoyer.', 'success');
+    } else {
+      ouvrirOnglet('dossiers');
+      message('Dossier ' + d.id + ' créé', 'Toutes les pièces obligatoires sont reçues : le dossier est en cours de traitement. ' + D.client(d).nom + ' reçoit l\'accusé de réception avec son lien de suivi.', 'success');
+    }
+    window.DOUALOG_SHELL.majCompteurs();
+  }
+  $('new-dossier').addEventListener('click', ouvrirNouveau);
+  $('n-type').addEventListener('change', majPieces);
+  $('n-mode').addEventListener('change', majPieces);
+  $('nouveau-ok').addEventListener('click', creerNouveau);
+  document.querySelectorAll('[data-fermer-nouveau]').forEach(function (b) { b.addEventListener('click', function () { $('modale-nouveau').hidden = true; }); });
   $('msg-close').addEventListener('click', function () { $('msg').hidden = true; });
   $('search').addEventListener('input', function () { etat.q = this.value; render(); });
   $('sort-reset').addEventListener('click', function () { etat.tri = null; etat.sens = 1; render(); });
@@ -491,7 +569,7 @@
   });
   $('filters-reset').addEventListener('click', function () { etat.filtres = {}; renderChampsFiltres(); render(); });
   $('clear-all').addEventListener('click', function () { etat.q = ''; $('search').value = ''; etat.rapide = 'tous'; etat.kpi = null; etat.ids = null; etat.filtres = {}; render(); });
-  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') ouvrirFiltres(false); });
+  document.addEventListener('keydown', function (e) { if (e.key === 'Escape') { ouvrirFiltres(false); $('modale-nouveau').hidden = true; } });
   window.addEventListener('hashchange', lireHash);
 
   /* ── Initialisation ──────────────────────────────────────── */

@@ -6,7 +6,7 @@
     /* — Planche charte — */
     'dashboard':  '<path d="M4 11l8-7 8 7"/><path d="M6 10v9a1 1 0 001 1h10a1 1 0 001-1v-9"/>',
     'dossiers':   '<path d="M3 7a1 1 0 011-1h5l2 2h9a1 1 0 011 1v9a1 1 0 01-1 1H4a1 1 0 01-1-1V7z"/>',
-    'transport':  '<path d="M8 18H5a2 2 0 01-2-2V8a2 2 0 012-2h3M16 6h3a2 2 0 012 2v8a2 2 0 01-2 2h-3M9 12h6"/><circle cx="7" cy="18" r="1.6"/><circle cx="17" cy="18" r="1.6"/>',
+    'transport':  '<path d="M14 17V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10a1 1 0 001 1h1M15 17H9M19 17h1a1 1 0 001-1v-3.6a1 1 0 00-.2-.6l-2.7-3.4a1 1 0 00-.8-.4H14"/><circle cx="7" cy="17" r="2"/><circle cx="17" cy="17" r="2"/>',   /* camion */
     'mandat':     '<rect x="4" y="5" width="16" height="14" rx="2"/><circle cx="12" cy="10" r="2.2"/><path d="M8 16c0-1.8 1.8-3 4-3s4 1.2 4 3"/>',
     'clients':    '<path d="M17 20h5v-1a4 4 0 00-5.447-3.724M12 12a4 4 0 110-8 4 4 0 010 8zm-8 8v-1a4 4 0 014-4h8a4 4 0 014 4v1H4z"/>',
     'document':   '<path d="M14 3H6a1 1 0 00-1 1v16a1 1 0 001 1h12a1 1 0 001-1V8l-5-5z"/><path d="M14 3v5h5M9 13h6M9 17h6"/>',
@@ -14,6 +14,7 @@
     'bell':       '<path d="M18 8a6 6 0 10-12 0c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>',
     'rapport':    '<path d="M4 19V5a1 1 0 011-1h9l5 5v10a1 1 0 01-1 1H5a1 1 0 01-1-1z"/><path d="M9 13h6M9 17h4"/>',
     'logout':     '<path d="M17 16l4-4m0 0l-4-4m4 4H7"/><path d="M13 20H6a1 1 0 01-1-1V5a1 1 0 011-1h7"/>',
+    'sidebar':    '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M9 4v16"/>',
     'search':     '<circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/>',
     'controle':   '<circle cx="12" cy="12" r="9"/><path d="M12 8v5M12 16h.01"/>',
     'valide':     '<circle cx="12" cy="12" r="9"/><path d="M8 12.5l2.5 2.5L16 9"/>',

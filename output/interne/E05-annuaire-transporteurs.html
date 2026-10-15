@@ -3,7 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Transporteurs — DOUALOG Control Tower</title>
+<title>Transport — DOUALOG Control Tower</title>
+<link rel="icon" type="image/png" href="../assets/img/favicon.png">
 <link rel="stylesheet" href="../assets/tokens.css">
 <link rel="stylesheet" href="../assets/components.css">
 <script src="../assets/icons.js"></script>
@@ -12,8 +13,11 @@
 <script src="../assets/demo.js"></script>
 </head>
 <body>
-<!-- E05 · Annuaire des transporteurs · US-27 (P4) — entrée « Transport » du menu.
-     Ajout et modification dans le panneau latéral (gardés pour la démo). -->
+<!-- E05 · Transport (P4) — entrée « Transport » du menu, deux onglets :
+     · Ordres de transport (par défaut) : tous les OT, du plus urgent au plus ancien — à organiser (BAE obtenu, sans OT), offres en attente
+       de réponse, transports en cours, livrés. Une seule source : dossiers (transport) + D.ots (détail de l'OT). US-28 à 33.
+     · Annuaire des transporteurs (#annuaire) · US-27 : ajout et modification dans le panneau latéral (gardés pour la démo).
+     ?filtre=organiser|offres|cours|livres ouvre la liste filtrée. -->
 <!-- À VALIDER (D15) : champs de la fiche transporteur limités à raison sociale, contact, email, téléphone. -->
 <div class="c-app">
   <header class="c-topbar" id="topbar"></header>
@@ -28,14 +32,45 @@
       <div class="c-alert__actions"><button class="c-btn c-btn--icon c-btn--ghost c-btn--sm" type="button" id="msg-fermer" aria-label="Fermer le message"><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-x"></use></svg></button></div>
     </div>
 
-    <section class="c-list" aria-labelledby="annuaire-titre">
+    <section class="c-list" aria-labelledby="transport-titre">
       <div class="c-list__head">
-        <h2 class="c-block-title" id="annuaire-titre">Annuaire des transporteurs</h2>
+        <h2 class="c-block-title" id="transport-titre">Transport</h2>
+        <div class="c-tabs" role="tablist" aria-label="Transport">
+          <button class="c-tabs__tab" role="tab" id="tab-ots" aria-controls="panel-ots" data-tab="ots">Ordres de transport <span class="c-count" id="count-ots"></span></button>
+          <button class="c-tabs__tab" role="tab" id="tab-annuaire" aria-controls="panel-annuaire" data-tab="annuaire">Annuaire des transporteurs <span class="c-count" id="count-annuaire"></span></button>
+        </div>
         <span class="c-list__meta" id="meta"></span>
         <div class="c-list__actions">
-          <button class="c-btn c-btn--primary c-btn--sm" type="button" data-editer=""><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-plus"></use></svg>Ajouter un transporteur</button>
+          <button class="c-btn c-btn--primary c-btn--sm" type="button" data-editer="" id="ajouter" hidden><svg class="c-icon c-icon--sm" aria-hidden="true"><use href="#i-plus"></use></svg>Ajouter un transporteur</button>
         </div>
       </div>
+
+      <!-- Onglet Ordres de transport -->
+      <div role="tabpanel" id="panel-ots" aria-labelledby="tab-ots">
+        <div class="c-toolbar">
+          <div class="c-input-icon c-toolbar__search">
+            <svg class="c-icon" aria-hidden="true"><use href="#i-search"></use></svg>
+            <input class="c-input" id="search-ot" type="search" placeholder="N° OT, N° DLG, client, transporteur" aria-label="Rechercher un ordre de transport">
+          </div>
+          <div class="u-contents" id="quick-ot" role="group" aria-label="Filtres rapides"></div>
+        </div>
+        <div class="c-table-wrap">
+          <table class="c-table c-table--sticky">
+            <thead><tr>
+              <th>N° OT</th><th>Dossier</th><th>Client</th><th>Transporteur</th><th>Statut</th><th>Prise en charge</th><th>Livraison</th><th class="is-center">Actions</th>
+            </tr></thead>
+            <tbody id="tbody-ot"></tbody>
+          </table>
+          <div class="c-empty" id="empty-ot" hidden>
+            <svg class="c-icon" aria-hidden="true"><use href="#i-transport"></use></svg>
+            <p class="c-empty__title">Aucun ordre de transport ne correspond</p>
+            <p class="c-empty__text">Changez le filtre ou la recherche.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Onglet Annuaire -->
+      <div role="tabpanel" id="panel-annuaire" aria-labelledby="tab-annuaire" hidden>
       <div class="c-toolbar">
         <div class="c-input-icon c-toolbar__search">
           <svg class="c-icon" aria-hidden="true"><use href="#i-search"></use></svg>
@@ -54,6 +89,7 @@
           <p class="c-empty__title">Aucun transporteur ne correspond</p>
           <p class="c-empty__text">Vérifiez l'orthographe ou ajoutez le transporteur à l'annuaire.</p>
         </div>
+      </div>
       </div>
     </section>
   </main>
@@ -83,7 +119,8 @@
   var D = window.DOUALOG, F = D.fmt, esc = D.esc;
   function $(id) { return document.getElementById(id); }
   function icon(n, cls) { return '<svg class="c-icon' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#i-' + n + '"></use></svg>'; }
-  var q = '', edite = null;
+  var q = '', edite = null, onglet = 'ots', qOT = '', filtreOT = new URLSearchParams(location.search).get('filtre') || 'tous';
+  var DASH = '<span class="c-dash">—</span>';
 
   window.DOUALOG_SHELL.init({ actif: 'transport' });
 
@@ -91,7 +128,8 @@
   function render() {
     var ids = Object.keys(D.transporteurs).sort(function (a, b) { return D.transporteurs[a].nom.localeCompare(D.transporteurs[b].nom, 'fr'); });
     var vus = ids.filter(function (t) { var x = D.transporteurs[t]; return !q || normaliser([x.nom, x.contact, x.tel, x.email].join(' ')).indexOf(normaliser(q)) >= 0; });
-    $('meta').textContent = ids.length + ' transporteurs' + (vus.length !== ids.length ? ' · ' + vus.length + ' affichés' : '');
+    $('count-annuaire').textContent = ids.length;
+    if (onglet === 'annuaire') $('meta').textContent = ids.length + ' transporteurs' + (vus.length !== ids.length ? ' · ' + vus.length + ' affichés' : '');
     $('tbody').innerHTML = vus.map(function (t) {
       var x = D.transporteurs[t], ots = D.otsTransporteur(t), dernier = ots[0];
       return '<tr><td><b>' + esc(x.nom) + '</b></td><td>' + esc(x.contact) + '</td>' +
@@ -101,6 +139,83 @@
         '<td class="is-center"><button class="c-btn c-btn--icon c-btn--sm" type="button" data-editer="' + t + '" aria-label="Modifier ' + esc(x.nom) + '" title="Modifier">' + icon('edit', 'c-icon--sm') + '</button></td></tr>';
     }).join('');
     $('empty').hidden = vus.length > 0;
+  }
+
+  /* ── Ordres de transport ──────────────────────────────────
+     Une ligne par dossier qui a un transport (OT créé, ou « pas de livraison ») ou qui peut en avoir un (BAE obtenu, sans OT : à organiser, C5) */
+  var EN_COURS = ['Confirmé', 'Camion affecté', 'Chargement', 'En route'], OFFRES = ['Demande de transport envoyée', 'À confirmer'];
+  function categorie(d) {
+    var t = d.transport;
+    if (!t) return 'organiser';
+    if (OFFRES.indexOf(t.statut) >= 0) return 'offres';
+    if (EN_COURS.indexOf(t.statut) >= 0) return 'cours';
+    return 'livres';   // Livré, ou pas de livraison
+  }
+  var FILTRES_OT = [
+    { id: 'tous', label: 'Tous' },
+    { id: 'organiser', label: 'À organiser' },
+    { id: 'offres', label: 'Offres sans réponse' },
+    { id: 'cours', label: 'En cours' },
+    { id: 'livres', label: 'Livrés' }
+  ];
+  var ORDRE = ['organiser', 'offres', 'cours', 'livres'];
+  function lignesOT() {
+    return D.dossiers.filter(function (d) { return d.transport || (d.bae && d.statut !== 'Clôturé'); }).sort(function (a, b) {
+      return ORDRE.indexOf(categorie(a)) - ORDRE.indexOf(categorie(b)) || (b.id < a.id ? -1 : 1);
+    });
+  }
+  function transporteurOT(d) {
+    var t = d.transport, ot = t && t.ot ? D.ots[t.ot] : null;
+    if (!t) return DASH;
+    if (t.statut === 'Pas de livraison') return '<span class="c-field__help">Enlèvement par le client</span>';
+    if (t.transporteur) return esc(D.transporteurs[t.transporteur].nom) + (ot && ot.camion ? '<div class="c-field__help">' + esc(ot.camion.immatriculation) + ' · ' + esc(ot.camion.chauffeur) + '</div>' : '');
+    var n = ot ? ot.offres.length : 0;
+    return '<span class="c-field__help">Offre envoyée à ' + n + ' transporteur' + (n > 1 ? 's' : '') + (ot ? ' le ' + F.date(ot.offres[0].envoi) : '') + '</span>';
+  }
+  function renderOT() {
+    var toutes = lignesOT();
+    $('count-ots').textContent = toutes.length;
+    $('quick-ot').innerHTML = FILTRES_OT.map(function (x) {
+      var n = x.id === 'tous' ? toutes.length : toutes.filter(function (d) { return categorie(d) === x.id; }).length, on = filtreOT === x.id;
+      return '<button class="c-chip' + (on ? ' is-active' : '') + '" type="button" aria-pressed="' + on + '" data-filtre-ot="' + x.id + '">' + x.label + ' <span class="c-count">' + n + '</span></button>';
+    }).join('');
+    var nq = normaliser(qOT);
+    var vus = toutes.filter(function (d) {
+      if (filtreOT !== 'tous' && categorie(d) !== filtreOT) return false;
+      var t = d.transport || {};
+      return !nq || normaliser([t.ot, d.id, D.client(d).nom, t.transporteur ? D.transporteurs[t.transporteur].nom : ''].join(' ')).indexOf(nq) >= 0;
+    });
+    if (onglet === 'ots') $('meta').textContent = toutes.filter(function (d) { return categorie(d) === 'organiser'; }).length + ' à organiser · ' +
+      toutes.filter(function (d) { return categorie(d) === 'offres'; }).length + ' offre(s) sans réponse · ' + toutes.filter(function (d) { return categorie(d) === 'cours'; }).length + ' en cours';
+    $('tbody-ot').innerHTML = vus.map(function (d) {
+      var t = d.transport, ot = t && t.ot ? D.ots[t.ot] : null, cat = categorie(d);
+      var statut = cat === 'organiser' ? '<span class="c-badge c-badge--warning">À organiser</span>' : D.badge('transport', t.statut);
+      var actions = '<a class="c-btn c-btn--icon c-btn--sm" href="E01-dossiers.html?id=' + d.id + '" aria-label="Ouvrir le dossier ' + d.id + '" title="Ouvrir le dossier">' + icon('eye', 'c-icon--sm') + '</a>';
+      if (cat === 'organiser') actions = '<a class="c-btn c-btn--sm" href="E04-creation-ot.html?id=' + d.id + '">' + icon('plus', 'c-icon--sm') + 'Créer OT</a>' + actions;
+      else if (ot && ot.lien && ot.lien.actif) actions += '<a class="c-btn c-btn--icon c-btn--sm" href="../externe/X06-lien-transporteur.html?ot=' + t.ot + '" aria-label="Page du transporteur pour ' + t.ot + '" title="Page du transporteur (lien personnel)">' + icon('link', 'c-icon--sm') + '</a>';
+      return '<tr' + (d.filRouge ? ' class="is-selected"' : cat === 'organiser' ? ' class="is-warning"' : '') + '>' +
+        '<td>' + (t && t.ot ? '<span class="c-ref">' + t.ot + '</span>' : DASH) + '</td>' +
+        '<td><a class="c-ref" href="E01-dossiers.html?id=' + d.id + '">' + d.id + '</a><div class="c-field__help u-nowrap">' + d.type + ' · ' + d.mode + '</div></td>' +
+        '<td>' + esc(D.client(d).nom) + '</td>' +
+        '<td>' + transporteurOT(d) + '</td>' +
+        '<td>' + statut + '</td>' +
+        '<td class="u-num">' + (ot && ot.priseEnCharge ? F.date(ot.priseEnCharge) + ' ' + F.heure(ot.priseEnCharge) : cat === 'organiser' ? '<span class="c-field__help u-nowrap">BAE du ' + F.date(d.bae.date) + '</span>' : DASH) + '</td>' +
+        '<td class="u-num">' + (d.livraison ? F.date(d.livraison) : DASH) + '</td>' +
+        '<td class="is-center"><span class="u-row u-nowrap">' + actions + '</span></td></tr>';
+    }).join('');
+    $('empty-ot').hidden = vus.length > 0;
+  }
+  function ouvrirOnglet(id) {
+    onglet = id;
+    document.querySelectorAll('[data-tab]').forEach(function (b) {
+      var on = b.dataset.tab === id;
+      b.classList.toggle('is-active', on); b.setAttribute('aria-selected', on);
+      b.querySelector('.c-count').className = 'c-count' + (on ? ' c-count--accent' : '');
+      $('panel-' + b.dataset.tab).hidden = !on;
+    });
+    $('ajouter').hidden = id !== 'annuaire';
+    history.replaceState(null, '', location.pathname + location.search + (id === 'annuaire' ? '#annuaire' : ''));
+    if (id === 'annuaire') render(); else renderOT();
   }
 
   function ouvrir(t) {
@@ -137,12 +252,16 @@
   });
   document.addEventListener('click', function (e) {
     var b = e.target.closest('[data-editer]'); if (b) ouvrir(b.dataset.editer);
+    var o = e.target.closest('[data-tab]'); if (o) ouvrirOnglet(o.dataset.tab);
+    var c = e.target.closest('[data-filtre-ot]'); if (c) { filtreOT = c.dataset.filtreOt; renderOT(); }
     if (e.target.closest('[data-fermer]')) fermer();
   });
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') fermer(); });
   $('msg-fermer').addEventListener('click', function () { $('msg').hidden = true; });
   $('search').addEventListener('input', function () { q = this.value; render(); });
-  render();
+  $('search-ot').addEventListener('input', function () { qOT = this.value; renderOT(); });
+  render(); renderOT();
+  ouvrirOnglet(location.hash === '#annuaire' ? 'annuaire' : 'ots');
 })();
 </script>
 </body>

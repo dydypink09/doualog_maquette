@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Design system — DOUALOG Control Tower</title>
+<link rel="icon" type="image/png" href="assets/img/favicon.png">
 <link rel="stylesheet" href="assets/tokens.css">
 <link rel="stylesheet" href="assets/components.css">
 <script src="assets/icons.js"></script>
@@ -72,12 +73,12 @@
   <!-- ══ COULEURS ══ -->
   <section class="ds-sec" id="couleurs">
     <h2>Couleurs</h2>
-    <p class="ds-intro">Menu bleu nuit, header blanc translucide, zone de travail gris très clair, cartes blanches à bordure fine et ombre très légère. Orange DOUALOG <code>#F97316</code> pour les repères d'identité (entrée active du menu, étape en cours, focus) ; les boutons principaux prennent un orange plus profond (<code>#CC4A0E</code>) pour que le texte blanc soit lisible (contraste AA). Bleu marine pour les onglets et filtres actifs. Teintes de statut de la charte, en fond très léger.</p>
+    <p class="ds-intro">Menu bleu nuit, header blanc translucide, zone de travail gris très clair, cartes blanches à bordure fine et ombre très légère. Orange du logo DOUALOG <code>#F99A00</code> pour les repères d'identité (entrée active du menu, étape en cours, focus) et les boutons principaux, avec un texte bleu marine pour rester lisible (contraste AA). Bleu marine pour les onglets et filtres actifs. Teintes de statut de la charte, en fond très léger.</p>
     <p class="u-label ds-cap">Identité &amp; surfaces</p>
     <div class="ds-grid" id="sw-base"></div>
     <p class="u-label ds-cap" style="margin-top: var(--sp-6)">Six teintes de statut — paires fond / texte (contraste ≥ 4,5:1)</p>
     <div class="ds-grid" id="sw-tones"></div>
-    <p class="ds-note">Tous les textes de badges atteignent le contraste AA sur leur fond. Bouton principal : texte blanc sur <code>#CC4A0E</code>, 4,6:1 (blanc sur <code>#F97316</code> ne donnait que 2,8:1).</p>
+    <p class="ds-note">Tous les textes de badges atteignent le contraste AA sur leur fond. Bouton principal : texte bleu marine sur <code>#F99A00</code>, 5,9:1 (le blanc ne donnerait que 2,2:1). Texte orange sur fond clair : <code>#9A5800</code>.</p>
   </section>
 
   <!-- ══ TYPOGRAPHIE ══ -->
@@ -180,7 +181,7 @@
   <!-- ══ CHAMPS ══ -->
   <section class="ds-sec" id="champs">
     <h2>Champs de saisie</h2>
-    <p class="ds-intro">Libellé au-dessus, jamais en placeholder seul. Obligatoire marqué *. Erreur sous le champ, en langage clair.</p>
+    <p class="ds-intro">Libellé au-dessus, jamais en placeholder seul. Obligatoire marqué *. Erreur sous le champ, en langage clair. Groupe de cases à cocher : <code>.c-fieldset</code> + <code>.c-checks</code> (ex. « Pièces déjà reçues » du nouveau dossier).</p>
     <div class="ds-box">
       <div class="c-form-grid">
         <div class="c-field"><label class="c-field__label" for="f1">N° de BAE <span class="is-required">*</span></label><input class="c-input" id="f1" value="2026-BAE-048213"></div>
@@ -207,7 +208,7 @@
   <!-- ══ SHELL ══ -->
   <section class="ds-sec" id="shell">
     <h2>Shell applicatif</h2>
-    <p class="ds-intro">Menu bleu nuit pleine hauteur avec le logo en tête (monogramme sur pastille, DOUA blanc, LOG orange) ; header blanc translucide à filet gris : recherche (champ gris sans contour, blanc au focus), notifications (compteur rouge), emails, utilisateur. Entrée active du menu : fond discret et repère orange arrondi à gauche ; entrées hors V1 ou hors droits du profil grisées ; Déconnexion en bas. Rendu par <code>shell.js</code> (<code>.c-sidebar__brand</code>).</p>
+    <p class="ds-intro">Menu bleu nuit pleine hauteur avec le logo blanc DOUALOG en tête, aligné sur les icônes des entrées. Le bouton à gauche du header ferme le menu (64 px : icônes seules, libellé en infobulle, compteur en pastille orange, monogramme blanc) ; l'état est gardé d'un écran à l'autre ; header blanc translucide à filet gris : recherche (champ gris sans contour, blanc au focus), notifications (compteur rouge), emails, utilisateur. Entrée active du menu : fond discret et repère orange arrondi à gauche ; entrées hors V1 ou hors droits du profil grisées ; Déconnexion en bas. Rendu par <code>shell.js</code> (<code>.c-sidebar__brand</code>).</p>
     <div class="ds-shell">
       <div class="c-app">
         <header class="c-topbar">
@@ -219,8 +220,7 @@
           </div>
         </header>
         <nav class="c-sidebar" aria-label="Navigation (exemple)">
-          <div class="c-sidebar__brand"><a class="c-brand" href="#"><span class="c-brand__mark"><img src="assets/img/logo-monogramme.png" alt=""></span>
-            <span><span class="c-brand__name">DOUA<em>LOG</em></span><span class="c-brand__sub">Control Tower</span></span></a></div>
+          <div class="c-sidebar__brand"><a class="c-brand" href="#"><img class="c-brand__logo" src="assets/img/logo-blanc-menu.png" alt="DOUALOG"></a></div>
           <ul class="c-nav">
             <li><a class="c-nav__item is-active" href="#"><svg class="c-icon" aria-hidden="true"><use href="#i-dashboard"></use></svg>Tableau de bord</a></li>
             <li><a class="c-nav__item" href="#"><svg class="c-icon" aria-hidden="true"><use href="#i-dossiers"></use></svg>Dossiers</a></li>
@@ -308,7 +308,7 @@
   <section class="ds-sec" id="tableau">
     <h2>Carte de liste, filtres rapides et tableau</h2>
     <p class="ds-intro">Dans l'application, la liste est une carte blanche <code>.c-list</code> : titre, onglets, actions Filtres / Exporter à droite, puis barre de filtres, et le tableau dans son propre cadre bordé, en retrait des bords de la carte. Colonne Contrôle en texte coloré + date (<code>.c-ctrl</code>), comme l'image : <span class="c-ctrl c-ctrl--warning"><span class="c-ctrl__type">Physique · en cours</span><span class="c-ctrl__date">16/10/2026</span></span> · <span class="c-ctrl c-ctrl--success"><span class="c-ctrl__type">Aucun contrôle</span></span>.<br>Tableau pleine largeur, lignes de 40 px, en-têtes sur bande gris très clair, triables. Les lignes apparaissent par un fondu court en cascade à chaque filtrage ; l'œil reste discret jusqu'au survol de la ligne. Filtres rapides en pilule, le filtre actif est plein bleu marine. Exceptions marquées par un filet à gauche (rouge : bloquant, rouille : vigilance), ligne sélectionnée surlignée. Survol des dates « Stockée » et « Anticipé » : détail en infobulle.<br>
-      <code>.c-table--sticky</code> : tableau plus large que l'écran, 1re colonne (N° dossier) et dernière (actions) collantes pendant le défilement horizontal. <code>.c-tip--below</code> : bulle sous l'élément, pour les premières lignes d'un tableau défilant.</p>
+      <code>.c-table--sticky</code> : tableau plus large que l'écran, 1re colonne (N° dossier) et dernière (actions) collantes pendant le défilement horizontal ; une ombre douce borde la colonne Actions tant qu'il reste des colonnes à droite (<code>.has-suite</code>, posée par shell.js). Dates du tableau des dossiers en format court (jj/mm), date complète au survol. <code>.c-tip--below</code> : bulle sous l'élément, pour les premières lignes d'un tableau défilant.</p>
     <div class="c-toolbar">
       <div class="c-input-icon c-toolbar__search"><svg class="c-icon" aria-hidden="true"><use href="#i-search"></use></svg><input class="c-input" placeholder="Rechercher"></div>
       <span class="c-toolbar__sep"></span>
@@ -366,6 +366,7 @@
   <!-- ══ PANNEAU & MODALE ══ -->
   <section class="ds-sec" id="panneau">
     <h2>Panneau dossier, panneau latéral, modale</h2>
+    <p class="ds-note">Menu « … » : une action interdite au profil reste visible, grisée (<code>.c-menu__item:disabled</code>, infobulle « Réservé au Manager »).</p>
     <p class="ds-intro">Le dossier occupe toute la hauteur sous le header (fond gris clair, blocs blancs, bandeau translucide) ; à la fermeture on retrouve la liste à la ligne du dossier. Entrée : montée courte + fondu, blocs en cascade ; sortie par le même chemin, plus vite (<code>--dur-enter</code>, <code>--dur-exit</code>, <code>--ease-out</code>, <code>--ease-in</code>). Pas d'onglets : tous les blocs sont visibles en grille. Panneau latéral pour l'historique, la messagerie complète ou une fiche annuaire. Modale réservée aux confirmations (BAE, BAS) et saisies courtes (nouveau message).</p>
     <div class="u-row" style="margin-bottom:var(--sp-3)">
       <button class="c-btn" data-toggle="panel-demo">Ouvrir / fermer le panneau</button>
@@ -555,7 +556,7 @@
     <div class="ds-box ds-box--flush">
       <div class="c-ext" style="min-height:0">
         <header class="c-ext__top"><div class="c-ext__top-in">
-          <span class="c-brand"><span class="c-brand__mark"><img src="assets/img/logo-monogramme.png" alt=""></span><span><span class="c-brand__name">DOUA<em>LOG</em></span><span class="c-brand__sub">Douane &amp; Logistique</span></span></span>
+          <span class="c-brand c-brand--blanc"><img class="c-brand__mono" src="assets/img/logo-monogramme-blanc-menu.png" alt=""><span class="c-brand__texte"><img class="c-brand__logo" src="assets/img/logo-blanc-menu.png" alt="DOUALOG"><span class="c-brand__sub">Douane &amp; Logistique</span></span></span>
           <span class="c-ext__ctx">Offre de transport<b>OT-2026-0161</b></span></div></header>
         <main class="c-ext__main">
           <div><h1>Offre acceptée</h1><p class="c-ext__lead">Merci Oumar Sall. L'ordre de transport <b>OT-2026-0161</b> est attribué à <b>Transports Vallée de Seine</b>.</p></div>
@@ -612,9 +613,10 @@
   var base = [
     ['Bleu nuit', '--night-950', '#123259', 'Menu latéral, en-tête des pages externes'],
     ['Fond de travail', '--gray-app', '#F4F5F7', 'Zone de travail, sous les cartes blanches'],
-    ['Orange DOUALOG', '--orange-500', '#F97316', 'Repère du menu actif, étape en cours, focus, logo'],
-    ['Orange bouton', '--orange-650', '#CC4A0E', 'Boutons d\'action principaux (texte blanc AA)'],
-    ['Orange survol', '--orange-700', '#B23F0B', 'Survol des boutons principaux'],
+    ['Orange DOUALOG', '--orange-500', '#F99A00', 'Orange du logo : menu actif, étape en cours, focus'],
+    ['Orange bouton', '--orange-650', '#F99A00', 'Boutons d'action principaux (texte bleu marine AA)'],
+    ['Orange survol', '--orange-600', '#E68E00', 'Survol des boutons principaux'],
+    ['Orange texte', '--orange-700', '#9A5800', 'Texte orange sur fond clair'],
     ['Bleu marine', '--navy-500', '#0C2C5E', 'Liens, onglets et filtres actifs'],
     ['Fond actif', '--action-active-bg', '#EAF0F8', 'Indicateur actif, ligne sélectionnée'],
     ['Blanc', '--neutral-0', '#FFFFFF', 'Cartes, liste, champs'],

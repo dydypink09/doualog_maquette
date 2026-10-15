@@ -20,7 +20,7 @@ Tout le monde voit tous les dossiers. Faut-il qu'un déclarant ne voie que les s
 Réponse : ……………………………………
 
 **2. Les dossiers sont-ils créés uniquement à partir des emails ?**
-Aujourd'hui, chaque email reçu avec des pièces jointes crée un dossier. Votre image montre aussi un bouton « Nouveau dossier ». Faut-il pouvoir créer un dossier à la main, par exemple pour un client qui passe au bureau ?
+Aujourd'hui, chaque email reçu avec des pièces jointes crée un dossier. Votre image montre aussi un bouton « Nouveau dossier » : les maquettes l'utilisent pour créer un dossier à la main (client, import ou export, maritime ou aérien, référence, pièces déjà reçues ; s'il manque une pièce, le dossier va en salle d'attente). Est-ce utile, par exemple pour un client qui téléphone ou passe au bureau ?
 Réponse : ……………………………………
 
 **3. Que facturez-vous, et à quel prix ?**
@@ -54,7 +54,7 @@ Le tableau de bord permet de remonter sur plusieurs années (par année, ou depu
 Réponse : ……………………………………
 
 **Qui choisit le responsable d'un dossier, et quand ?**
-Les maquettes supposent que c'est le Manager qui attribue chaque nouveau dossier à un déclarant.
+Les maquettes supposent que c'est le Manager qui attribue chaque nouveau dossier à un déclarant. Il peut aussi le confier à un autre déclarant depuis le dossier (« Changer de déclarant »), en voyant combien de dossiers chacun a en cours.
 Réponse : ……………………………………
 
 **Dans la liste des dossiers, qu'est-ce qui doit apparaître en premier ?**
@@ -81,12 +81,16 @@ Réponse : ……………………………………
 Les maquettes ouvrent les écrans « Clients » et « Messagerie » à tous les profils.
 Réponse : ……………………………………
 
+**Quel slogan garder ?**
+Votre logo dit « Connecter – Déclarer – Livrer », alors que l'écran de connexion et les emails disent « Connecter • Sécuriser • Livrer ».
+Réponse : ……………………………………
+
 **La place de « Facturation » dans le menu vous convient-elle ?**
 Votre image n'a pas d'entrée Facturation ; les maquettes l'ont placée entre « Documents » et « Messagerie ».
 Réponse : ……………………………………
 
 **Quelles coordonnées de DOUALOG faire figurer sur les emails et les factures ?**
-Il nous manque : l'adresse, le téléphone, le SIRET, le RCS, le numéro de TVA intracommunautaire et les coordonnées bancaires (IBAN).
+Il nous manque : l'adresse, le téléphone, le SIRET, le RCS, le numéro de TVA intracommunautaire et les coordonnées bancaires (IBAN). Les maquettes affichent pour l'instant des coordonnées inventées.
 Réponse : ……………………………………
 
 ---
@@ -215,6 +219,10 @@ Réponse : ……………………………………
 Le lien personnel est rattaché à un dossier. Sans dossier, les maquettes envoient le modèle par email ; le client le renvoie signé et l'équipe dépose le scan.
 Réponse : ……………………………………
 
+**Quand le client a signé, quelqu'un chez DOUALOG doit-il vérifier le mandat avant qu'il soit valable ?**
+Les maquettes : non. Dès que le client a signé en ligne avec le code reçu par email, le mandat est valable tout de suite. Pour le papier, c'est la personne qui dépose le scan qui fait foi. Si une vérification est nécessaire (bonne société, signataire autorisé, dates), il faut savoir qui la fait (déclarant, manager…) et le mandat attendra « Signé, à vérifier » jusque-là.
+Réponse : ……………………………………
+
 ## Documents
 
 **Combien de temps garder les documents d'un dossier, et où les archiver ?**
@@ -227,6 +235,10 @@ Réponse : ……………………………………
 
 **Qui peut supprimer un document ?**
 Les maquettes ne proposent pas de suppression : on remplace un document (l'ancienne version reste visible) ou on ignore une pièce jointe sans intérêt.
+Réponse : ……………………………………
+
+**Une pièce déposée par le client sur son lien doit-elle être vérifiée avant d'être comptée ?**
+Les maquettes : la pièce va directement dans son dossier et compte comme reçue ; si plus rien ne manque, le dossier sort de la salle d'attente. Faut-il plutôt qu'un déclarant l'ouvre et la valide d'abord (bonne pièce, lisible, bon dossier) ?
 Réponse : ……………………………………
 
 **Voulez-vous que l'outil propose lui-même le type et le dossier d'une pièce jointe ?**

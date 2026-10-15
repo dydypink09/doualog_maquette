@@ -9,7 +9,7 @@ Ce ne sont pas des écrans de production : pas de backend, pas de framework, JS 
 1. **Style : skill `apple-design` — référence principale** pour l'exécution visuelle (espacements, angles, profondeur,
    matières, typographie, micro-interactions et transitions). Objectif : moderne, haut de gamme, niveau Linear / Stripe / Apple ;
    ni vieux logiciel métier, ni template généré par IA.
-2. **`references/vision-client.jpeg` — référence pour l'identité et la structure** (bleu nuit, orange `#F97316`, logo ;
+2. **`references/vision-client.jpeg` — référence pour l'identité et la structure** (bleu nuit, orange du logo `#F99A00`, logo ;
    header, menu, indicateurs, liste pleine largeur, dossier ouvert en panneau pleine hauteur avec blocs en grille sans onglets,
    workflow horizontal des 9 étapes). Contenu, libellés métier et couleurs de sens des statuts : inchangés.
 3. `charte-graphique/index.html` — pour ce que l'image ne montre pas (teintes de statut, icônes, règles du logo).
@@ -54,9 +54,10 @@ application à tous les écrans (internes, externes, emails, sommaire, démo) un
 - **Police : Inter partout** (choisie par le client après comparaison avec Roboto et Geist ; sélecteur et comparatif retirés).
   Chiffres tabulaires **seulement** sur les contenus purement numériques (dates, montants, compteurs, `.is-num`) : avec Inter, ils élargissent aussi les traits d'union (DLG-2026-…, Agro-Industries).
   Semi-gras 600. Approche négative sur les titres (`--ls-title`), −0,6 % sur le corps (`--ls-body`).
-- **Couleurs inchangées** : menu bleu nuit `#123259`, zone de travail claire `#F4F5F7`. Orange `#F97316` = repères d'identité
-  (`--action-accent` : menu actif, étape en cours, focus) ; **boutons principaux en `#CC4A0E`** (`--action-primary`) pour un
-  texte blanc AA (4,6:1 ; blanc sur `#F97316` = 2,8:1).
+- **Couleurs inchangées** : menu bleu nuit `#123259`, zone de travail claire `#F4F5F7`. **Orange du logo `#F99A00`** (choisi par le client, remplace #F97316) = repères d'identité
+  (`--action-accent` : menu actif, étape en cours, focus) et **boutons principaux** (`--action-primary`) avec **texte bleu marine** (5,9:1 ;
+  blanc sur `#F99A00` = 2,2:1, refusé). Survol `#E68E00`, texte orange sur fond clair `#9A5800`. Logo blanc recadré en tête du menu (nom seul, aligné sur les icônes), sans « Control Tower ».
+- **Menu repliable** : bouton à gauche du header, état gardé (`localStorage doualog-menu`, classe `is-nav-ferme` sur `<html>`) ; menu fermé 64 px = icônes, infobulles, compteurs en pastille, monogramme blanc (`logo-monogramme-blanc-menu.png`). **Favicon** : monogramme couleur (`assets/img/favicon.png`) sur toutes les pages.
 - **Angles** 6 / 8 / 12 / 16 px (menu, contrôles, cartes, modales), pilule pour statuts, compteurs, filtres.
 - **Profondeur** : ombres douces `--shadow-xs` (cartes) à `--shadow-lg` (menus, panneaux, modales) ; header et bandeau du dossier
   **translucides** (flou), voile de modale légèrement flouté. Titres de cartes sans filet (filet gardé au-dessus d'un tableau).
@@ -144,8 +145,8 @@ BAE et BAS s'empilent dans une colonne (côte à côte sur grand écran). Les ac
 les données en mémoire pour la démo (rechargement = retour à l'état initial).
 | E03 | Salle d'attente — dossiers incomplets (**onglet de la carte « Liste des dossiers » de E01** ; `E03-salle-attente.html` ouvre cet onglet) | P2 | US-04, 06 |
 | E04 | Création OT + envoi offre (choix transporteurs) | P4 | US-28, 29 |
-| E05 | Annuaire transporteurs | P4 | US-27 |
-| E06 | Facturation — liste + aperçu facture | P5 | US-34 à 37 |
+| E05 | **Transport** (`E05-annuaire-transporteurs.html`) — onglet **Ordres de transport** (par défaut : à organiser = BAE sans OT → « Créer OT », offres sans réponse, en cours, livrés ; `?filtre=organiser|offres|cours|livres`) + onglet **Annuaire des transporteurs** (`#annuaire`) | P4 | US-27 à 33 |
+| E06 | Facturation — liste + aperçu facture ; filtre **En retard** (échéance dépassée) et **Relancer le client** (`facture.relances`, prochaine relance à `config.relancePaiementJours`) | P5 | US-34 à 38 |
 | E07 | Dashboard Manager — KPIs (SHOULD) | — | US-48 |
 | E08 | Centre de notifications (SHOULD) | — | US-46 |
 | E10 | **Clients** (`E10-clients.html`) — liste (SIRET, ville, contact, dossiers en cours, mandat, CA 2026 ; filtres Mandat absent / expire < 30 j / dossiers bloqués) + **fiche client en panneau pleine hauteur** (`?id=c01`) : société et contacts, mandat (→ X09), grille tarifaire (`data.js > tarifsClients`, À VALIDER), dossiers, facturation, échanges | — | CDC §11.4 |
@@ -212,14 +213,22 @@ output/
 
 ## Emails (X01, X02, X07, X08, X09…)
 - HTML d'email réaliste : 600 px, tableaux, **styles en ligne** (couleurs en dur reprises de tokens.css, les messageries
-  ne lisent pas les variables CSS), police système `Inter, -apple-system, Segoe UI, Roboto, Arial` ; carte 12 px, bouton `#CC4A0E` 8 px, N° de dossier en encadré gris clair, libellés sans majuscules (refonte apple-design). En-tête de messagerie (objet, De, À, date) au-dessus de l'email.
-- Bandeau bleu nuit + ligne orange, logo (monogramme + DOUA**LOG**), N° DLG mis en avant, bouton orange, pied « Connecter • Sécuriser • Livrer ».
+  ne lisent pas les variables CSS), police système `Inter, -apple-system, Segoe UI, Roboto, Arial` ; carte 12 px, bouton `#F99A00` à texte bleu marine `#0C2C5E` 8 px, N° de dossier en encadré gris clair, libellés sans majuscules (refonte apple-design). En-tête de messagerie (objet, De, À, date) au-dessus de l'email.
+- Bandeau bleu nuit + ligne orange, logo : monogramme DL blanc (`logo-monogramme-blanc-menu.png`, 60 px) puis logo blanc DOUALOG et « Douane & Logistique », N° DLG mis en avant, bouton orange, pied « Connecter • Sécuriser • Livrer ».
 - Contenu rempli par `assets/email.js` depuis `data.js` (`?id=DLG-…`, défaut dans `data-defaut`) : `[data-f]`, `[data-href]`, `[data-liste]`, `[data-si]`.
 - Variante relance : `X02-email-documents-manquants.html?relance=n` (`X02-email-relance.html` = relance n°2 de DLG-2026-0426).
 - `salleAttente.envois` : 1er envoi = demande initiale (X02), suivants = relances n°1, n°2…
 
+## Ajouts après la revue du 15/10/2026
+- **Nouveau dossier** (E01) : modale de création manuelle (client, type, mode, BL / LTA / booking, marchandise, déclarant, pièces reçues) → `DOUALOG.creerDossier(o)`, gardé dans la mémoire de démo (`nouveaux`) ; pièce obligatoire manquante → salle d'attente. À VALIDER (question 2 de QUESTIONS-ONCLE.md).
+- **Changer de déclarant** : menu « … » du dossier, réservé au Manager (grisé sinon), charge de chaque déclarant affichée ; `responsable` fait partie des champs gardés.
+- **Coordonnées de DOUALOG fictives** dans `config.societe` (SIRET, RCS, TVA, adresse, banque, IBAN) : facture, mandat, email X07. À VALIDER.
+- **Tableau des dossiers** : dates en jj/mm (date complète au survol), « Décl. stockée », « Déclarant » ; ombre au bord de la colonne Actions tant qu'il reste des colonnes (`shell.js > suivreDefilement`).
+- **Suivi client (X04)** : l'étape « Transport organisé » prend la date du camion affecté (transporteur retenu en note), pour garder les dates dans l'ordre.
+- **Pages externes et emails** : logo blanc (`logo-blanc-menu.png`, `.c-brand--blanc`) sur l'en-tête bleu nuit, « Douane & Logistique » dessous.
+
 ## Données de maquette
-- Un **seul jeu de données partagé** (`assets/data.js`) : 21 dossiers `DLG-2026-0xxx` (dont DLG-2026-0389, ancien dossier réglé d'Agrofertil Normandie, pour sa fiche client), cohérents d'un écran à l'autre
+- Un **seul jeu de données partagé** (`assets/data.js`) : 22 dossiers `DLG-2026-0xxx` (dont DLG-2026-0389, ancien dossier réglé d'Agrofertil Normandie, pour sa fiche client, et DLG-2026-0384, Maison Textile Duval, **facture FAC-2026-0172 en retard** depuis le 01/10), cohérents d'un écran à l'autre
   (le même dossier a le même client, BL, statut partout). Date du jour fictive : **vendredi 16/10/2026**.
 - Mélange import/export, maritime/aérien, tous les statuts représentés, dont : 2 en contrôle physique,
   1 en info manquante, 3 en salle d'attente, 2 en facturation, 2 clôturés.

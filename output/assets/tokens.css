@@ -1,7 +1,7 @@
 /* ══════════════════════════════════════════════════════════════
    DOUALOG Control Tower — Tokens
    Style : skill apple-design (référence principale) · garde-fous anti-ai-generic-design · règles métier b2b-saas-ui.
-   Identité et structure : references/vision-client.jpeg (bleu nuit, orange #F97316, logo).
+   Identité et structure : references/vision-client.jpeg (bleu nuit, orange du logo #F99A00, logo).
    Aucune valeur en dur dans les pages : tout passe par ces variables.
    ══════════════════════════════════════════════════════════════ */
 /* Police : Inter (choix du client après comparaison avec Roboto et Geist), axe de taille optique */
@@ -17,10 +17,11 @@
   --night-line: rgba(255, 255, 255, .10);
 
   /* — Orange (identité) — */
-  --orange-500: #F97316;      /* accent DOUALOG : repère du menu, étape en cours, logo, focus */
-  --orange-650: #CC4A0E;      /* fond des boutons principaux : texte blanc à 4,6:1 (AA) */
-  --orange-700: #B23F0B;      /* survol des boutons principaux, texte orange sur fond clair */
-  --orange-50:  #FFF1E6;
+  --orange-500: #F99A00;      /* orange du logo DOUALOG : repère du menu, étape en cours, focus, boutons principaux */
+  --orange-650: #F99A00;      /* fond des boutons principaux : texte bleu marine à 5,9:1 (AA) ; le blanc ne donnerait que 2,2:1 */
+  --orange-600: #E68E00;      /* survol des boutons principaux */
+  --orange-700: #9A5800;      /* texte orange sur fond clair (5,1:1 sur le gris de la zone de travail) */
+  --orange-50:  #FFF5E0;
 
   /* — Bleu marine (titres, liens, éléments actifs) — */
   --navy-500: #0C2C5E;
@@ -45,7 +46,7 @@
   --kpi-violet:  #8B5CF6;
   --kpi-magenta: #D946EF;
   --kpi-green:   #22C55E;
-  --kpi-orange:  #F97316;
+  --kpi-orange:  #F99A00;
   --kpi-red:     #EF4444;
 
   /* — Statuts : 6 teintes sémantiques (charte §07) — */
@@ -93,14 +94,14 @@
 
   /* — Sémantique : actions — */
   --action-primary:       var(--orange-650);
-  --action-primary-hover: var(--orange-700);
-  --action-on-primary:    var(--neutral-0);
+  --action-primary-hover: var(--orange-600);
+  --action-on-primary:    var(--navy-500);
   --action-accent:        var(--orange-500);   /* repères d'identité (menu actif, étape en cours) */
   --action-active:        var(--navy-500);
   --action-active-text:   var(--navy-500);
   --action-active-bg:     #EAF0F8;
   --focus-ring:           var(--orange-500);
-  --focus-halo:           rgba(249, 115, 22, .18);
+  --focus-halo:           rgba(249, 154, 0, .22);
 
   /* — Typographie : Inter (sobre, très lisible en petite taille, chiffres nets) — */
   --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Arial, sans-serif;
@@ -137,13 +138,14 @@
   --shadow-md: 0 2px 4px -2px rgba(16, 24, 40, .05), 0 6px 14px -4px rgba(16, 24, 40, .09);
   --shadow-lg: 0 4px 8px -4px rgba(16, 24, 40, .06), 0 16px 36px -8px rgba(16, 24, 40, .18);
   --shadow-btn: 0 1px 2px rgba(16, 24, 40, .06);
-  --shadow-btn-primary: inset 0 1px 0 rgba(255, 255, 255, .16), 0 1px 2px rgba(146, 52, 9, .35);
+  --shadow-btn-primary: inset 0 1px 0 rgba(255, 255, 255, .28), 0 1px 2px rgba(140, 86, 0, .30);
 
   /* — Icônes — */
   --icon-sm: 14px; --icon-md: 16px; --icon-lg: 20px;
 
   /* — Layout — */
   --sidebar-w: 216px;
+  --sidebar-w-ferme: 64px;    /* menu fermé : icônes seules */
   --topbar-h: 60px;
   --topbar-line: 1px;
   --row-h: 40px;

@@ -26,7 +26,9 @@
     alerteMandatJours: 30,               // alerte avant la fin d'un mandat (E12)
     relancePaiementJours: 7,             // relance de paiement : 7 jours après l'échéance, puis tous les 7 jours
     numeroFacture: 'FAC-{AAAA}-{NNNN}',
-    societe: { nom: 'DOUALOG — Douane & Logistique', siret: '', rcs: '', tvaIntra: '', eori: '', adresse: '', telephone: '', iban: '', bic: '', banque: '' },
+    /* Coordonnées FICTIVES pour la démo (factures, mandat, emails) — À VALIDER : vraies mentions légales de DOUALOG */
+    societe: { nom: 'DOUALOG — Douane & Logistique', siret: '914 237 586 00012', rcs: 'RCS Le Havre 914 237 586', tvaIntra: 'FR62 914237586', eori: 'FR91423758600012',
+      adresse: '18 quai de Southampton, 76600 Le Havre', telephone: '+33 2 35 19 42 60', iban: 'FR76 9999 9001 2300 0451 3017 228', bic: 'BPNMFR21XXX', banque: 'Banque Portuaire de Normandie' },
     signatureEmail: "L'équipe DOUALOG — Douane & Logistique\nLe Havre, France · dossiers@doualog.fr\nConnecter • Sécuriser • Livrer",
     reglesEmail: { rattachementDLG: true, propositionClientBL: true, creationAutoPJ: true }
   };
@@ -211,6 +213,21 @@
 
   /* ── Dossiers ──────────────────────────────────────────────── */
   var dossiers = [
+    /* Ancien dossier de Maison Textile Duval (c04) : facture émise le 01/09, échue le 01/10 et toujours impayée — exemple de facture en retard (E06, E09, E10).
+       Une relance de paiement envoyée le 08/10 (7 jours après l'échéance, config.relancePaiementJours). */
+    {
+      id: 'DLG-2026-0384', type: 'Export', mode: 'Aérien', client: 'c04', statut: 'Facturé',
+      reception: '2026-08-24T14:10', responsable: 'u2',
+      booking: 'AF-BK-761905', lta: '057-48177214', vol: 'AF 0779', compagnie: 'k5', eta: '2026-08-28',
+      incoterm: 'FCA', poids: 860, colis: 26, unite: 'colis', marchandise: 'Tissus de lin teints',
+      docs: docs({ bonLivraison: false }),
+      declStockee: '2026-08-25T09:30', declAnticipee: '2026-08-26T15:05',
+      controle: { type: 'Aucun' },
+      bae: { num: '2026-BAE-044390', date: '2026-08-27' }, bas: { num: '2026-BAS-047962', date: '2026-08-28' },
+      transport: { statut: 'Livré', ot: 'OT-2026-0119', transporteur: 't5' }, livraison: '2026-08-31',
+      facture: { num: 'FAC-2026-0172', statut: 'Facture émise', montant: 724, emise: '2026-09-01', echeance: '2026-10-01', regle: 0, paiements: [],
+        relances: ['2026-10-08T09:00'] }
+    },
     /* Ancien dossier d'Agrofertil Normandie (c01), réglé : historique de facturation de sa fiche client (E10) */
     {
       id: 'DLG-2026-0389', type: 'Import', mode: 'Maritime', client: 'c01', statut: 'Clôturé',
@@ -507,6 +524,7 @@
   /* ── Grille tarifaire du fil rouge (pré-remplie depuis l'email, US-09) — montants À VALIDER ── */
   var grilles = {
     /* Prix convenus d'Agrofertil Normandie (tarifsClients.c01) : honoraires 210 €, transport 480 € */
+    'DLG-2026-0384': [ { prestation: 'p01', montant: 45 }, { prestation: 'p02', montant: 95 }, { prestation: 'p03', montant: 150 }, { prestation: 'p06', montant: 180 }, { prestation: 'p08', montant: 160 } ],
     'DLG-2026-0389': [ { prestation: 'p01', montant: 45 }, { prestation: 'p02', montant: 95 }, { prestation: 'p03', montant: 210 }, { prestation: 'p05', montant: 111 }, { prestation: 'p06', montant: 480 }, { prestation: 'p07', montant: 2916 }, { prestation: 'p08', montant: 613 } ],
     'DLG-2026-0398': [ { prestation: 'p01', montant: 45 }, { prestation: 'p02', montant: 95 }, { prestation: 'p03', montant: 180 }, { prestation: 'p05', montant: 70 }, { prestation: 'p06', montant: 420 }, { prestation: 'p07', montant: 3377 }, { prestation: 'p08', montant: 586 } ],
     'DLG-2026-0401': [ { prestation: 'p01', montant: 45 }, { prestation: 'p02', montant: 95 }, { prestation: 'p03', montant: 230 }, { prestation: 'p04', montant: 90 }, { prestation: 'p05', montant: 141 }, { prestation: 'p06', montant: 560 }, { prestation: 'p07', montant: 5203 }, { prestation: 'p08', montant: 739 } ],
@@ -736,7 +754,7 @@
     var c = Math.round(n * 100), e = Math.floor(Math.abs(c) / 100), d = Math.abs(c) % 100;
     return (c < 0 ? '−' : '') + fmtNombre(e) + ',' + (d < 10 ? '0' : '') + d + NBSP + config.devise;
   }
-  function fmtPoids(kg) { return fmtNombre(kg) + NBSP + 'kg'; }
+  function fmtPoids(kg) { return kg === null || kg === undefined ? '' : fmtNombre(kg) + NBSP + 'kg'; }
 
   function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
@@ -844,6 +862,7 @@
   }
   (function appliquerDemo() {
     var p = lireDemo(), k;
+    for (k in (p.nouveaux || {})) if (!dossier(k)) dossiers.push(p.nouveaux[k]);   // dossiers créés à la main pendant la démo
     for (k in (p.dossiers || {})) { var d = dossier(k); if (d) for (var c in p.dossiers[k]) d[c] = p.dossiers[k][c]; }
     for (k in (p.ots || {})) ots[k] = p.ots[k];
     for (k in (p.transporteurs || {})) transporteurs[k] = p.transporteurs[k];
@@ -856,8 +875,27 @@
     if (p.compteurs) { if (p.compteurs.ot) prochainNumeroOT = p.compteurs.ot; if (p.compteurs.fac) prochainNumeroFacture = p.compteurs.fac; }
     if (p.notifications) notifications.forEach(function (n) { if (p.notifications[n.id]) n.lue = true; });
   })();
-  var CHAMPS_SAUVES = ['statut', 'docs', 'docsInfo', 'bae', 'bas', 'facture', 'transport', 'livraison', 'salleAttente'];
+  var CHAMPS_SAUVES = ['statut', 'docs', 'docsInfo', 'bae', 'bas', 'facture', 'transport', 'livraison', 'salleAttente', 'responsable'];
   function sauverDossier(d) { var o = {}; CHAMPS_SAUVES.forEach(function (c) { o[c] = d[c]; }); ecrireDemo('dossiers', d.id, o); }
+  /* Création manuelle d'un dossier (E01 « Nouveau dossier ») — À VALIDER : le CDC ne prévoit que la création automatique à la réception
+     d'un email ; la création à la main sert aux demandes reçues par téléphone ou remises en main propre (QUESTIONS-ONCLE.md).
+     o = { client, type, mode, ref, marchandise, responsable, recus: [clés des pièces déjà reçues] }. Pièce obligatoire manquante → salle d'attente. */
+  function creerDossier(o) {
+    var max = 0; dossiers.forEach(function (x) { max = Math.max(max, +x.id.slice(-4)); });
+    var id = 'DLG-2026-' + String(max + 1).padStart(4, '0'), now = config.aujourdhui;
+    var dd = { facture: false, packing: false, instruction: false, bl: false, bonLivraison: false, certificatOrigine: false, mandat: etatMandat(clients[o.client]).couvert };
+    (o.recus || []).forEach(function (k) { dd[k] = true; });
+    var manque = documentsRequis[o.type].some(function (k) { return !dd[k]; });
+    var d = { id: id, type: o.type, mode: o.mode, client: o.client, statut: manque ? 'En attente de documents' : 'En cours de traitement',
+      reception: now, responsable: o.responsable, creeManuellement: true,
+      eta: null, incoterm: null, poids: null, colis: null, unite: 'colis', marchandise: o.marchandise || 'À préciser',
+      docs: dd, declStockee: null, declAnticipee: null, controle: null, bae: null, bas: null, transport: null, livraison: null, facture: null };
+    if (o.ref) { if (o.mode === 'Aérien') d.lta = o.ref; else if (o.type === 'Export') d.booking = o.ref; else d.bl = o.ref; }
+    if (manque) d.salleAttente = { envois: [now], prochaineRelance: plusJours(now, config.frequenceRelanceJours) + now.slice(10) };
+    dossiers.push(d);
+    ecrireDemo('nouveaux', id, d);
+    return d;
+  }
   function sauverOT(id) { ecrireDemo('ots', id, ots[id]); }
   function sauverTransporteur(id) { ecrireDemo('transporteurs', id, transporteurs[id]); }
   /* Réserve le prochain N° d'OT (séquentiel) */
@@ -914,7 +952,10 @@
     var dates = {
       'Réception': d.reception, 'Déclaration stockée': d.declStockee, 'Anticipé': d.declAnticipee,
       'Contrôle douane': d.controle && d.controle.type !== 'Aucun' ? (d.controle.fin || d.controle.date) : null,
-      'BAE': d.bae ? d.bae.date : null, 'BAS': d.bas ? d.bas.date : null, 'Transport': dateOT('Confirmé'),
+      'BAE': d.bae ? d.bae.date : null, 'BAS': d.bas ? d.bas.date : null,
+      /* Le transporteur peut être choisi dès le BAE (C5), donc avant le BAS : l'étape « Transport organisé » prend la date du camion affecté,
+         pour que les dates du suivi client restent dans l'ordre ; la date de confirmation passe en note */
+      'Transport': dateOT('Camion affecté') || dateOT('Confirmé'),
       'Livraison': d.livraison, 'Clôture': d.statut === 'Clôturé' && d.facture ? d.facture.dateReglement : null
     };
     return workflow(d).map(function (s) {
@@ -922,6 +963,7 @@
       var note = '';
       if (s.label === 'Contrôle douane' && d.controle) note = d.controle.type === 'Aucun' ? 'Pas de contrôle' : (d.controle.resultat === 'Conforme' ? 'Contrôle terminé, conforme' : d.controle.type === 'Physique' ? 'Visite de la marchandise' : 'Vérification des documents');
       if (s.label === 'Transport' && d.transport && d.transport.statut === 'Pas de livraison') note = 'Sans livraison : enlèvement par vos soins';
+      else if (s.label === 'Transport' && etat === 'fait' && dateOT('Camion affecté') && dateOT('Confirmé')) note = 'Transporteur retenu le ' + fmtDate(dateOT('Confirmé')) + ', camion affecté';
       if (s.label === 'Livraison' && d.transport && etat === 'en-cours') note = d.transport.statut === 'En route' ? 'Camion en route' : 'En préparation';
       if (s.label === 'Réception' && etat === 'en-cours') note = 'Documents attendus';
       return { label: LIBELLES_PUBLICS[s.label], etat: etat, date: etat === 'fait' ? dates[s.label] : null, note: note };
@@ -954,12 +996,13 @@
       /* Dossiers sans fil détaillé : envoi du client, accusé de réception (toujours envoyé, CDC §3), relances, mandat, demande d'information */
       var c = client(d), boiteDLG = 'DOUALOG <' + config.boiteEmail + '>';
       var m = [
-        { id: d.id + '-a', date: d.reception, categorie: 'entrant', de: c.contact + ' <' + c.email + '>', a: config.boiteEmail, objet: 'Envoi des documents — ' + d.marchandise,
+        { id: d.id + '-a', date: d.reception, categorie: 'entrant', de: c.contact + ' <' + c.email + '>', a: config.boiteEmail, objet: 'Envoi des documents — ' + (d.marchandise || d.id),
           corps: 'Bonjour,\n\nVeuillez trouver ci-joint les documents de notre ' + (d.type === 'Import' ? 'import' : 'export') + ' : ' + d.marchandise.toLowerCase() + '.\n\nCordialement,\n' + c.contact + '\n' + c.nom,
           pj: Object.keys(d.docs).filter(function (k) { return d.docs[k] && documents[k]; }).map(nomFichier) },
         { id: d.id + '-b', date: d.reception, categorie: 'auto', de: boiteDLG, a: c.email, objet: '[' + d.id + '] Accusé de réception de votre envoi',
           corps: 'Accusé de réception automatique : numéro de dossier ' + d.id + ' et lien de suivi personnel.', pj: [] }
       ];
+      if (d.creeManuellement) m.shift();   // dossier créé à la main (E01) : pas d'email d'envoi du client
       if (d.salleAttente) d.salleAttente.envois.forEach(function (x, i) {
         m.push({ id: d.id + '-r' + i, date: x, categorie: 'auto', de: boiteDLG, a: c.email, objet: (i ? 'Relance n°' + i + ' — ' : '') + '[' + d.id + '] Documents manquants pour le traitement de votre dossier',
           corps: 'Email automatique : liste des pièces manquantes et lien pour les déposer.', pj: [] });
@@ -1284,7 +1327,7 @@
     parametres: parametres, enregistrerParametres: enregistrerParametres,
     registreDocuments: registreDocuments, documentsATraiter: documentsATraiter, piecesManquantes: piecesManquantes, clesDossier: clesDossier, aClasser: aClasser, libDoc: libDoc, provenances: PROVENANCES, clesDocDossier: CLES_DOSSIER,
     recevoirDocument: recevoirDocument, classerDocument: classerDocument, ignorerDocument: ignorerDocument, remplacerDocument: remplacerDocument, deplacerDocument: deplacerDocument, dossiersClient: dossiersClient, facturationClient: facturationClient, resumeClient: resumeClient, statutsBloquants: statutsBloquants,
-    sauverDossier: sauverDossier, sauverOT: sauverOT, sauverTransporteur: sauverTransporteur,
+    sauverDossier: sauverDossier, creerDossier: creerDossier, sauverOT: sauverOT, sauverTransporteur: sauverTransporteur,
     reserverNumeroOT: reserverNumeroOT, reserverNumeroFacture: reserverNumeroFacture, numeroFactureSuivant: numeroFactureSuivant, marquerLue: marquerLue, nonLues: nonLues,
     facture: facture, typesNotification: typesNotification,
     statutPublic: statutPublic, etapesPubliques: etapesPubliques, actionsClient: actionsClient, recevoirDocumentClient: recevoirDocumentClient, reinitialiserDemo: reinitialiserDemo, otsTransporteur: otsTransporteur,

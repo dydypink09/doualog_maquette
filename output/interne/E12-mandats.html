@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Mandats — DOUALOG Control Tower</title>
+<link rel="icon" type="image/png" href="../assets/img/favicon.png">
 <link rel="stylesheet" href="../assets/tokens.css">
 <link rel="stylesheet" href="../assets/components.css">
 <script src="../assets/icons.js"></script>
@@ -338,7 +339,7 @@
       '<div class="c-invoice__parties">' +
         '<div><div class="c-invoice__bloc-titre">Mandant</div><b>' + esc(c.nom) + '</b><br>' + esc(c.adresse) + ', ' + esc(c.cp) + ' ' + esc(c.ville) +
           '<br>SIRET : ' + esc(c.siret) + '<br>EORI : ' + esc(c.eori) + '<br>Représenté par : ' + (s ? esc(m.signataire) + ', ' + esc(m.fonction) : '……………………') + '</div>' +
-        '<div><div class="c-invoice__bloc-titre">Mandataire</div><b>DOUALOG — Douane &amp; Logistique</b><br>Représentant en douane enregistré<br>' + D.config.ville + ', ' + D.config.pays + '<br>SIRET : à compléter</div></div>' +
+        '<div><div class="c-invoice__bloc-titre">Mandataire</div><b>DOUALOG — Douane &amp; Logistique</b><br>Représentant en douane enregistré<br>' + D.config.ville + ', ' + D.config.pays + '<br>SIRET : ' + (D.config.societe.siret || 'à compléter') + '</div></div>' +
       '<div class="u-stack">' +   // À VALIDER : texte juridique du modèle de mandat
         '<p>Le mandant donne pouvoir au mandataire d\'accomplir, en son nom et pour son compte, les formalités de dédouanement de ses marchandises à l\'import et à l\'export : dépôt des déclarations, échanges avec le service des douanes, réception des décisions (bon à enlever, contrôles), paiement des droits et taxes pour son compte.</p>' +
         '<p>Le mandant s\'engage à transmettre des informations et des documents exacts et complets. Le présent mandat vaut pour tous les dossiers confiés à DOUALOG pendant sa durée de validité, sauf révocation écrite.</p></div>' +

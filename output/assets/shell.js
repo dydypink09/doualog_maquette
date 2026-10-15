@@ -6,8 +6,12 @@
    Usage : DOUALOG_SHELL.init({ actif: 'tableau', onSearch: function (texte) {} })
    ══════════════════════════════════════════════════════════════ */
 (function () {
-  var D = window.DOUALOG, KEY = 'doualog-role';
+  var D = window.DOUALOG, KEY = 'doualog-role', KEY_MENU = 'doualog-menu';
   var opts = {};
+
+  /* Menu ouvert / fermé : mémorisé pour tous les écrans, appliqué dès le chargement du script (pas de saut à l'affichage) */
+  function menuFerme() { try { return localStorage.getItem(KEY_MENU) === 'ferme'; } catch (e) { return false; } }
+  document.documentElement.classList.toggle('is-nav-ferme', menuFerme());
 
   function $(id) { return document.getElementById(id); }
   function icon(n, cls) { return '<svg class="c-icon' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#i-' + n + '"></use></svg>'; }
@@ -25,6 +29,7 @@
   function renderTopbar(role) {
     var notif = nonLues(), mails = D.emailsNonLus().length;
     $('topbar').innerHTML =
+      '<button class="c-btn c-btn--icon c-btn--ghost c-topbar__icon" type="button" id="shell-menu" aria-controls="sidebar">' + icon('sidebar', 'c-icon--lg') + '</button>' +
       '<div class="c-topbar__search c-input-icon">' + icon('search') +
         '<input class="c-input" id="shell-search" type="search" placeholder="Rechercher un dossier, un BL, un conteneur, un client…" aria-label="Recherche globale"></div>' +
       '<div class="c-topbar__right">' +
@@ -43,22 +48,22 @@
 
   function item(e, n) {
     if (e.horsV1) {
-      return '<li data-nav="' + e.id + '"><span class="c-nav__item is-disabled" aria-disabled="true" title="Prévu après la V1">' + icon(e.icone) + e.label + '</span></li>';
+      return '<li data-nav="' + e.id + '"><span class="c-nav__item is-disabled" aria-disabled="true" title="Prévu après la V1">' + icon(e.icone) + '<span class="c-nav__label">' + e.label + '</span></span></li>';
     }
     /* Entrée hors droits du profil : rendue grisée par appliquerRole (le menu reste celui de l'image) */
-    return '<li data-nav="' + e.id + '"><a class="c-nav__item" href="' + e.href + '">' + icon(e.icone) + e.label +
+    return '<li data-nav="' + e.id + '"><a class="c-nav__item" href="' + e.href + '">' + icon(e.icone) + '<span class="c-nav__label">' + e.label + '</span>' +
       '<span class="c-count"' + (e.id === 'notifications' ? ' id="shell-nav-notif"' : e.id === 'messagerie' ? ' id="shell-nav-mail"' : e.id === 'mandats' ? ' id="shell-nav-mandats" title="Mandats à traiter"' : e.id === 'documents' ? ' id="shell-nav-documents" title="Documents manquants ou à classer"' : '') + (n ? '' : ' data-zero') + '>' + (n || '') + '</span></a></li>';
   }
 
-  /* Le logo est en tête du menu (menu bleu nuit pleine hauteur, header blanc) */
+  /* Le logo est en tête du menu (menu bleu nuit pleine hauteur, header blanc) : nom DOUALOG blanc, monogramme blanc quand le menu est fermé */
   function renderSidebar(role) {
     var n = { notifications: nonLues(), messagerie: D.emailsNonLus().length, mandats: D.mandatsATraiter().length, documents: D.documentsATraiter().length };
     $('sidebar').innerHTML =
       '<div class="c-sidebar__brand"><a class="c-brand" id="shell-accueil" href="' + accueil(role) + '" aria-label="DOUALOG — Accueil">' +
-        '<span class="c-brand__mark"><img src="../assets/img/logo-monogramme.png" alt=""></span>' +
-        '<span><span class="c-brand__name">DOUA<em>LOG</em></span><span class="c-brand__sub">Control Tower</span></span></a></div>' +
+        '<img class="c-brand__logo" src="../assets/img/logo-blanc-menu.png" alt="DOUALOG">' +
+        '<img class="c-brand__logo c-brand__logo--mono" src="../assets/img/logo-monogramme-blanc-menu.png" alt=""></a></div>' +
       '<ul class="c-nav">' + D.navigation.map(function (e) { return item(e, n[e.id]); }).join('') + '</ul>' +
-      '<ul class="c-nav c-nav--bottom"><li><a class="c-nav__item" href="E00-connexion.html">' + icon('logout') + 'Déconnexion</a></li></ul>';
+      '<ul class="c-nav c-nav--bottom"><li><a class="c-nav__item" href="E00-connexion.html">' + icon('logout') + '<span class="c-nav__label">Déconnexion</span></a></li></ul>';
   }
 
   function appliquerRole(role) {
@@ -69,12 +74,31 @@
       if (e.horsV1) return;
       var ok = a.nav.indexOf(e.id) >= 0;
       el.classList.toggle('is-disabled', !ok);
-      if (ok) { el.setAttribute('href', e.href); el.removeAttribute('aria-disabled'); el.removeAttribute('title'); }
-      else { el.removeAttribute('href'); el.setAttribute('aria-disabled', 'true'); el.title = 'Non accessible au profil ' + D.roles.filter(function (r) { return r.id === role; })[0].label; }
+      if (ok) { el.setAttribute('href', e.href); el.removeAttribute('aria-disabled'); el.removeAttribute('title'); delete el.dataset.titreMenu; }
+      else { el.removeAttribute('href'); el.setAttribute('aria-disabled', 'true'); delete el.dataset.titreMenu; el.title = 'Non accessible au profil ' + D.roles.filter(function (r) { return r.id === role; })[0].label; }
     });
     $('shell-initiales').textContent = u.initiales;
     $('shell-nom').textContent = u.nom;
     document.dispatchEvent(new CustomEvent('dlg:role', { detail: { role: role, acces: a, utilisateur: a.utilisateur } }));
+  }
+
+  /* Menu fermé : le libellé de chaque entrée passe en infobulle (title), sauf si le profil la grise (title déjà posé) */
+  function majMenu() {
+    var ferme = document.documentElement.classList.contains('is-nav-ferme'), b = $('shell-menu');
+    b.setAttribute('aria-expanded', String(!ferme));
+    b.setAttribute('aria-label', ferme ? 'Ouvrir le menu' : 'Fermer le menu');
+    b.title = ferme ? 'Ouvrir le menu' : 'Fermer le menu';
+    document.querySelectorAll('#sidebar .c-nav__item').forEach(function (el) {
+      var l = el.querySelector('.c-nav__label').textContent;
+      if (ferme && !el.title) { el.title = l; el.dataset.titreMenu = ''; }
+      else if (!ferme && el.dataset.titreMenu !== undefined) { el.removeAttribute('title'); delete el.dataset.titreMenu; }
+    });
+  }
+  function basculerMenu() {
+    var ferme = !document.documentElement.classList.contains('is-nav-ferme');
+    document.documentElement.classList.toggle('is-nav-ferme', ferme);
+    try { localStorage.setItem(KEY_MENU, ferme ? 'ferme' : 'ouvert'); } catch (e) {}
+    majMenu();
   }
 
   function setActive(id) {
@@ -92,12 +116,15 @@
     renderSidebar(role);
     setActive(opts.actif);
     appliquerRole(role);
+    majMenu();
+    $('shell-menu').addEventListener('click', basculerMenu);
 
     $('shell-role').addEventListener('change', function () {
       ecrireRole(this.value);
       var dest = accueil(this.value);
       $('shell-accueil').href = dest;
       appliquerRole(this.value);
+      majMenu();
     });
     var s = $('shell-search');
     s.addEventListener('input', function () { if (opts.onSearch) opts.onSearch(s.value); });
@@ -125,5 +152,22 @@
     if (ed) { ed.textContent = nd || ''; if (nd) ed.removeAttribute('data-zero'); else ed.setAttribute('data-zero', ''); }
   }
 
-  window.DOUALOG_SHELL = { init: init, setActive: setActive, role: lireRole, icon: icon, accueil: accueil, majCompteurs: majCompteurs };
+  /* Tableaux qui défilent à l'horizontale : ombre au bord de la colonne Actions (figée à droite) tant qu'il reste des colonnes à voir */
+  function suivreDefilement() {
+    function maj(w) {
+      var max = w.scrollWidth - w.clientWidth;
+      w.classList.toggle('has-suite', w.scrollLeft < max - 1);
+    }
+    document.querySelectorAll('.c-table-wrap').forEach(function (w) {
+      if (w.dataset.defile) return;
+      w.dataset.defile = '1';
+      w.addEventListener('scroll', function () { maj(w); }, { passive: true });
+      if (window.ResizeObserver) { var ro = new ResizeObserver(function () { maj(w); }); ro.observe(w); if (w.firstElementChild) ro.observe(w.firstElementChild); }
+      maj(w);
+    });
+  }
+  document.addEventListener('DOMContentLoaded', suivreDefilement);
+  window.addEventListener('load', suivreDefilement);
+
+  window.DOUALOG_SHELL = { init: init, setActive: setActive, role: lireRole, icon: icon, accueil: accueil, majCompteurs: majCompteurs, suivreDefilement: suivreDefilement };
 })();

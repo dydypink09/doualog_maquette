@@ -4,6 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Facturation — DOUALOG Control Tower</title>
+<link rel="icon" type="image/png" href="../assets/img/favicon.png">
 <link rel="stylesheet" href="../assets/tokens.css">
 <link rel="stylesheet" href="../assets/components.css">
 <script src="../assets/icons.js"></script>
@@ -102,19 +103,28 @@
   function dossiersFactures() { return D.dossiers.filter(function (d) { return d.bas; }); }
   function plusJours(iso, n) { var x = new Date(iso + 'T00:00'); x.setDate(x.getDate() + n); return x.toISOString().slice(0, 10); }
   function echue(f) { return f.echeance && f.statut !== 'Réglé' && f.echeance < aujourdhui; }
+  function joursRetard(f) { return Math.round((new Date(aujourdhui + 'T00:00') - new Date(f.echeance + 'T00:00')) / 864e5); }
+  /* Relances de paiement (US-38) : la première N jours après l'échéance, puis tous les N jours (config.relancePaiementJours, Paramètres, À VALIDER) */
+  function relancesFacture(d) { return (d.facture && d.facture.relances) || []; }
+  function prochaineRelance(d, f) {
+    var r = relancesFacture(d), base = r.length ? r[r.length - 1].slice(0, 10) : f.echeance;
+    return plusJours(base, D.config.relancePaiementJours);
+  }
 
   /* ── Liste ─────────────────────────────────────────────── */
   function render() {
     var tous = dossiersFactures();
-    $('quick').innerHTML = [null].concat(STATUTS).map(function (s) {
-      var n = s ? tous.filter(function (d) { return D.facture(d).statut === s; }).length : tous.length;
+    /* Filtre « En retard » : factures émises, échéance dépassée, pas encore réglées */
+    $('quick').innerHTML = [null, 'retard'].concat(STATUTS).map(function (s) {
+      var n = s === 'retard' ? tous.filter(function (d) { return echue(D.facture(d)); }).length : s ? tous.filter(function (d) { return D.facture(d).statut === s; }).length : tous.length;
       var on = etat.statut === s;
-      return '<button class="c-chip' + (on ? ' is-active' : '') + '" type="button" data-statut="' + (s || '') + '" aria-pressed="' + on + '">' + (s || 'Toutes') + ' <span class="c-count">' + n + '</span></button>';
+      return '<button class="c-chip' + (on ? ' is-active' : '') + '" type="button" data-statut="' + (s || '') + '" aria-pressed="' + on + '">' + (s === 'retard' ? 'En retard' : s || 'Toutes') +
+        ' <span class="c-count' + (s === 'retard' && n ? ' c-count--alert' : '') + '">' + n + '</span></button>';
     }).join('');
     var q = etat.q.trim().toLowerCase();
     var rows = tous.filter(function (d) {
       var f = D.facture(d);
-      if (etat.statut && f.statut !== etat.statut) return false;
+      if (etat.statut === 'retard' ? !echue(f) : etat.statut && f.statut !== etat.statut) return false;
       return !q || [d.id, D.client(d).nom, f.num].join(' ').toLowerCase().indexOf(q) >= 0;
     }).sort(function (a, b) {   // à émettre d'abord, puis par date de BAS (plus ancien en premier)
       return STATUTS.indexOf(D.facture(a).statut) - STATUTS.indexOf(D.facture(b).statut) || (a.bas.date < b.bas.date ? -1 : 1);
@@ -132,7 +142,7 @@
         '<td>' + (f.num ? '<span class="c-ref">' + f.num + '</span>' : '<span class="c-field__help">à générer</span>') + '</td>' +
         '<td class="is-num">' + F.montant(f.ttc) + '</td>' +
         '<td class="is-num">' + (f.statut === 'Réglé' ? DASH : F.montant(f.reste)) + '</td>' +
-        '<td class="u-num">' + (f.echeance ? F.date(f.echeance) + (echue(f) ? ' <span class="c-badge c-badge--danger">Échue</span>' : '') : DASH) + '</td>' +
+        '<td class="u-num">' + (f.echeance ? F.date(f.echeance) + (echue(f) ? ' <span class="c-badge c-badge--danger">En retard</span>' : '') : DASH) + '</td>' +
         '<td>' + B('facture', f.statut) + '</td>' +
         '<td class="is-center"><span class="u-row u-nowrap">' +
           '<button class="c-btn c-btn--icon c-btn--sm" type="button" data-apercu="' + d.id + '" aria-label="Aperçu de la facture ' + d.id + '" title="Aperçu de la facture">' + icon('eye', 'c-icon--sm') + '</button>' +
@@ -152,7 +162,7 @@
     var brouillon = !f.num;
     return '<div class="c-invoice' + (brouillon ? ' is-brouillon' : '') + '">' +
       '<div class="c-invoice__head"><div><img class="c-invoice__logo" src="../assets/img/logo.png" alt="DOUALOG — Douane &amp; Logistique">' +
-        '<div class="c-invoice__emetteur"><b>DOUALOG — Douane &amp; Logistique</b><br>' + D.config.ville + ', ' + D.config.pays + ' · ' + D.config.boiteEmail +
+        '<div class="c-invoice__emetteur"><b>DOUALOG — Douane &amp; Logistique</b><br>' + (S.adresse ? esc(S.adresse) : D.config.ville + ', ' + D.config.pays) + (S.telephone ? ' · ' + esc(S.telephone) : '') + '<br>' + D.config.boiteEmail +
         '<br>SIRET : ' + (S.siret || 'à compléter') + ' · N° TVA intracommunautaire : ' + (S.tvaIntra || 'à compléter') + (S.rcs ? '<br>' + esc(S.rcs) : '') + '</div></div>' +   // À VALIDER : mentions légales de DOUALOG
       '<div><div class="c-invoice__title">Facture</div><div class="c-invoice__num">' + (f.num || 'N° attribué à la génération') + '</div>' +
         '<div class="c-invoice__dates">Date d\'émission : ' + (f.emise ? F.date(f.emise) : (f.generee ? F.date(f.generee) : '—')) +
@@ -184,6 +194,12 @@
     var info = '';
     if (!f.num) info = '<div class="c-alert c-alert--info">' + icon('info') + '<div><div class="c-alert__title">Facture prête à générer</div><div>Client, références et prestations sont repris du dossier (BAS du ' + F.date(f.dateBAS) + '). Le numéro est attribué à la génération.</div></div></div>';
     else if (!f.emise) info = '<div class="c-alert c-alert--info">' + icon('info') + '<div><div class="c-alert__title">Facture ' + f.num + ' générée</div><div>Vérifiez-la puis émettez-la : elle sera envoyée au client par email (X07) avec le PDF en pièce jointe.</div></div></div>';
+    else if (echue(f)) {
+      var rel = relancesFacture(d);
+      info = '<div class="c-alert c-alert--danger">' + icon('alert') + '<div><div class="c-alert__title">Facture en retard de ' + joursRetard(f) + ' jours</div><div>Échéance dépassée le ' + F.date(f.echeance) + ' · reste à payer ' + F.montant(f.reste) + '.<br>' +
+        (rel.length ? rel.length + ' relance' + (rel.length > 1 ? 's' : '') + ' envoyée' + (rel.length > 1 ? 's' : '') + ' (dernière le ' + F.date(rel[rel.length - 1]) + ')' : 'Aucune relance envoyée') +
+        ' · prochaine relance automatique le ' + F.date(prochaineRelance(d, f)) + '.</div></div></div>';
+    }
     else if (f.statut === 'Réglé') info = '<div class="c-alert c-alert--success">' + icon('valide') + '<div><div class="c-alert__title">Facture réglée</div><div>Paiement intégral reçu le ' + F.date(d.facture.dateReglement) + '.' + (d.statut === 'Clôturé' ? ' Dossier clôturé.' : '') + '</div></div></div>';
     var paiements = f.paiements.length ? '<section class="c-card"><div class="c-card__head"><h3>Paiements reçus</h3></div><div class="c-card__body"><dl class="c-kv c-kv--rows">' +
       f.paiements.map(function (p) { return '<div><dt>' + F.date(p.date) + '</dt><dd>' + F.montant(p.montant) + ' · ' + esc(p.mode) + '</dd></div>'; }).join('') + '</dl></div></section>' : '';
@@ -194,7 +210,8 @@
     var principal = !f.num ? '<button class="c-btn c-btn--primary" type="button" data-action="generer">' + icon('facture') + 'Générer la facture</button>'
       : !f.emise ? '<button class="c-btn c-btn--primary" type="button" data-action="emettre">' + icon('send') + 'Émettre et envoyer au client</button>'
       : f.statut !== 'Réglé' ? '<button class="c-btn c-btn--primary" type="button" data-action="paiement">' + icon('plus') + 'Enregistrer un paiement</button>' : '';
-    $('apercu-actions').innerHTML = (f.num ? pdf : '') + mail + principal;
+    var relancer = echue(f) ? '<button class="c-btn" type="button" data-action="relancer">' + icon('refresh') + 'Relancer le client</button>' : '';
+    $('apercu-actions').innerHTML = (f.num ? pdf : '') + mail + relancer + principal;
     $('apercu').classList.add('is-open');
     render();
   }
@@ -214,6 +231,11 @@
       d.facture.statut = 'Facture émise'; d.facture.regle = 0; d.facture.paiements = [];
       if (d.statut !== 'Clôturé') d.statut = 'Facturé';   // C2 : le statut global suit la facturation
       message('Facture ' + d.facture.num + ' émise et envoyée', 'Envoyée à ' + D.client(d).email + ' avec le PDF en pièce jointe. Échéance : ' + F.date(d.facture.echeance) + '.');
+    }
+    if (a === 'relancer') {
+      d.facture.relances = relancesFacture(d).concat([D.config.aujourdhui]);
+      message('Relance envoyée', 'Rappel de paiement de la facture ' + f.num + ' (' + F.montant(f.reste) + ') envoyé à ' + D.client(d).email + ', avec la facture en pièce jointe.');
+      D.sauverDossier(d); ouvrir(d.id); return;
     }
     if (a === 'pdf') { message('Téléchargement du PDF — prévu dans une prochaine version', 'La facture ' + f.num + ' sera générée au format PDF et archivée dans le dossier.'); return; }
     if (a === 'paiement') { ouvrirPaiement(d, f); return; }

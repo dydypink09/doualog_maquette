@@ -26,6 +26,13 @@
   }
   function utilisateur() { return D.equipe[D.acces[window.DOUALOG_SHELL.role()].utilisateur]; }
   function aujourdhui() { return D.config.aujourdhui; }
+  function estManager() { return window.DOUALOG_SHELL.role() === 'manager'; }
+  /* Déclarants actifs et nombre de dossiers en cours de chacun (pour choisir à qui confier un dossier) */
+  function declarants() {
+    return Object.keys(D.equipe).filter(function (k) { return D.equipe[k].role === 'declarant' && D.equipe[k].statut === 'actif'; }).map(function (k) {
+      return { id: k, nom: D.equipe[k].nom, charge: D.dossiers.filter(function (x) { return x.responsable === k && x.statut !== 'Clôturé' && x.statut !== 'Facturé'; }).length };
+    });
+  }
   function signaler(d) { document.dispatchEvent(new CustomEvent('dlg:dossier', { detail: { id: d ? d.id : null } })); }
 
   /* ── Structure fixe : panneau, historique, modale ─────────── */
@@ -51,7 +58,7 @@
     var refT = d.bl ? ['BL', d.bl] : d.lta ? ['LTA', d.lta] : d.booking ? ['Booking', d.booking] : ['BL', null];
     var meta = [['Client', esc(c.nom)], ['Type', d.type], ['Mode', d.mode], ['ETA', d.eta ? F.date(d.eta) : null], refT,
       d.mode === 'Aérien' ? ['Vol', d.vol] : ['Conteneur', d.conteneur],
-      ['Déclarant', r.nom], ['Incoterm', d.incoterm], ['Poids brut', F.poids(d.poids)], ['Colis', F.nombre(d.colis) + ' ' + d.unite]];
+      ['Déclarant', r.nom], ['Incoterm', d.incoterm], ['Poids brut', F.poids(d.poids)], ['Colis', d.colis === null ? null : F.nombre(d.colis) + ' ' + d.unite]];
     var ot = d.transport && d.transport.ot;
     var otTitre = ot ? 'Ordre de transport déjà créé (' + ot + ')' : (!d.bae ? 'Disponible après le BAE' : '');
     var otOk = !ot && d.bae;
@@ -67,6 +74,9 @@
         '<div class="c-menu-wrap"><button class="c-btn c-btn--icon c-btn--sm c-btn--on-dark" type="button" data-d="menu" aria-haspopup="true" aria-expanded="false" aria-label="Plus d\'actions">' + icon('more', 'c-icon--sm') + '</button>' +
           '<div class="c-menu" id="dossier-menu" role="menu" hidden>' +
             '<button class="c-menu__item" type="button" role="menuitem" data-d="historique">' + icon('clock', 'c-icon--sm') + 'Historique du dossier</button>' +
+            /* D10 : le Manager assigne le déclarant responsable (À VALIDER) */
+            (estManager() ? '<button class="c-menu__item" type="button" role="menuitem" data-d="reassigner">' + icon('user', 'c-icon--sm') + 'Changer de déclarant</button>'
+              : '<button class="c-menu__item" type="button" role="menuitem" aria-disabled="true" disabled title="Réservé au Manager">' + icon('user', 'c-icon--sm') + 'Changer de déclarant</button>') +
             '<button class="c-menu__item" type="button" role="menuitem" data-d="fermer">' + icon('x', 'c-icon--sm') + 'Fermer le dossier</button>' +
           '</div></div>' +
         '<button class="c-btn c-btn--icon c-btn--sm c-btn--on-dark" type="button" data-d="fermer" aria-label="Fermer le dossier" title="Fermer le dossier">' + icon('chevron-down', 'c-icon--sm') + '</button>' +
@@ -99,7 +109,7 @@
       ['Déclarant', D.responsable(d).nom],
       ['Incoterm', d.incoterm],
       ['Poids brut', F.poids(d.poids)],
-      ['Nombre de colis', F.nombre(d.colis) + ' ' + d.unite],
+      ['Nombre de colis', d.colis === null ? null : F.nombre(d.colis) + ' ' + d.unite],
       ['Marchandise', esc(d.marchandise)],
       d.prixCible ? ['Prix cible', F.montant(d.prixCible) + ' HT'] : null,
       lien ? ['Lien client', lien] : null
@@ -291,7 +301,8 @@
   function journal(d) {
     if (D.historique[d.id]) return D.historique[d.id];
     var r = D.responsable(d).nom, c = D.client(d), j = [];
-    j.push({ date: d.reception, acteur: 'Système', type: 'creation', texte: 'Dossier créé à partir de l’email de ' + c.email + '. Type : ' + d.type + '.' });
+    j.push(d.creeManuellement ? { date: d.reception, acteur: r, type: 'creation', texte: 'Dossier créé manuellement pour ' + c.nom + '. Type : ' + d.type + '.' }
+      : { date: d.reception, acteur: 'Système', type: 'creation', texte: 'Dossier créé à partir de l’email de ' + c.email + '. Type : ' + d.type + '.' });
     j.push({ date: d.reception, acteur: 'Système', type: 'email', texte: 'Accusé de réception envoyé au client.' });
     if (d.salleAttente) d.salleAttente.envois.forEach(function (x, i) {
       j.push({ date: x, acteur: 'Système', type: 'email', texte: (i ? 'Relance n° ' + i + ' envoyée au client : ' : 'Documents manquants signalés au client : ') + D.documentsManquants(d).map(function (k) { return D.documents[k].libelle; }).join(', ') + '.' });
@@ -443,6 +454,12 @@
       titre = 'Désactiver le lien transporteur ?'; ok = 'Désactiver le lien';
       corps = '<p><b>' + esc(D.transporteurs[t.transporteur].nom) + '</b> ne pourra plus mettre à jour le statut ni déposer de documents pour l\'ordre de transport <b class="c-ref">' + t.ot + '</b>.</p>' +
         '<p class="c-field__help">À réserver aux cas particuliers : changement de transporteur, lien transmis par erreur. Le lien se désactive de lui-même à la confirmation de la livraison.</p>';
+    } else if (action === 'reassigner') {
+      titre = 'Changer de déclarant'; ok = 'Confier le dossier';
+      corps = '<p>Déclarant actuel du dossier <b class="c-ref">' + d.id + '</b> : <b>' + esc(D.responsable(d).nom) + '</b>.</p>' +
+        '<div class="c-field"><label class="c-field__label" for="m-decl">Confier le dossier à <span class="is-required">*</span></label><select class="c-select" id="m-decl">' +
+        declarants().map(function (x) { return '<option value="' + x.id + '"' + (x.id === d.responsable ? ' selected' : '') + '>' + esc(x.nom) + ' — ' + x.charge + ' dossier' + (x.charge > 1 ? 's' : '') + ' en cours</option>'; }).join('') + '</select>' +
+        '<span class="c-field__help">Le nouveau déclarant reçoit une notification. Le changement est inscrit dans l\'historique du dossier.</span></div>';
     } else if (action === 'document') {
       titre = 'Ajouter un document'; ok = 'Enregistrer le document';
       var manq = D.documentsManquants(d);
@@ -472,6 +489,17 @@
       journal(d); D.historique[d.id].push({ date: aujourdhui(), acteur: utilisateur().nom, type: 'lien', texte: 'Lien transporteur de ' + d.transport.ot + ' désactivé.' });
       $('dossier-modale').hidden = true;
       rendre(); info('Lien transporteur désactivé. Le transporteur ne peut plus l\'utiliser.');
+      return;
+    }
+    if (enAttente === 'reassigner') {
+      var nv = $('m-decl').value, avant = D.responsable(d).nom;
+      $('dossier-modale').hidden = true;
+      if (nv === d.responsable) return;
+      journal(d);
+      d.responsable = nv; D.sauverDossier(d);
+      D.historique[d.id].push({ date: now, acteur: u.nom, type: 'assignation', texte: 'Dossier confié à ' + D.equipe[nv].nom + ' (auparavant ' + avant + ').' });
+      rendre(); signaler(d);
+      info('Dossier confié à ' + D.equipe[nv].nom + '. Une notification lui est envoyée.', 'success');
       return;
     }
     if (enAttente === 'document') {
@@ -519,7 +547,7 @@
     if (a === 'messages') ouvrirMessages();
     if (a === 'drawer-fermer') $('dossier-drawer').classList.remove('is-open');
     if (a === 'document') enAttenteDoc = t.dataset.doc || null;
-    if (a === 'message' || a === 'bae' || a === 'bas' || a === 'document' || a === 'lien-off') modale(a);
+    if (a === 'message' || a === 'bae' || a === 'bas' || a === 'document' || a === 'lien-off' || a === 'reassigner') modale(a);
     if (a === 'solliciter') info('Solliciter un autre transporteur — fonction à préciser avec DOUALOG.');
     if (a === 'simuler') recevoir(D.dossier(ouvert), D.documentsManquants(D.dossier(ouvert)), 'client');
     if (a === 'modale-fermer') $('dossier-modale').hidden = true;
