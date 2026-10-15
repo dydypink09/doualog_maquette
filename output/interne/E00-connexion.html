@@ -11,55 +11,183 @@
 <script src="../assets/demo.js"></script>
 </head>
 <body>
-<!-- E00 · Connexion · US-45 — maquette : le bouton mène au tableau de bord sans contrôle -->
-<main class="c-auth">
+<!-- E00 · Connexion · US-45 — maquette : le bouton mène à l'accueil du profil sans contrôle du mot de passe -->
+<div class="c-auth">
 
-  <form class="c-auth__card" action="E09-tableau-de-bord.html" method="get" id="connexion">
-    <div>
-      <img class="c-auth__logo" src="../assets/img/logo.png" alt="DOUALOG — Douane &amp; Logistique">
-      <h1>Connexion</h1>
-      <p class="c-auth__lead">DOUALOG Control Tower — suivi des dossiers de transit et de dédouanement</p>
-    </div>
+  <!-- Radar de tour de contrôle (décor, aucune donnée de dossier avant connexion) -->
+  <div class="c-auth__radar" aria-hidden="true">
+    <svg viewBox="-620 -620 1240 1240">
+      <line class="axe" x1="-620" y1="0" x2="620" y2="0"/>
+      <line class="axe" x1="0" y1="-620" x2="0" y2="620"/>
+      <circle class="ring" r="240"/>
+      <circle class="ring ring--fort" r="360"/>
+      <circle class="ring" r="480"/>
+      <circle class="ring ring--fort" r="600"/>
+      <text class="grad" x="0" y="-586" text-anchor="middle">N</text>
+      <text class="grad" x="590" y="4" text-anchor="end">E</text>
+      <text class="grad" x="0" y="594" text-anchor="middle">S</text>
+      <text class="grad" x="-590" y="4">O</text>
+      <!-- Échos : petits points sans nom, comme des contacts radar -->
+      <g class="echos">
+        <circle class="blip" cx="-560" cy="-300" r="2"/><circle class="blip" cx="-250" cy="-330" r="2"/>
+        <circle class="blip" cx="-610" cy="60" r="2"/><circle class="blip" cx="-330" cy="300" r="2"/>
+        <circle class="blip" cx="-150" cy="390" r="2"/><circle class="blip" cx="90" cy="400" r="2"/>
+        <circle class="blip" cx="560" cy="-120" r="2"/><circle class="blip" cx="620" cy="300" r="2"/>
+        <circle class="blip" cx="400" cy="-360" r="2"/><circle class="blip" cx="250" cy="120" r="2"/>
+        <circle class="blip" cx="-260" cy="140" r="2"/><circle class="blip" cx="520" cy="380" r="2"/>
+      </g>
+      <!-- Sites de France, placés par direction depuis Paris (pas à l'échelle). À VALIDER : sites réellement traités par DOUALOG -->
+      <g class="repere" style="--i:0">
+        <circle class="halo" cx="-451" cy="-164" r="10"/><circle class="site" cx="-451" cy="-164" r="3.5"/>
+        <text class="nom" x="-466" y="-166" text-anchor="end">Port du Havre</text><text class="sous" x="-466" y="-150" text-anchor="end">Maritime</text>
+      </g>
+      <g class="repere" style="--i:1">
+        <circle class="halo" cx="276" cy="-231" r="10"/><circle class="site" cx="276" cy="-231" r="3.5"/>
+        <text class="nom" x="291" y="-233">Paris-CDG</text><text class="sous" x="291" y="-217">Aérien</text>
+      </g>
+      <g class="repere" style="--i:2">
+        <circle class="site site--sec" cx="-290" cy="-80" r="3"/>
+        <text class="nom" x="-302" y="-82" text-anchor="end">Rouen</text><text class="sous" x="-302" y="-66" text-anchor="end">Fluvial</text>
+      </g>
+      <g class="repere" style="--i:3">
+        <circle class="site site--sec" cx="60" cy="-340" r="3"/>
+        <text class="nom" x="74" y="-342">Dunkerque</text><text class="sous" x="74" y="-326">Maritime</text>
+      </g>
+      <g class="repere" style="--i:4">
+        <circle class="site site--sec" cx="-500" cy="200" r="3"/>
+        <text class="nom" x="-514" y="198" text-anchor="end">Nantes-Saint-Nazaire</text><text class="sous" x="-514" y="214" text-anchor="end">Maritime</text>
+      </g>
+      <g class="repere" style="--i:5">
+        <circle class="site site--sec" cx="440" cy="150" r="3"/>
+        <text class="nom" x="454" y="148">Lyon-Saint-Exupéry</text><text class="sous" x="454" y="164">Aérien</text>
+      </g>
+      <g class="repere" style="--i:6">
+        <circle class="site site--sec" cx="330" cy="330" r="3"/>
+        <text class="nom" x="344" y="328">Marseille-Fos</text><text class="sous" x="344" y="344">Maritime</text>
+      </g>
+    </svg>
+    <div class="c-auth__sweep"></div>
+  </div>
 
-    <p class="c-auth__note">
-      <svg class="c-icon" aria-hidden="true"><use href="#i-lock"></use></svg>
-      <span><b>Accès réservé à l'équipe DOUALOG.</b><br>Chaque membre se connecte avec son compte personnel&nbsp;; les écrans affichés dépendent de son profil.</span>
+  <header class="c-auth__top">
+    <span class="c-brand c-brand--blanc">
+      <img class="c-brand__mono" src="../assets/img/logo-monogramme-blanc-menu.png" alt="">
+      <span class="c-brand__texte">
+        <img class="c-brand__logo" src="../assets/img/logo-blanc-menu.png" alt="DOUALOG">
+        <span class="c-brand__sub">Douane &amp; Logistique</span>
+      </span>
+    </span>
+    <p class="c-auth__track">
+      Client ou transporteur&nbsp;?
+      <a href="../externe/X03-suivi-public.html">Suivre un dossier <svg class="c-icon" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a>
     </p>
+  </header>
 
+  <main class="c-auth__center">
     <!-- Champs sans attribut name : rien n'est transmis dans l'URL -->
-    <div class="c-field">
-      <label class="c-field__label" for="email">Adresse email</label>
-      <input class="c-input" id="email" type="email" autocomplete="username" value="a.ndiaye@doualog.fr" required>
-    </div>
-    <div class="c-field">
-      <label class="c-field__label" for="mdp">Mot de passe</label>
-      <input class="c-input" id="mdp" type="password" autocomplete="current-password" value="maquette-demo" required>
-    </div>
-    <div class="c-auth__row">
-      <label class="c-check"><input type="checkbox" checked> Rester connecté</label>
-      <!-- À VALIDER : procédure de réinitialisation du mot de passe non décrite dans les specs (lien inactif) -->
-      <a href="#" id="oubli">Mot de passe oublié&nbsp;?</a>
-    </div>
-    <p class="c-field__help" id="oubli-aide" hidden>Contactez le responsable de l'outil chez DOUALOG : il vous enverra un lien pour choisir un nouveau mot de passe.</p>
+    <form class="c-auth__card" action="E09-tableau-de-bord.html" method="get" id="connexion" novalidate>
+      <div>
+        <h1>Connexion</h1>
+        <p class="c-auth__lead">Avec votre compte personnel DOUALOG. Les écrans affichés dépendent de votre profil.</p>
+      </div>
 
-    <button class="c-btn c-btn--primary" type="submit">Se connecter</button>
-  </form>
+      <div class="c-field" id="champ-email">
+        <label class="c-field__label" for="email">Adresse email</label>
+        <input class="c-input" id="email" type="email" autocomplete="username" value="a.ndiaye@doualog.fr" aria-describedby="email-err" required>
+        <p class="c-field__error" id="email-err" hidden><svg class="c-icon" aria-hidden="true"><use href="#i-alert"></use></svg><span></span></p>
+      </div>
 
-  <p class="c-auth__foot">
-    Vous êtes client ou transporteur&nbsp;? Aucun compte n'est nécessaire&nbsp;: suivez votre dossier avec le lien reçu par email,
-    ou sur la <a href="../externe/X03-suivi-public.html">page de suivi</a> avec votre N° de dossier DLG.
-  </p>
+      <div class="c-field" id="champ-mdp">
+        <div class="c-auth__labelRow">
+          <label class="c-field__label" for="mdp">Mot de passe</label>
+          <!-- À VALIDER : procédure de réinitialisation du mot de passe non décrite dans les specs -->
+          <a href="#" id="oubli" aria-controls="oubli-aide" aria-expanded="false">Mot de passe oublié&nbsp;?</a>
+        </div>
+        <div class="c-auth__pwd">
+          <input class="c-input" id="mdp" type="password" autocomplete="current-password" value="maquette-demo" aria-describedby="mdp-err caps" required>
+          <button class="c-auth__eye" type="button" id="voir" aria-pressed="false" aria-label="Afficher le mot de passe">
+            <svg class="c-icon" aria-hidden="true"><use href="#i-eye"></use></svg>
+          </button>
+        </div>
+        <p class="c-auth__caps" id="caps" hidden><svg class="c-icon" aria-hidden="true"><use href="#i-alert"></use></svg>Majuscules activées</p>
+        <p class="c-field__error" id="mdp-err" hidden><svg class="c-icon" aria-hidden="true"><use href="#i-alert"></use></svg><span>Saisissez votre mot de passe.</span></p>
+      </div>
 
-</main>
+      <p class="c-auth__help" id="oubli-aide" hidden>Le manager de l'équipe peut vous envoyer un lien pour choisir un nouveau mot de passe, depuis Paramètres &gt; Utilisateurs.</p>
+
+      <label class="c-check"><input type="checkbox" checked> Rester connecté sur ce poste</label>
+
+      <button class="c-btn c-btn--primary" type="submit" id="valider">Se connecter</button>
+
+      <p class="c-auth__note">
+        <svg class="c-icon" aria-hidden="true"><use href="#i-lock"></use></svg>
+        <span>Accès réservé à l'équipe DOUALOG. Les clients et transporteurs n'ont pas de compte&nbsp;: ils suivent leur dossier avec le lien reçu par email.</span>
+      </p>
+    </form>
+  </main>
+
+  <footer class="c-auth__foot">
+    <span class="c-auth__slogan">Connecter • Sécuriser • Livrer</span>
+    <span>© 2026 DOUALOG — Douane &amp; Logistique</span>
+  </footer>
+
+</div>
 <script src="../assets/data.js"></script>
 <script>
-  document.getElementById('oubli').addEventListener('click', function (e) { e.preventDefault(); document.getElementById('oubli-aide').hidden = false; });
-  /* Accueil selon le profil choisi en dernier (E07 pour Manager et Direction) */
-  document.getElementById('connexion').addEventListener('submit', function (e) {
-    var r = null; try { r = localStorage.getItem('doualog-role'); } catch (x) {}
-    var a = window.DOUALOG.acces[r];
-    if (a && a.accueil) { e.preventDefault(); location.href = a.accueil; }
+(function () {
+  var $ = function (id) { return document.getElementById(id); };
+  var email = $('email'), mdp = $('mdp');
+
+  /* Mot de passe oublié : aide en ligne, ouverte et refermée par le même lien */
+  $('oubli').addEventListener('click', function (e) {
+    e.preventDefault();
+    var aide = $('oubli-aide'), ouvert = aide.hidden;
+    aide.hidden = !ouvert; this.setAttribute('aria-expanded', ouvert);
   });
+
+  /* Afficher / masquer le mot de passe, sans perdre le curseur */
+  $('voir').addEventListener('click', function () {
+    var visible = mdp.type === 'password';
+    mdp.type = visible ? 'text' : 'password';
+    this.setAttribute('aria-pressed', visible);
+    this.setAttribute('aria-label', visible ? 'Masquer le mot de passe' : 'Afficher le mot de passe');
+    mdp.focus();
+  });
+
+  /* Prévenir avant l'erreur : majuscules verrouillées */
+  function caps(e) { if (e.getModifierState) $('caps').hidden = !e.getModifierState('CapsLock'); }
+  mdp.addEventListener('keydown', caps); mdp.addEventListener('keyup', caps);
+  mdp.addEventListener('blur', function () { $('caps').hidden = true; });
+
+  /* Validation en ligne, à la sortie du champ (pas seulement à l'envoi) */
+  function erreur(champ, msg) {
+    var f = $(champ), p = f.querySelector('.c-field__error');
+    f.classList.toggle('is-error', !!msg); p.hidden = !msg;
+    if (msg) p.querySelector('span').textContent = msg;
+    return !msg;
+  }
+  function verifEmail() {
+    var v = email.value.trim();
+    if (!v) return erreur('champ-email', 'Saisissez votre adresse email.');
+    if (!/^[^@\s]+@doualog\.fr$/i.test(v)) return erreur('champ-email', 'Utilisez votre adresse professionnelle en @doualog.fr.');
+    return erreur('champ-email', null);
+  }
+  function verifMdp() { return erreur('champ-mdp', mdp.value ? null : 'Saisissez votre mot de passe.'); }
+  email.addEventListener('blur', verifEmail);
+  email.addEventListener('input', function () { if ($('champ-email').classList.contains('is-error')) verifEmail(); });
+  mdp.addEventListener('input', function () { if ($('champ-mdp').classList.contains('is-error')) verifMdp(); });
+
+  /* Envoi : accueil selon le profil choisi en dernier (E07 pour Manager et Direction), sinon E09 */
+  $('connexion').addEventListener('submit', function (e) {
+    e.preventDefault();
+    var ok = verifEmail() & verifMdp();
+    if (!ok) { (document.querySelector('.is-error .c-input') || email).focus(); return; }
+    var r = null; try { r = localStorage.getItem('doualog-role'); } catch (x) {}
+    var a = window.DOUALOG.acces[r], cible = (a && a.accueil) || this.getAttribute('action');
+    var b = $('valider'); b.classList.add('is-loading'); b.setAttribute('aria-busy', 'true');
+    setTimeout(function () { location.href = cible; }, 450);
+  });
+})();
 </script>
 </body>
 </html>

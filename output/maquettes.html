@@ -1,0 +1,135 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DOUALOG Control Tower — Maquettes V1</title>
+<link rel="icon" type="image/png" href="assets/img/favicon.png">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/components.css">
+<script src="assets/icons.js"></script>
+</head>
+<body>
+<div class="c-home">
+  <header class="c-home__top">
+    <div class="c-home__top-in">
+      <a class="c-brand" href="index.html" title="Retour à l'espace maquettes"><span class="c-brand__mark"><img src="assets/img/logo-monogramme.png" alt=""></span>
+        <span><span class="c-brand__name">DOUA<em>LOG</em></span><span class="c-brand__sub">Control Tower</span></span></a>
+      <span class="c-ext__ctx">Maquettes V1<b>Version du 15/10/2026</b></span>
+      <a class="c-btn c-btn--primary" href="presentation.html">Ouvrir la présentation</a>
+    </div>
+  </header>
+
+  <main class="c-home__main">
+    <div class="c-home__intro">
+      <div>
+        <h1 class="c-home__titre">Maquettes de la V1</h1>
+        <p class="c-home__lead">
+          Écrans cliquables avec des données fictives, à la date du 16/10/2026. Le dossier DLG-2026-0412 est suivi
+          de la réception de l'email jusqu'à la facture. Le profil (déclarant, transport, facturation, manager, direction)
+          se change sous le nom de l'utilisateur, en haut à droite.
+        </p>
+      </div>
+      <div class="c-home__cta">
+        <a class="c-btn" href="externe/X01-email-accuse-reception.html?id=DLG-2026-0412&amp;demo=1&amp;demo-reset=1">Lancer la démo</a>
+        <span>14 étapes, environ 10 minutes</span>
+      </div>
+    </div>
+
+    <h2 class="c-home__section">Écrans de l'équipe DOUALOG</h2>
+    <div class="c-card">
+      <table class="c-index">
+        <thead><tr><th>Écran</th><th>Utilisé par</th><th>Contenu</th><th>Réf.</th></tr></thead>
+        <tbody>
+          <tr class="is-groupe"><td colspan="4">1. Réception de l'email et création du dossier</td></tr>
+          <tr><td class="c-index__nom"><a href="interne/E00-connexion.html">Connexion</a></td><td class="c-index__qui">Toute l'équipe</td>
+            <td>Accès par compte personnel.</td><td class="c-index__ref">US-45</td></tr>
+          <tr><td class="c-index__nom"><a href="interne/E09-tableau-de-bord.html">Tableau de bord</a></td><td class="c-index__qui">Toute l'équipe</td>
+            <td>Chiffres du jour, graphiques (volumes, étapes, délai de dédouanement, facturation) et dossiers à traiter en priorité.</td><td class="c-index__ref">US-10, 48</td></tr>
+          <tr><td class="c-index__nom"><a href="interne/E01-dossiers.html">Dossiers</a></td><td class="c-index__qui">Toute l'équipe</td>
+            <td>Liste des dossiers en cours, triée par urgence, avec recherche et filtres. Chaque email reçu avec pièces jointes crée un dossier.</td><td class="c-index__ref">US-01, 10, 11, 16</td></tr>
+          <tr><td class="c-index__nom"><a href="interne/E11-messagerie.html">Messagerie</a></td><td class="c-index__qui">Toute l'équipe</td>
+            <td>Boîte de réception centrale. Les emails sans N° de dossier : dossier probable proposé, rattachement en un clic.</td><td class="c-index__ref">CDC §7.6</td></tr>
+
+          <tr class="is-groupe"><td colspan="4">2. Dossier incomplet</td></tr>
+          <tr><td class="c-index__nom"><a href="interne/E03-salle-attente.html">Salle d'attente</a></td><td class="c-index__qui">Déclarant, transit</td>
+            <td>Dossiers incomplets, pièces manquantes, relances au client, mandat.</td><td class="c-index__ref">US-04 à 08</td></tr>
+
+          <tr class="is-groupe"><td colspan="4">3. Traitement douane</td></tr>
+          <tr><td class="c-index__nom"><a href="interne/E02-dossier.html">Dossier</a></td><td class="c-index__qui">Toute l'équipe</td>
+            <td>Avancement, informations, documents, déclaration, BAE, BAS, transport, emails, historique.</td><td class="c-index__ref">US-13 à 21, 47</td></tr>
+          <tr><td class="c-index__nom"><a href="interne/E01-dossiers.html?id=DLG-2026-0415">Contrôle physique</a></td><td class="c-index__qui">Déclarant</td>
+            <td>Dossier en contrôle : le BAE reste bloqué jusqu'à la fin du contrôle.</td><td class="c-index__ref">US-22, 23</td></tr>
+          <tr><td class="c-index__nom"><a href="interne/E01-dossiers.html?id=DLG-2026-0416">Information manquante</a></td><td class="c-index__qui">Déclarant</td>
+            <td>Pièce réclamée par la douane après contrôle, demandée au client par email.</td><td class="c-index__ref">US-24</td></tr>
+          <tr><td class="c-index__nom"><a href="interne/E01-dossiers.html?id=DLG-2026-0410">BAE et BAS</a></td><td class="c-index__qui">Déclarant</td>
+            <td>Enregistrement du BAE puis du BAS ; le BAS déclenche la facturation.</td><td class="c-index__ref">US-25, 26</td></tr>
+
+          <tr class="is-groupe"><td colspan="4">4. Transport</td></tr>
+          <tr><td class="c-index__nom"><a href="interne/E04-creation-ot.html?id=DLG-2026-0410">Ordre de transport</a></td><td class="c-index__qui">Service transport</td>
+            <td>Ordre prérempli depuis le dossier, offre envoyée à un ou plusieurs transporteurs.</td><td class="c-index__ref">US-28, 29</td></tr>
+          <tr><td class="c-index__nom"><a href="interne/E05-annuaire-transporteurs.html">Transport</a></td><td class="c-index__qui">Service transport</td>
+            <td>Tous les ordres de transport : à organiser, offres sans réponse, en cours, livrés. Annuaire des transporteurs dans le second onglet.</td><td class="c-index__ref">US-27 à 33</td></tr>
+
+          <tr class="is-groupe"><td colspan="4">5. Facturation</td></tr>
+          <tr><td class="c-index__nom"><a href="interne/E06-facturation.html?id=DLG-2026-0412">Facturation</a></td><td class="c-index__qui">Service facturation</td>
+            <td>Génération de la facture, envoi au client, suivi des paiements.</td><td class="c-index__ref">US-34 à 37</td></tr>
+
+          <tr class="is-groupe"><td colspan="4">Pilotage et clients</td></tr>
+          <tr><td class="c-index__nom"><a href="interne/E07-dashboard-manager.html">Tableau de pilotage</a></td><td class="c-index__qui">Manager, direction</td>
+            <td>Chiffres de la période, dossiers à arbitrer, charge par déclarant.</td><td class="c-index__ref">US-48</td></tr>
+          <tr><td class="c-index__nom"><a href="interne/E10-clients.html">Clients</a></td><td class="c-index__qui">Toute l'équipe</td>
+            <td>Liste des clients, mandats, prix convenus, dossiers, facturation et échanges de chaque client.</td><td class="c-index__ref">CDC §11.4</td></tr>
+          <tr><td class="c-index__nom"><a href="interne/E12-mandats.html">Mandats</a></td><td class="c-index__qui">Toute l'équipe</td>
+            <td>Mandats valides, à renouveler, en attente de signature ou expirés ; document, signature, dossiers concernés, historique, demande et relance.</td><td class="c-index__ref">CDC §3.4</td></tr>
+          <tr><td class="c-index__nom"><a href="interne/E13-documents.html">Documents</a></td><td class="c-index__qui">Toute l'équipe</td>
+            <td>Tous les documents de tous les dossiers : manquants, pièces jointes à classer, reçus, générés ; vue par dossier, aperçu, versions et historique.</td><td class="c-index__ref">CDC §3.2, §7.2</td></tr>
+          <tr><td class="c-index__nom"><a href="interne/E14-parametres.html">Paramètres</a></td><td class="c-index__qui">Manager, direction (les autres : leur profil)</td>
+            <td>Profil, société, équipe et droits par rôle, boîte email, documents obligatoires, délais et relances, modèles d'emails, facturation, référentiels, notifications, sécurité.</td><td class="c-index__ref">CDC §02, §17</td></tr>
+          <tr><td class="c-index__nom"><a href="interne/E08-notifications.html">Notifications</a></td><td class="c-index__qui">Toute l'équipe</td>
+            <td>Contrôles programmés, documents demandés, transporteurs confirmés, factures en attente.</td><td class="c-index__ref">US-46</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <h2 class="c-home__section" id="externe">Pages reçues par le client et le transporteur (sans compte)</h2>
+    <div class="c-card">
+      <table class="c-index">
+        <thead><tr><th>Page</th><th>Destinataire</th><th>Contenu</th><th>Réf.</th></tr></thead>
+        <tbody>
+          <tr class="is-groupe"><td colspan="4">Client</td></tr>
+          <tr><td class="c-index__nom"><a href="externe/X01-email-accuse-reception.html">Accusé de réception</a></td><td class="c-index__qui">Email</td>
+            <td>Numéro de dossier et lien de suivi.</td><td class="c-index__ref">US-07</td></tr>
+          <tr><td class="c-index__nom"><a href="externe/X02-email-documents-manquants.html">Documents manquants</a></td><td class="c-index__qui">Email</td>
+            <td>Liste des pièces à envoyer. <a href="externe/X02-email-relance.html">Relance n°2</a>.</td><td class="c-index__ref">US-05, 06</td></tr>
+          <tr><td class="c-index__nom"><a href="externe/X09-email-demande-mandat.html">Demande de mandat</a></td><td class="c-index__qui">Email</td>
+            <td>Modèle de mandat en pièce jointe, lien pour le renvoyer signé.</td><td class="c-index__ref">US-08</td></tr>
+          <tr><td class="c-index__nom"><a href="externe/X08-email-demande-information.html">Demande d'information</a></td><td class="c-index__qui">Email</td>
+            <td>Information demandée par la douane après contrôle.</td><td class="c-index__ref">US-24</td></tr>
+          <tr><td class="c-index__nom"><a href="externe/X07-email-facture.html">Facture</a></td><td class="c-index__qui">Email</td>
+            <td>Montant, échéance, facture en pièce jointe.</td><td class="c-index__ref">US-36</td></tr>
+          <tr><td class="c-index__nom"><a href="externe/X03-suivi-public.html">Suivi public</a></td><td class="c-index__qui">Page web</td>
+            <td>Avancement du dossier avec le N° de dossier et le BL, sans donnée confidentielle.</td><td class="c-index__ref">US-40</td></tr>
+          <tr><td class="c-index__nom"><a href="externe/X04-lien-client.html">Lien personnel</a></td><td class="c-index__qui">Page web</td>
+            <td>Actions attendues, suivi daté, dépôt de documents, mandat avec code de confirmation.</td><td class="c-index__ref">US-39, 41, 42, 44</td></tr>
+
+          <tr class="is-groupe"><td colspan="4">Transporteur</td></tr>
+          <tr><td class="c-index__nom"><a href="externe/X05-email-offre-transport.html">Offre de transport</a></td><td class="c-index__qui">Email</td>
+            <td>Détail du transport, boutons Accepter et Refuser.</td><td class="c-index__ref">US-30, 31</td></tr>
+          <tr><td class="c-index__nom"><a href="externe/X05b-retour-offre.html?etat=acceptee">Réponse à l'offre</a></td><td class="c-index__qui">Page web</td>
+            <td><a href="externe/X05b-retour-offre.html?etat=acceptee">Acceptée</a>, <a href="externe/X05b-retour-offre.html?etat=refusee">refusée</a> ou
+              <a href="externe/X05b-retour-offre.html?etat=attribuee">déjà attribuée</a>.</td><td class="c-index__ref">US-31</td></tr>
+          <tr><td class="c-index__nom"><a href="externe/X06-lien-transporteur.html">Lien transporteur</a></td><td class="c-index__qui">Page web</td>
+            <td>Camion et chauffeur, avancement, bon de livraison signé.</td><td class="c-index__ref">US-32, 33</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <footer class="c-home__foot">
+      Maquettes non fonctionnelles : aucune donnée n'est enregistrée, noms et montants fictifs. Questions ouvertes : document « Questions pour DOUALOG ».
+      · <a href="design-system.html">Composants (équipe de développement)</a>
+    </footer>
+  </main>
+</div>
+</body>
+</html>

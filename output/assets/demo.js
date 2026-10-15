@@ -1,7 +1,8 @@
 /* ══════════════════════════════════════════════════════════════
    DOUALOG — Démo guidée sur le dossier fil rouge DLG-2026-0412
-   La barre n'apparaît que si l'adresse contient ?demo=N (lancée depuis le sommaire, index.html).
+   La barre n'apparaît que si l'adresse contient ?demo=N (lancée depuis le portail index.html ou le sommaire maquettes.html).
    ?demo-reset=1 efface d'abord la mémoire de démo pour repartir de l'état initial.
+   « Terminer la démo » laisse sur la maquette : tableau de bord avec ?demo=fin, bandeau « À vous d'explorer » qui se ferme.
    Chargé par toutes les pages (internes, externes, emails) ; les pages sont toutes dans un sous-dossier d'output/.
    ══════════════════════════════════════════════════════════════ */
 (function () {
@@ -12,6 +13,38 @@
     location.replace(location.pathname + '?' + p.toString() + location.hash);
     return;
   }
+  /* Charge la feuille de style de l'application si besoin (les emails ne l'utilisent pas), puis pose la barre en bas */
+  function barre(html) {
+    if (!document.querySelector('link[href$="components.css"]')) {
+      ['tokens.css', 'components.css'].forEach(function (f) {
+        var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '../assets/' + f; document.head.appendChild(l);
+      });
+    }
+    document.body.classList.add('has-demo');
+    document.body.insertAdjacentHTML('beforeend', '<div class="c-demobar" role="region" aria-label="Démonstration guidée">' + html + '</div>');
+  }
+  function quandPret(f) { if (document.body) f(); else document.addEventListener('DOMContentLoaded', f); }
+
+  /* Fin de la démo : on reste dans la maquette, l'utilisateur explore librement */
+  if (p.get('demo') === 'fin') {
+    quandPret(function () {
+      barre('<span class="c-demobar__etape">Démo terminée</span>' +
+        '<p class="c-demobar__texte"><b>Merci, à vous de tester !</b> Tout est cliquable : le menu, les dossiers, les chiffres, et le profil sous le nom de l\'utilisateur, en haut à droite.</p>' +
+        '<div class="c-demobar__actions">' +
+          '<button class="c-btn c-btn--sm c-btn--primary" type="button" id="demo-fermer">C\'est parti</button>' +
+          '<a class="c-btn c-btn--sm c-btn--ghost c-btn--on-dark" href="../externe/X01-email-accuse-reception.html?id=DLG-2026-0412&demo=1&demo-reset=1">Revoir la démo</a>' +
+        '</div>');
+      document.getElementById('demo-fermer').addEventListener('click', function () {
+        var b = document.querySelector('.c-demobar'); if (b) b.remove();
+        document.body.classList.remove('has-demo');
+        p.delete('demo');
+        var q = p.toString();
+        history.replaceState(null, '', location.pathname + (q ? '?' + q : '') + location.hash);
+      });
+    });
+    return;
+  }
+
   var n = parseInt(p.get('demo'), 10);
   if (!n) return;
 
@@ -52,24 +85,16 @@
     return '../' + e.url + (e.url.indexOf('?') >= 0 ? '&' : '?') + 'demo=' + i;
   }
   function monter() {
-    /* Les emails n'utilisent pas la feuille de style de l'application : on la charge pour la barre */
-    if (!document.querySelector('link[href$="components.css"]')) {
-      ['tokens.css', 'components.css'].forEach(function (f) {
-        var l = document.createElement('link'); l.rel = 'stylesheet'; l.href = '../assets/' + f; document.head.appendChild(l);
-      });
-    }
-    document.body.classList.add('has-demo');
-    document.body.insertAdjacentHTML('beforeend',
-      '<div class="c-demobar" role="region" aria-label="Démonstration guidée">' +
+    barre(
         '<span class="c-demobar__etape">Étape ' + n + ' / ' + ETAPES.length + '</span>' +
         '<p class="c-demobar__texte">' + ETAPES[n - 1].texte + '</p>' +
         '<div class="c-demobar__actions">' +
           (n > 1 ? '<a class="c-btn c-btn--sm c-btn--on-dark" href="' + lien(n - 1) + '">Précédent</a>' : '') +
           (n < ETAPES.length ? '<a class="c-btn c-btn--sm c-btn--primary" href="' + lien(n + 1) + '">Suivant</a>'
-                             : '<a class="c-btn c-btn--sm c-btn--primary" href="../index.html">Terminer la démo</a>') +
+                             : '<a class="c-btn c-btn--sm c-btn--primary" href="../interne/E09-tableau-de-bord.html?demo=fin">Terminer la démo</a>') +
           '<a class="c-btn c-btn--sm c-btn--ghost c-btn--on-dark" href="../index.html">Quitter la démo</a>' +
-        '</div></div>');
+        '</div>');
   }
-  if (document.body) monter(); else document.addEventListener('DOMContentLoaded', monter);
+  quandPret(monter);
   window.DOUALOG_DEMO = { etapes: ETAPES.length, lien: lien };
 })();

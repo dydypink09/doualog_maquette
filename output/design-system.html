@@ -55,12 +55,13 @@
 <body>
 <div class="ds">
 
-  <header class="ds-head">
+  <header class="ds-head" id="top">
     <img src="assets/img/logo.png" alt="DOUALOG — Douane & Logistique">
     <div>
       <h1>Design system — Control Tower</h1>
       <p>Référence visuelle des maquettes V1 · style : skill apple-design ; identité et structure : references/vision-client.jpeg · tokens.css, components.css, icons.js, data.js, shell.js</p>
     </div>
+    <a class="c-btn" href="index.html" style="margin-left:auto"><svg class="c-icon" aria-hidden="true"><use href="#i-chevron-left"></use></svg>Espace maquettes</a>
   </header>
   <nav class="ds-toc" aria-label="Sommaire">
     <a href="#couleurs">Couleurs</a><a href="#typo">Typographie</a><a href="#espaces">Espacements</a><a href="#icones">Icônes</a>
@@ -228,7 +229,7 @@
             <li><a class="c-nav__item" href="#"><svg class="c-icon" aria-hidden="true"><use href="#i-bell"></use></svg>Notifications<span class="c-count" id="nav-count-notif"></span></a></li>
           </ul>
         </nav>
-        <main class="c-main"><p class="u-muted">Zone de travail bleu nuit — cartes blanches posées dessus.</p></main>
+        <main class="c-main"><p class="u-muted">Zone de travail gris très clair — cartes blanches posées dessus.</p></main>
       </div>
     </div>
   </section>
@@ -241,11 +242,14 @@
     <div class="ds-box" style="background:var(--bg-app)">
       <div class="c-stats">
         <div class="c-stats__group">
-          <button class="c-stat c-stat--blue"><span class="c-stat__in"><span class="c-stat__icon"><svg class="c-icon" aria-hidden="true"><use href="#i-dossiers"></use></svg></span><span class="c-stat__value">16</span><span class="c-stat__label"><span class="is-long">Dossiers actifs</span></span></span></button>
+          <button class="c-stat c-stat--blue"><span class="c-stat__in"><span class="c-stat__icon"><svg class="c-icon" aria-hidden="true"><use href="#i-dossiers"></use></svg></span><span class="c-stat__value">17</span><span class="c-stat__label"><span class="is-long">Dossiers actifs</span></span></span></button>
+          <button class="c-stat c-stat--blue"><span class="c-stat__in"><span class="c-stat__icon"><svg class="c-icon" aria-hidden="true"><use href="#i-document"></use></svg></span><span class="c-stat__value">1</span><span class="c-stat__label"><span class="is-long">Déclarations stockées</span><span class="is-short">Décl. stockées</span></span></span></button>
           <button class="c-stat c-stat--violet"><span class="c-stat__in"><span class="c-stat__icon"><svg class="c-icon" aria-hidden="true"><use href="#i-clock"></use></svg></span><span class="c-stat__value">2</span><span class="c-stat__label"><span class="is-long">Déclarations anticipées</span><span class="is-short">Décl. anticipées</span></span></span></button>
           <button class="c-stat c-stat--magenta is-active"><span class="c-stat__in"><span class="c-stat__icon"><svg class="c-icon" aria-hidden="true"><use href="#i-controle"></use></svg></span><span class="c-stat__value">3</span><span class="c-stat__label"><span class="is-long">Contrôles en cours</span></span></span></button>
+          <button class="c-stat c-stat--green"><span class="c-stat__in"><span class="c-stat__icon"><svg class="c-icon" aria-hidden="true"><use href="#i-valide"></use></svg></span><span class="c-stat__value">2</span><span class="c-stat__label"><span class="is-long">BAE obtenus</span></span></span></button>
           <button class="c-stat c-stat--orange"><span class="c-stat__in"><span class="c-stat__icon"><svg class="c-icon" aria-hidden="true"><use href="#i-package"></use></svg></span><span class="c-stat__value">1</span><span class="c-stat__label"><span class="is-long">BAS obtenus</span></span></span></button>
-          <button class="c-stat c-stat--red"><span class="c-stat__in"><span class="c-stat__icon"><svg class="c-icon" aria-hidden="true"><use href="#i-transport"></use></svg></span><span class="c-stat__value">5</span><span class="c-stat__label"><span class="is-long">Transport en cours</span></span></span></button>
+          <button class="c-stat c-stat--red"><span class="c-stat__in"><span class="c-stat__icon"><svg class="c-icon" aria-hidden="true"><use href="#i-transport"></use></svg></span><span class="c-stat__value">3</span><span class="c-stat__label"><span class="is-long">Transport en cours</span></span></span></button>
+          <button class="c-stat c-stat--green"><span class="c-stat__in"><span class="c-stat__icon"><svg class="c-icon" aria-hidden="true"><use href="#i-check"></use></svg></span><span class="c-stat__value">5</span><span class="c-stat__label"><span class="is-long">Livrés</span></span></span></button>
         </div>
         <button class="c-btn c-btn--primary"><svg class="c-icon" aria-hidden="true"><use href="#i-plus"></use></svg>Nouveau dossier</button>
       </div>
@@ -565,7 +569,7 @@
         <footer class="c-ext__foot">Service transport DOUALOG · dossiers@doualog.fr</footer>
       </div>
     </div>
-    <p class="ds-note"><b>Emails</b> (X01, X02, X05, X07, X08, X09) : même esprit dans les limites du HTML d'email (ni animation, ni flou, ni variable CSS : valeurs reprises de tokens.css en styles en ligne). Police système (Inter si installée, sinon celle de l'appareil), carte de 600 px aux angles de 12 px, bandeau bleu nuit + ligne orange, N° de dossier dans un encadré gris très clair, libellés en casse normale, bouton <code>#CC4A0E</code> aux angles de 8 px.<br>
+    <p class="ds-note"><b>Emails</b> (X01, X02, X05, X07, X08, X09) : même esprit dans les limites du HTML d'email (ni animation, ni flou, ni variable CSS : valeurs reprises de tokens.css en styles en ligne). Police système (Inter si installée, sinon celle de l'appareil), carte de 600 px aux angles de 12 px, bandeau bleu nuit + ligne orange, N° de dossier dans un encadré gris très clair, libellés en casse normale, bouton <code>#F99A00</code> à texte bleu marine <code>#0C2C5E</code>, aux angles de 8 px.<br>
       <b>Barre de démo guidée</b> (<code>.c-demobar</code>, avec <code>?demo=N</code>) : panneau flottant bleu nuit translucide détaché des bords, étape en pastille orange, boutons <code>.c-btn--on-dark</code>.</p>
   </section>
 
@@ -589,14 +593,15 @@
   <!-- ══ CONNEXION ══ -->
   <section class="ds-sec" id="connexion">
     <h2>Connexion</h2>
-    <p class="ds-intro">Écran hors shell (E00). Sur le fond de travail clair : carte blanche aux angles de 16 px, ombre douce, qui apparaît en montant légèrement ; logo complet, mention d'accès réservé sur fond gris très clair, un seul bouton primaire pleine largeur. <code>.c-auth</code>, <code>__card</code>, <code>__logo</code>, <code>__lead</code>, <code>__note</code>, <code>__row</code>, <code>__foot</code>.</p>
-    <div class="c-auth" style="min-height:0">
-      <div class="c-auth__card">
-        <div><img class="c-auth__logo" src="assets/img/logo.png" alt=""><h1>Connexion</h1><p class="c-auth__lead">Control Tower — suivi des dossiers de transit et de dédouanement</p></div>
-        <p class="c-auth__note"><svg class="c-icon" aria-hidden="true"><use href="#i-lock"></use></svg><span><b>Accès réservé à l'équipe DOUALOG.</b></span></p>
-        <div class="c-field"><label class="c-field__label" for="ds-mail">Adresse email</label><input class="c-input" id="ds-mail" value="a.ndiaye@doualog.fr"></div>
-        <div class="c-auth__row"><label class="c-check"><input type="checkbox" checked> Rester connecté</label><a href="#">Mot de passe oublié&nbsp;?</a></div>
-        <button class="c-btn c-btn--primary" type="button">Se connecter</button>
+    <p class="ds-intro">Écran hors shell (E00), inspiré de l'écran radar d'une tour de contrôle. Fond bleu nuit pleine page, filet orange en haut ; logo blanc et lien « Suivre un dossier » en haut, slogan en bas. Carte blanche du formulaire centrée au milieu de l'écran, posée sur un radar (cercles fins, réticule en pointillé, repères : Port du Havre et Paris-CDG en orange, autres sites de France en blanc, petits échos sans nom) ; balayage orange une seule fois à l'ouverture (retiré si « moins d'animations »). Aucune donnée de dossier avant connexion. Formulaire : mot de passe à afficher / masquer, alerte « Majuscules activées », erreurs en ligne à la sortie du champ (adresse en @doualog.fr), bouton qui passe en chargement. <code>.c-auth</code>, <code>__top</code>, <code>__track</code>, <code>__radar</code>, <code>__sweep</code>, <code>__center</code>, <code>__card</code>, <code>__pwd</code>, <code>__eye</code>, <code>__caps</code>, <code>__help</code>, <code>__note</code>, <code>__foot</code>. Voir <a href="interne/E00-connexion.html">E00</a>.</p>
+    <div class="c-auth" style="min-height:0; border-radius:var(--radius-lg)">
+      <div class="c-auth__center">
+        <div class="c-auth__card">
+          <div><h1>Connexion</h1><p class="c-auth__lead">Avec votre compte personnel DOUALOG.</p></div>
+          <div class="c-field is-error"><label class="c-field__label" for="ds-mail">Adresse email</label><input class="c-input" id="ds-mail" value="a.ndiaye@gmail.com"><p class="c-field__error"><svg class="c-icon" aria-hidden="true"><use href="#i-alert"></use></svg><span>Utilisez votre adresse professionnelle en @doualog.fr.</span></p></div>
+          <div class="c-field"><label class="c-field__label" for="ds-mdp">Mot de passe</label><div class="c-auth__pwd"><input class="c-input" id="ds-mdp" type="password" value="maquette"><button class="c-auth__eye" type="button" aria-pressed="false" aria-label="Afficher le mot de passe"><svg class="c-icon" aria-hidden="true"><use href="#i-eye"></use></svg></button></div><p class="c-auth__caps"><svg class="c-icon" aria-hidden="true"><use href="#i-alert"></use></svg>Majuscules activées</p></div>
+          <button class="c-btn c-btn--primary" type="button">Se connecter</button>
+        </div>
       </div>
     </div>
   </section>
@@ -614,7 +619,7 @@
     ['Bleu nuit', '--night-950', '#123259', 'Menu latéral, en-tête des pages externes'],
     ['Fond de travail', '--gray-app', '#F4F5F7', 'Zone de travail, sous les cartes blanches'],
     ['Orange DOUALOG', '--orange-500', '#F99A00', 'Orange du logo : menu actif, étape en cours, focus'],
-    ['Orange bouton', '--orange-650', '#F99A00', 'Boutons d'action principaux (texte bleu marine AA)'],
+    ['Orange bouton', '--orange-650', '#F99A00', 'Boutons d\'action principaux (texte bleu marine AA)'],
     ['Orange survol', '--orange-600', '#E68E00', 'Survol des boutons principaux'],
     ['Orange texte', '--orange-700', '#9A5800', 'Texte orange sur fond clair'],
     ['Bleu marine', '--navy-500', '#0C2C5E', 'Liens, onglets et filtres actifs'],

@@ -176,7 +176,8 @@ output/
 │          · charts.js (graphiques SVG partagés : barres, courbe, anneau, pistes, infobulle)
 │          · email.js (remplit les emails X0x depuis data.js) · img/
 ├── design-system.html
-├── index.html            ← sommaire groupé par parcours (lien vers la présentation en haut)
+├── index.html            ← portail (espace maquettes) : Maquette, Présentation, Démo guidée, Design system, accès directs (styles `.c-portail`)
+├── maquettes.html        ← sommaire groupé par parcours (ancien index.html ; le logo ramène au portail)
 ├── presentation.html     ← diaporama du dimanche (12 diapositives, aperçus des vraies maquettes)
 ├── interne/E01-dossiers.html …
 └── externe/X01-email-accuse-reception.html …
@@ -207,8 +208,8 @@ output/
 - Tous les boutons d'emails pointent vers X03 / X04 avec le bon dossier (vérifié : aucun lien vers une page inexistante).
 
 ## Sommaire et démo guidée (étape 8)
-- `output/index.html` : sommaire pour le client (français clair, sans jargon), écrans par parcours + « Ce que voient le client et le transporteur ».
-- `assets/demo.js` (chargé par toutes les pages) : barre fixe « Étape X / 14 » seulement avec `?demo=N` ; `&demo-reset=1` remet la mémoire de démo à zéro.
+- `output/maquettes.html` (ancien `index.html`, devenu le portail) : sommaire pour le client (français clair, sans jargon), écrans par parcours + « Ce que voient le client et le transporteur ».
+- `assets/demo.js` (chargé par toutes les pages) : barre fixe « Étape X / 14 » seulement avec `?demo=N` ; `&demo-reset=1` remet la mémoire de démo à zéro. « Terminer la démo » (étape 14) ouvre `E09-tableau-de-bord.html?demo=fin` : on reste dans la maquette, bandeau « Merci, à vous de tester ! » avec « C'est parti » (ferme le bandeau et retire `demo` de l'adresse) et « Revoir la démo ». « Quitter la démo » ramène au portail.
 - Aucun code interne (C5, D7, US-…, À VALIDER) dans un texte visible à l'écran : seulement en commentaire (sauf références US discrètes du sommaire).
 
 ## Emails (X01, X02, X07, X08, X09…)
@@ -225,6 +226,7 @@ output/
 - **Coordonnées de DOUALOG fictives** dans `config.societe` (SIRET, RCS, TVA, adresse, banque, IBAN) : facture, mandat, email X07. À VALIDER.
 - **Tableau des dossiers** : dates en jj/mm (date complète au survol), « Décl. stockée », « Déclarant » ; ombre au bord de la colonne Actions tant qu'il reste des colonnes (`shell.js > suivreDefilement`).
 - **Suivi client (X04)** : l'étape « Transport organisé » prend la date du camion affecté (transporteur retenu en note), pour garder les dates dans l'ordre.
+- **Connexion (E00) refaite** : inspiration écran radar de tour de contrôle — fond bleu nuit pleine page, carte du formulaire **centrée au milieu de l'écran** (demande client), radar en fond (cercles, réticule, repères Le Havre et Paris-CDG en orange + Rouen, Dunkerque, Nantes-Saint-Nazaire, Lyon-Saint-Exupéry, Marseille-Fos en blanc (sites À VALIDER) et échos sans nom, balayage orange une seule fois), sans « Control Tower » dans la carte, logo et lien « Suivre un dossier » en haut, slogan en bas. Formulaire : afficher le mot de passe, alerte majuscules, erreurs en ligne (adresse en @doualog.fr), chargement du bouton. « Mot de passe oublié » : aide en ligne (manager, Paramètres > Utilisateurs), À VALIDER.
 - **Pages externes et emails** : logo blanc (`logo-blanc-menu.png`, `.c-brand--blanc`) sur l'en-tête bleu nuit, « Douane & Logistique » dessous.
 
 ## Données de maquette
@@ -252,5 +254,5 @@ output/
 - **Documents (E13)** : entrée du menu active pour tous (À VALIDER), compteur = manquants + à classer. Démo : valider la packing list `PL_88231_scan.pdf` → DLG-2026-0428 quitte la salle d'attente. Liens : bloc Documents du dossier (« Tous les documents du dossier »), pièces manquantes de la salle d'attente, fiche client, fiche mandat. Compteur d'emails non lus dans
   le header et le menu (`DOUALOG.emailsNonLus()`). Rattacher / créer / ignorer un email non rattaché et emails lus : mémoire de démo.
 - **SIRET** (et N° EORI) affichés à la place de « N° IFU » (À VALIDER).
-- **Présentation** : `presentation.html`, 12 diapositives, flèches / clic / F (plein écran), `#n` ouvre la diapositive n.
+- **Présentation** : `presentation.html`, réunion de validation du 18/10 en 14 diapositives : couverture, **le problème en très grand**, la réponse DOUALOG point par point, ordre du jour cliquable, puis 01 les documents du projet (une seule diapositive, sans détail : chaque carte ouvre le document dans l'espace projet `../../doualog_charte-graphique/`, nouvel onglet ; lien relatif valable tant que les deux dossiers sont côte à côte), 02 les maquettes dans l'ordre de vie du dossier 0412 (7 écrans), 03 la suite (calendrier jusqu'au 13/02/2027, « Merci, à vous de tester ! » sur une ligne, démo ; questions à trancher retirées à la demande). Mots simples, sans codes internes. Chapitre affiché dans la barre du bas (`data-chap`). Styles en fin de components.css (`.c-slide--sombre`, `.c-probleme`, `.c-reponses`, `.c-agenda`). Flèches / clic / F (plein écran), `#n` ouvre la diapositive n.
 - **Démo guidée** : 14 étapes ; l'étape 3 montre un email non rattaché (E11, `?filtre=nonrattaches&mail=n1`).

@@ -3,161 +3,168 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>DOUALOG Control Tower — Présentation des maquettes V1</title>
+<title>DOUALOG — Réunion de validation</title>
 <link rel="icon" type="image/png" href="assets/img/favicon.png">
 <link rel="stylesheet" href="assets/tokens.css">
 <link rel="stylesheet" href="assets/components.css">
 <script src="assets/icons.js"></script>
 </head>
 <body>
-<!-- Présentation du dimanche au dirigeant de DOUALOG : 12 diapositives, une idée par diapositive, langage simple.
-     Flèches ← →, Espace, clic ou boutons du bas pour avancer ; F = plein écran ; #3 dans l'adresse ouvre la 3e diapositive.
-     Les aperçus sont les vraies maquettes, réduites (chargées quand la diapositive s'affiche). -->
+<!-- Réunion du dimanche 18/10/2026 avec le dirigeant de DOUALOG. Enchaînement : le problème → la réponse DOUALOG → ordre du jour →
+     01 les documents du projet (une diapositive, sans détail : chaque carte ouvre le document dans l'espace projet de la charte,
+     ../../doualog_charte-graphique/) → 02 les maquettes, dans l'ordre de vie du dossier 0412 → 03 la suite (calendrier, merci et démo).
+     Flèches ← →, Espace, clic ou boutons du bas ; F = plein écran ; #5 dans l'adresse ouvre la 5e diapositive.
+     data-chap : chapitre affiché dans la barre du bas. Les aperçus sont les vraies maquettes, réduites. -->
 <div class="c-deck" id="deck">
   <header class="c-deck__top">
-    <span class="c-brand"><span class="c-brand__mark"><img src="assets/img/logo-monogramme.png" alt=""></span>
-      <span><span class="c-brand__name">DOUA<em>LOG</em></span><span class="c-brand__sub">Control Tower</span></span></span>
-    <span class="c-deck__date">Présentation des maquettes · dimanche 18 octobre 2026</span>
+    <img src="assets/img/logo.png" alt="DOUALOG — Douane &amp; Logistique">
+    <span class="c-deck__date">Réunion de validation · dimanche 18 octobre 2026</span>
   </header>
 
   <main class="c-deck__stage" id="stage">
 
-    <!-- 1 · Titre -->
-    <section class="c-slide" aria-label="Titre">
-      <img class="c-slide__logo" src="assets/img/logo.png" alt="DOUALOG — Douane &amp; Logistique">
-      <h1 class="c-slide__titre">DOUALOG Control Tower — Maquettes V1</h1>
-      <p class="c-slide__texte">Le futur outil de suivi des dossiers de transit et de dédouanement, présenté écran par écran.</p>
-      <p class="c-slide__kicker">Dimanche 18 octobre 2026</p>
+    <!-- ── Ouverture ── -->
+    <section class="c-slide c-slide--sombre" aria-label="Titre">
+      <img class="c-slide__logo c-slide__logo--blanc" src="assets/img/logo-blanc-menu.png" alt="DOUALOG">
+      <p class="c-slide__kicker">Réunion de validation · dimanche 18 octobre 2026</p>
+      <h1 class="c-slide__titre c-chapitre__titre">Un seul outil pour suivre chaque dossier, de l'email à la facture.</h1>
+      <p class="c-slide__texte">Le problème, la réponse DOUALOG, les documents du projet et les écrans.</p>
     </section>
 
-    <!-- 2 · Le problème -->
-    <section class="c-slide" aria-label="Le problème aujourd'hui">
-      <p class="c-slide__kicker">Aujourd'hui</p>
-      <h2 class="c-slide__titre">Beaucoup de temps passé à chercher, relancer, recopier.</h2>
-      <ol class="c-points">
-        <li><span class="c-points__num">01</span><span><b>Les emails sont éparpillés</b> : clients, compagnies, transporteurs, tout arrive au même endroit.</span></li>
-        <li><span class="c-points__num">02</span><span><b>Le suivi se fait à la main</b>, dossier par dossier.</span></li>
-        <li><span class="c-points__num">03</span><span><b>Les relances partent une par une</b> : documents manquants, factures impayées.</span></li>
-        <li><span class="c-points__num">04</span><span><b>Personne n'a la vue d'ensemble</b> : qui fait quoi, quel dossier est bloqué.</span></li>
+    <section class="c-slide c-slide--sombre" aria-label="Le problème aujourd'hui" data-chap="Le problème">
+      <p class="c-slide__kicker">Le problème aujourd'hui</p>
+      <h2 class="c-probleme__titre">Un dossier passe par <em>des dizaines d'emails</em>, et personne n'a la vue d'ensemble.</h2>
+      <ol class="c-probleme">
+        <li><b>Les emails s'empilent</b>Clients, compagnies, douane, transporteurs : tout arrive dans la même boîte, sans classement.</li>
+        <li><b>Le suivi se fait à la main</b>Il faut chercher où en est chaque dossier, et le recopier d'un fichier à l'autre.</li>
+        <li><b>Les relances partent une par une</b>Documents manquants, factures impayées : rien ne part tout seul.</li>
+        <li><b>Le client appelle pour savoir</b>Il n'a aucun moyen de voir lui-même où en est sa marchandise.</li>
       </ol>
     </section>
 
-    <!-- 3 · La solution -->
-    <section class="c-slide" aria-label="La solution">
-      <p class="c-slide__kicker">La solution</p>
-      <h2 class="c-slide__titre">Chaque email devient un dossier, suivi jusqu'à la facture.</h2>
-      <ol class="c-cycle" aria-label="Le cycle d'un dossier">
-        <li class="c-cycle__etape">Email reçu</li><li class="c-cycle__fleche" aria-hidden="true"><svg class="c-icon c-icon--lg"><use href="#i-arrow-right"></use></svg></li>
-        <li class="c-cycle__etape is-accent">Dossier DLG</li><li class="c-cycle__fleche" aria-hidden="true"><svg class="c-icon c-icon--lg"><use href="#i-arrow-right"></use></svg></li>
-        <li class="c-cycle__etape">Douane</li><li class="c-cycle__fleche" aria-hidden="true"><svg class="c-icon c-icon--lg"><use href="#i-arrow-right"></use></svg></li>
-        <li class="c-cycle__etape">Transport</li><li class="c-cycle__fleche" aria-hidden="true"><svg class="c-icon c-icon--lg"><use href="#i-arrow-right"></use></svg></li>
-        <li class="c-cycle__etape">Facturation</li><li class="c-cycle__fleche" aria-hidden="true"><svg class="c-icon c-icon--lg"><use href="#i-arrow-right"></use></svg></li>
-        <li class="c-cycle__etape">Clôture</li>
-      </ol>
-      <p class="c-slide__texte">Un numéro unique, DLG, suit la marchandise du premier email jusqu'au paiement.</p>
-    </section>
-
-    <!-- 4 · Pour l'équipe -->
-    <section class="c-slide" aria-label="Ce qui change pour l'équipe">
-      <p class="c-slide__kicker">Pour l'équipe DOUALOG</p>
-      <h2 class="c-slide__titre">Moins de tâches répétitives, plus de temps pour les clients.</h2>
-      <ol class="c-points">
-        <li><span class="c-points__num">01</span><span><b>Le dossier se crée tout seul</b> à la réception de l'email et de ses pièces jointes.</span></li>
-        <li><span class="c-points__num">02</span><span><b>Les urgences remontent en haut</b> : contrôles de la douane, documents manquants, factures en retard.</span></li>
-        <li><span class="c-points__num">03</span><span><b>Les relances partent automatiquement</b>, au bon moment.</span></li>
-        <li><span class="c-points__num">04</span><span><b>Toute l'activité se voit d'un coup d'œil</b>, à tout moment.</span></li>
+    <section class="c-slide" aria-label="La réponse DOUALOG" data-chap="La réponse">
+      <p class="c-slide__kicker">Ce que DOUALOG change</p>
+      <h2 class="c-slide__titre">À chaque problème, une réponse.</h2>
+      <ol class="c-reponses">
+        <li><span class="c-reponses__pb">Les emails s'empilent</span><span class="c-reponses__fl"><svg class="c-icon c-icon--lg" aria-hidden="true"><use href="#i-arrow-right"></use></svg></span><span class="c-reponses__rep"><b>Chaque email devient un dossier</b>, avec un numéro unique. Les réponses suivantes s'y rangent toutes seules.</span></li>
+        <li><span class="c-reponses__pb">Le suivi se fait à la main</span><span class="c-reponses__fl"><svg class="c-icon c-icon--lg" aria-hidden="true"><use href="#i-arrow-right"></use></svg></span><span class="c-reponses__rep"><b>L'avancement se voit en 9 étapes</b>, de la réception à la clôture, et les urgences remontent en haut.</span></li>
+        <li><span class="c-reponses__pb">Les relances partent une par une</span><span class="c-reponses__fl"><svg class="c-icon c-icon--lg" aria-hidden="true"><use href="#i-arrow-right"></use></svg></span><span class="c-reponses__rep"><b>Les relances partent toutes seules</b> et s'arrêtent dès que le document ou le paiement arrive.</span></li>
+        <li><span class="c-reponses__pb">Le client appelle pour savoir</span><span class="c-reponses__fl"><svg class="c-icon c-icon--lg" aria-hidden="true"><use href="#i-arrow-right"></use></svg></span><span class="c-reponses__rep"><b>Le client suit son dossier comme un colis</b>, avec le lien reçu par email, sans créer de compte.</span></li>
       </ol>
     </section>
 
-    <!-- 5 · Clients et transporteurs -->
-    <section class="c-slide c-slide--split" aria-label="Ce qui change pour les clients et les transporteurs">
+    <section class="c-slide" aria-label="Ordre du jour" data-chap="Ordre du jour">
+      <p class="c-slide__kicker">Ordre du jour</p>
+      <h2 class="c-slide__titre">Ce qu'on va voir ensemble.</h2>
+      <ol class="c-agenda">
+        <li><a href="#5"><span class="c-agenda__num">01</span><span class="c-agenda__titre">Les documents du projet</span><span class="c-agenda__quoi">Cahier des charges, charte graphique, première version, rôles : l'essentiel, sans entrer dans le détail.</span></a></li>
+        <li><a href="#6"><span class="c-agenda__num">02</span><span class="c-agenda__titre">Les maquettes</span><span class="c-agenda__quoi">Les écrans, en suivant un vrai dossier du premier email jusqu'à la facture.</span></a></li>
+        <li><a href="#13"><span class="c-agenda__num">03</span><span class="c-agenda__titre">La suite</span><span class="c-agenda__quoi">Les prochaines étapes, jusqu'à la mise en ligne.</span></a></li>
+      </ol>
+    </section>
+
+    <!-- ── 01 · Documents du projet : une carte par document, ouverte dans l'espace projet (nouvel onglet) ── -->
+    <section class="c-slide" aria-label="Les documents du projet" data-chap="01 · Documents du projet">
+      <p class="c-slide__kicker">01 · Les documents du projet</p>
+      <h2 class="c-slide__titre">Tout est écrit, et consultable à tout moment.</h2>
+      <ol class="c-agenda">
+        <li><a href="../../doualog_charte-graphique/cahier-des-charges.html" target="_blank" rel="noopener"><span class="c-agenda__titre">Cahier des charges</span><span class="c-agenda__quoi">Ce que l'outil doit faire, de l'email reçu jusqu'à la facture.</span><span class="c-agenda__pied"><span class="c-badge c-badge--success">Validé</span><svg class="c-icon" aria-hidden="true"><use href="#i-arrow-right"></use></svg></span></a></li>
+        <li><a href="../../doualog_charte-graphique/charte.html" target="_blank" rel="noopener"><span class="c-agenda__titre">Charte graphique</span><span class="c-agenda__quoi">Le bleu nuit, l'orange du logo, la police : la même image partout.</span><span class="c-agenda__pied"><span class="c-badge c-badge--neutral">Version 2.0</span><svg class="c-icon" aria-hidden="true"><use href="#i-arrow-right"></use></svg></span></a></li>
+        <li><a href="../../doualog_charte-graphique/perimetre-v1.html" target="_blank" rel="noopener"><span class="c-agenda__titre">La première version</span><span class="c-agenda__quoi">Ce qui sera en ligne en février 2027, et ce qui viendra après.</span><span class="c-agenda__pied"><span class="c-badge c-badge--warning">À valider</span><svg class="c-icon" aria-hidden="true"><use href="#i-arrow-right"></use></svg></span></a></li>
+        <li><a href="../../doualog_charte-graphique/roles-droits.html" target="_blank" rel="noopener"><span class="c-agenda__titre">Rôles et droits</span><span class="c-agenda__quoi">Six profils dans l'équipe : qui voit et fait quoi.</span><span class="c-agenda__pied"><span class="c-badge c-badge--warning">À valider</span><svg class="c-icon" aria-hidden="true"><use href="#i-arrow-right"></use></svg></span></a></li>
+        <li><a href="../../doualog_charte-graphique/roadmap_doualog.html" target="_blank" rel="noopener"><span class="c-agenda__titre">Calendrier</span><span class="c-agenda__quoi">Les grandes étapes jusqu'à la mise en ligne.</span><span class="c-agenda__pied"><span></span><svg class="c-icon" aria-hidden="true"><use href="#i-arrow-right"></use></svg></span></a></li>
+        <li><a href="../../doualog_charte-graphique/index.html" target="_blank" rel="noopener"><span class="c-agenda__titre">L'espace projet</span><span class="c-agenda__quoi">Tous les documents au même endroit, à télécharger en PDF.</span><span class="c-agenda__pied"><span></span><svg class="c-icon" aria-hidden="true"><use href="#i-arrow-right"></use></svg></span></a></li>
+      </ol>
+    </section>
+
+    <!-- ── 02 · Maquettes : les écrans dans l'ordre de vie du dossier DLG-2026-0412 ── -->
+    <section class="c-slide c-slide--split" aria-label="L'email arrive" data-chap="02 · Maquettes">
       <div class="c-slide__col">
-        <p class="c-slide__kicker">Pour les clients et les transporteurs</p>
-        <h2 class="c-slide__titre">Aucun compte à créer.</h2>
-        <p class="c-slide__texte">Tout passe par email et par un lien sécurisé. Le client suit son dossier comme un colis et envoie ses documents. Le transporteur accepte l'offre et confirme la livraison depuis son téléphone.</p>
-        <div class="c-slide__actions"><a class="c-btn" href="externe/X03-suivi-public.html?dlg=DLG-2026-0412&amp;ref=MEDULH482093" target="_blank" rel="noopener">Voir l'écran</a></div>
+        <p class="c-slide__kicker">02 · Les maquettes · L'email arrive</p>
+        <h2 class="c-slide__titre">Le client reçoit aussitôt son numéro.</h2>
+        <p class="c-slide__texte">Le dossier est créé tout seul. Le client reçoit un email avec son numéro et le lien pour suivre sa marchandise.</p>
+        <div class="c-slide__actions"><a class="c-btn" href="externe/X01-email-accuse-reception.html?id=DLG-2026-0412" target="_blank" rel="noopener">Voir l'écran</a></div>
       </div>
-      <div class="c-slide__apercu"><iframe title="Aperçu : suivi du dossier par le client" data-src="externe/X03-suivi-public.html?dlg=DLG-2026-0412&amp;ref=MEDULH482093" tabindex="-1"></iframe></div>
+      <div class="c-slide__apercu"><iframe title="Aperçu : email d'accusé de réception" data-src="externe/X01-email-accuse-reception.html?id=DLG-2026-0412" tabindex="-1"></iframe></div>
     </section>
 
-    <!-- 6 · Tableau de bord -->
-    <section class="c-slide c-slide--split" aria-label="Le tableau de bord">
+    <section class="c-slide c-slide--split" aria-label="Le tableau de bord" data-chap="02 · Maquettes">
       <div class="c-slide__col">
-        <p class="c-slide__kicker">Le tableau de bord</p>
+        <p class="c-slide__kicker">Le matin, au bureau</p>
         <h2 class="c-slide__titre">Toute l'activité en un coup d'œil.</h2>
-        <p class="c-slide__texte">Les chiffres du jour, les dossiers reçus chaque semaine, le délai de dédouanement et les dossiers à traiter en priorité. Un clic sur un chiffre ouvre les dossiers concernés.</p>
+        <p class="c-slide__texte">Les chiffres du jour et les dossiers à traiter en priorité. Un clic sur un chiffre ouvre les dossiers concernés.</p>
         <div class="c-slide__actions"><a class="c-btn" href="interne/E09-tableau-de-bord.html" target="_blank" rel="noopener">Voir l'écran</a></div>
       </div>
       <div class="c-slide__apercu"><iframe title="Aperçu : tableau de bord" data-src="interne/E09-tableau-de-bord.html" tabindex="-1"></iframe></div>
     </section>
 
-    <!-- 7 · Dossier ouvert -->
-    <section class="c-slide c-slide--split" aria-label="Le dossier">
+    <section class="c-slide c-slide--split" aria-label="Le dossier" data-chap="02 · Maquettes">
       <div class="c-slide__col">
         <p class="c-slide__kicker">Le dossier</p>
         <h2 class="c-slide__titre">Tout le dossier sur un seul écran.</h2>
-        <p class="c-slide__texte">L'avancement en 9 étapes, les documents, la douane, le transport, les emails et les notifications. Rien à chercher ailleurs.</p>
+        <p class="c-slide__texte">L'avancement en 9 étapes, les documents, la douane, le transport et les emails. Rien à chercher ailleurs.</p>
         <div class="c-slide__actions"><a class="c-btn" href="interne/E01-dossiers.html?id=DLG-2026-0412" target="_blank" rel="noopener">Voir l'écran</a></div>
       </div>
       <div class="c-slide__apercu"><iframe title="Aperçu : dossier ouvert" data-src="interne/E01-dossiers.html?id=DLG-2026-0412" tabindex="-1"></iframe></div>
     </section>
 
-    <!-- 8 · Emails non rattachés -->
-    <section class="c-slide c-slide--split" aria-label="Les emails non rattachés">
+    <section class="c-slide c-slide--split" aria-label="Les emails sans numéro" data-chap="02 · Maquettes">
       <div class="c-slide__col">
-        <p class="c-slide__kicker">La messagerie</p>
-        <h2 class="c-slide__titre">Un email sans numéro ? L'outil retrouve le bon dossier.</h2>
-        <p class="c-slide__texte">Même client, même connaissement : le dossier probable est proposé. Un clic pour le rattacher, ou pour créer un nouveau dossier si c'est un nouveau client.</p>
-        <div class="c-slide__actions"><a class="c-btn" href="interne/E11-messagerie.html?filtre=nonrattaches" target="_blank" rel="noopener">Voir l'écran</a></div>
+        <p class="c-slide__kicker">Un email sans numéro</p>
+        <h2 class="c-slide__titre">L'outil retrouve le bon dossier.</h2>
+        <p class="c-slide__texte">Même client, même conteneur : le dossier probable est proposé. Un clic pour le ranger.</p>
+        <div class="c-slide__actions"><a class="c-btn" href="interne/E11-messagerie.html?filtre=nonrattaches&amp;mail=n1" target="_blank" rel="noopener">Voir l'écran</a></div>
       </div>
-      <div class="c-slide__apercu"><iframe title="Aperçu : emails non rattachés" data-src="interne/E11-messagerie.html?filtre=nonrattaches" tabindex="-1"></iframe></div>
+      <div class="c-slide__apercu"><iframe title="Aperçu : emails sans numéro de dossier" data-src="interne/E11-messagerie.html?filtre=nonrattaches&amp;mail=n1" tabindex="-1"></iframe></div>
     </section>
 
-    <!-- 9 · Transport -->
-    <section class="c-slide c-slide--split" aria-label="Le transport">
+    <section class="c-slide c-slide--split" aria-label="Le transport" data-chap="02 · Maquettes">
       <div class="c-slide__col">
-        <p class="c-slide__kicker">Le transport</p>
+        <p class="c-slide__kicker">Après la douane</p>
         <h2 class="c-slide__titre">Le camion se commande en quelques clics.</h2>
-        <p class="c-slide__texte">L'ordre de transport se remplit tout seul depuis le dossier. L'offre part aux transporteurs choisis : le premier qui accepte l'obtient.</p>
+        <p class="c-slide__texte">L'ordre de transport se remplit tout seul. L'offre part aux transporteurs choisis : le premier qui accepte l'obtient.</p>
         <div class="c-slide__actions"><a class="c-btn" href="interne/E04-creation-ot.html?id=DLG-2026-0410" target="_blank" rel="noopener">Voir l'écran</a></div>
       </div>
       <div class="c-slide__apercu"><iframe title="Aperçu : ordre de transport" data-src="interne/E04-creation-ot.html?id=DLG-2026-0410" tabindex="-1"></iframe></div>
     </section>
 
-    <!-- 10 · Facturation -->
-    <section class="c-slide c-slide--split" aria-label="La facturation">
+    <section class="c-slide c-slide--split" aria-label="La facturation" data-chap="02 · Maquettes">
       <div class="c-slide__col">
-        <p class="c-slide__kicker">La facturation</p>
-        <h2 class="c-slide__titre">La facture est prête dès le bon à sortir.</h2>
-        <p class="c-slide__texte">Les prestations et les frais avancés sont repris du dossier. La facture part au client par email, et les paiements sont suivis jusqu'au dernier franc.</p>
+        <p class="c-slide__kicker">La facture</p>
+        <h2 class="c-slide__titre">Prête dès que la marchandise peut sortir.</h2>
+        <p class="c-slide__texte">Les prestations et les frais sont repris du dossier. La facture part au client par email, et les paiements sont suivis.</p>
         <div class="c-slide__actions"><a class="c-btn" href="interne/E06-facturation.html?id=DLG-2026-0412" target="_blank" rel="noopener">Voir l'écran</a></div>
       </div>
       <div class="c-slide__apercu"><iframe title="Aperçu : facturation" data-src="interne/E06-facturation.html?id=DLG-2026-0412" tabindex="-1"></iframe></div>
     </section>
 
-    <!-- 11 · Questions (QUESTIONS-ONCLE.md, les 5 plus importantes) -->
-    <section class="c-slide" aria-label="Les questions à trancher">
-      <p class="c-slide__kicker">À trancher ensemble</p>
-      <h2 class="c-slide__titre">Cinq questions pour construire juste.</h2>
-      <ol class="c-points">
-        <li><span class="c-points__num">01</span><span><b>Qui a le droit de voir et de faire quoi ?</b></span></li>
-        <li><span class="c-points__num">02</span><span><b>Peut-on créer un dossier à la main</b>, pour un client qui passe au bureau ?</span></li>
-        <li><span class="c-points__num">03</span><span><b>Que facturez-vous, et à quel prix ?</b></span></li>
-        <li><span class="c-points__num">04</span><span><b>Que se passe-t-il quand la douane refuse</b> la marchandise ?</span></li>
-        <li><span class="c-points__num">05</span><span><b>Comment le client signe-t-il le mandat ?</b></span></li>
+    <section class="c-slide c-slide--split" aria-label="Le client suit son dossier" data-chap="02 · Maquettes">
+      <div class="c-slide__col">
+        <p class="c-slide__kicker">Côté client</p>
+        <h2 class="c-slide__titre">Le client suit tout, sans appeler.</h2>
+        <p class="c-slide__texte">Depuis le lien de son email, sur son téléphone : où en est sa marchandise, ce qu'on attend de lui, ses documents.</p>
+        <div class="c-slide__actions"><a class="c-btn" href="externe/X04-lien-client.html?id=DLG-2026-0412" target="_blank" rel="noopener">Voir l'écran</a></div>
+      </div>
+      <div class="c-slide__apercu"><iframe title="Aperçu : page de suivi du client" data-src="externe/X04-lien-client.html?id=DLG-2026-0412" tabindex="-1"></iframe></div>
+    </section>
+
+    <!-- ── 03 · La suite ── -->
+    <section class="c-slide" aria-label="Prochaines étapes" data-chap="03 · La suite">
+      <p class="c-slide__kicker">03 · La suite</p>
+      <h2 class="c-slide__titre">En ligne mi-février 2027.</h2>
+      <ol class="c-jalons" style="grid-template-columns:repeat(5, minmax(0, 1fr))">
+        <li class="c-jalon is-fait"><div class="c-jalon__quand">Septembre 2026</div><div class="c-jalon__quoi">Cahier des charges</div></li>
+        <li class="c-jalon is-current"><div class="c-jalon__quand">18 octobre 2026</div><div class="c-jalon__quoi">Validation des maquettes</div></li>
+        <li class="c-jalon"><div class="c-jalon__quand">Fin octobre</div><div class="c-jalon__quoi">Préparation technique</div></li>
+        <li class="c-jalon"><div class="c-jalon__quand">Novembre à janvier</div><div class="c-jalon__quoi">Développement</div></li>
+        <li class="c-jalon"><div class="c-jalon__quand">13 février 2027</div><div class="c-jalon__quoi">Mise en ligne</div></li>
       </ol>
     </section>
 
-    <!-- 12 · Prochaines étapes -->
-    <section class="c-slide" aria-label="Prochaines étapes">
-      <p class="c-slide__kicker">Prochaines étapes</p>
-      <h2 class="c-slide__titre">De la maquette à l'outil.</h2>
-      <ol class="c-jalons">
-        <li class="c-jalon is-current"><div class="c-jalon__quand">Octobre 2026</div><div class="c-jalon__quoi">Validation des maquettes</div></li>
-        <li class="c-jalon"><div class="c-jalon__quand">Ensuite</div><div class="c-jalon__quoi">Développement</div></li>
-        <li class="c-jalon"><div class="c-jalon__quand">Vers mars 2027</div><div class="c-jalon__quoi">V1 testable par l'équipe</div></li>
-        <li class="c-jalon"><div class="c-jalon__quand">Vers octobre 2027</div><div class="c-jalon__quoi">Plateforme complète</div></li>
-      </ol>
+    <section class="c-slide c-slide--sombre" aria-label="Merci" data-chap="03 · La suite">
+      <img class="c-slide__logo c-slide__logo--blanc" src="assets/img/logo-blanc-menu.png" alt="DOUALOG">
+      <h2 class="c-slide__titre c-chapitre__titre" style="max-width:none; white-space:nowrap">Merci, à vous de tester !</h2>
+      <p class="c-slide__texte">La démo suit le dossier DLG-2026-0412 pas à pas, en une dizaine de minutes.</p>
       <div class="c-slide__actions"><a class="c-btn c-btn--primary c-btn--lg" href="externe/X01-email-accuse-reception.html?id=DLG-2026-0412&amp;demo=1&amp;demo-reset=1">Lancer la démo<svg class="c-icon" aria-hidden="true"><use href="#i-arrow-right"></use></svg></a></div>
     </section>
   </main>
@@ -166,8 +173,10 @@
     <button class="c-btn c-btn--icon c-btn--ghost" type="button" id="prec" aria-label="Diapositive précédente"><svg class="c-icon" aria-hidden="true"><use href="#i-chevron-left"></use></svg></button>
     <button class="c-btn c-btn--icon c-btn--ghost" type="button" id="suiv" aria-label="Diapositive suivante"><svg class="c-icon" aria-hidden="true"><use href="#i-chevron-right"></use></svg></button>
     <span class="c-deck__num" id="num" aria-live="polite"></span>
+    <span class="c-deck__chap" id="chap"></span>
     <span class="c-deck__progress" aria-hidden="true"><span id="progression"></span></span>
-    <a class="c-btn c-btn--ghost c-btn--sm" href="index.html">Sommaire</a>
+    <a class="c-btn c-btn--ghost c-btn--sm" href="#4">Ordre du jour</a>
+    <a class="c-btn c-btn--ghost c-btn--sm" href="index.html">Espace maquettes</a>
     <button class="c-btn c-btn--icon c-btn--ghost" type="button" id="plein" aria-label="Plein écran (touche F)" title="Plein écran (F)"><svg class="c-icon" aria-hidden="true"><use href="#i-maximize"></use></svg></button>
   </footer>
 </div>
@@ -194,6 +203,7 @@
     });
     charger(courant); charger(courant + 1);
     $('num').textContent = (courant + 1) + ' / ' + slides.length;
+    $('chap').textContent = slides[courant].dataset.chap || '';
     $('progression').style.transform = 'scaleX(' + (courant + 1) / slides.length + ')';
     $('prec').disabled = courant === 0; $('suiv').disabled = courant === slides.length - 1;
     history.replaceState(null, '', '#' + (courant + 1));
@@ -210,6 +220,12 @@
     else if (e.key === 'Home') aller(0);
     else if (e.key === 'End') aller(slides.length - 1);
     else if (e.key === 'f' || e.key === 'F') pleinEcran();
+  });
+  /* Liens internes (#n : ordre du jour) : aller à la diapositive sans recharger */
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest('a[href^="#"]');
+    if (!a) return;
+    e.preventDefault(); aller(parseInt(a.getAttribute('href').slice(1), 10) - 1);
   });
   /* Clic sur la diapositive : suivante (sauf sur un lien ou un bouton) */
   $('stage').addEventListener('click', function (e) { if (!e.target.closest('a, button')) aller(courant + 1); });
