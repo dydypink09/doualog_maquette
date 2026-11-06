@@ -189,7 +189,7 @@ a.c-ref:hover { text-decoration: underline; }
 .c-topbar__title { text-align: center; white-space: nowrap; }
 .c-topbar__name { display: block; font-size: var(--fs-xl); font-weight: var(--fw-semibold); letter-spacing: var(--ls-heading); color: var(--neutral-0); line-height: var(--lh-tight); }
 /* Écrans étroits : le titre centré cède la place à la recherche, puis le nom de l'utilisateur */
-@media (max-width: 1360px) { .c-topbar__title { display: none; } .c-topbar { grid-template-columns: auto minmax(0, 1fr); } }
+@media (max-width: 1400px) { .c-topbar__title { display: none; } .c-topbar { grid-template-columns: auto minmax(0, 1fr); } }
 @media (max-width: 760px) { .c-topbar .c-brand__texte, .c-user > span:last-child { display: none; } }
 .c-topbar__sub { display: block; margin-top: 3px; font-size: var(--fs-2xs); font-weight: var(--fw-medium); letter-spacing: .12em; text-transform: uppercase; color: var(--on-dark-muted); }
 /* Logo : version blanche dans le menu ; ailleurs (pages externes, sommaire) monogramme sur pastille + nom en texte */
@@ -242,6 +242,17 @@ a.c-ref:hover { text-decoration: underline; }
 .c-nav--bottom { margin-top: auto; padding-top: var(--sp-4); }
 /* Bouton « Réduire le menu » en bas du menu (au-dessus de Déconnexion) : même rendu qu'une entrée */
 .c-nav__item--btn { width: 100%; border: 0; background: transparent; font: inherit; font-size: var(--fs-md); cursor: pointer; text-align: left; }
+/* Groupe repliable (Référentiels) : titre avec chevron, entrées en retrait dessous ; libellés longs sur deux lignes */
+.c-nav__item .c-nav__chevron { width: var(--icon-sm); height: var(--icon-sm); margin-left: auto; flex-shrink: 0; transition: transform var(--dur-base) var(--ease-out); }
+.c-nav__toggle[aria-expanded="true"] .c-nav__chevron { transform: rotate(180deg); }
+.c-nav__toggle.has-active, .c-nav__toggle.has-active .c-icon { color: var(--on-dark); }
+.c-nav__sub { list-style: none; margin: 2px 0 0; padding: 0; display: flex; flex-direction: column; gap: 2px; }
+.c-nav__toggle[aria-expanded="false"] + .c-nav__sub { display: none; }   /* groupe replié (pas d'attribut hidden : [hidden] est en !important) */
+.c-nav__sub .c-nav__item { height: auto; min-height: 32px; padding: 6px var(--sp-3) 6px calc(var(--sp-3) + var(--sp-4)); }
+.c-nav__sub .c-nav__label { white-space: normal; line-height: var(--lh-tight); }
+.is-nav-ferme .c-nav__toggle { display: none; }
+.is-nav-ferme .c-nav__sub, .is-nav-ferme .c-nav__toggle + .c-nav__sub { display: flex; margin: 0; }
+.is-nav-ferme .c-nav__sub .c-nav__item { height: 34px; min-height: 0; padding: 0; }
 .c-nav__item {
   position: relative; display: flex; align-items: center; gap: var(--sp-3);
   height: 34px; padding: 0 var(--sp-3); border-radius: var(--radius-md);

@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard Import — DOUALOG Control Tower</title>
+<link rel="icon" type="image/png" href="../assets/img/favicon.png">
+<link rel="stylesheet" href="../assets/tokens.css">
+<link rel="stylesheet" href="../assets/components.css">
+<script src="../assets/icons.js"></script>
+<script src="../assets/data.js"></script>
+<script src="../assets/shell.js"></script>
+<script src="../assets/demo.js"></script>
+</head>
+<body>
+<!-- E15 · Dashboards métier Import / Export / Transit (retour client du 06/11/2026, issue #4) — remplacent l'entrée « Dossiers » du menu.
+     Une page, trois vues : ?type=import|export|transit. Au clic dans le menu, la vue change sur place (shell.js > onContexte) :
+     titre de la page, titre du header (« Trade & Customs Dashboard - Import »…), entrée active, adresse.
+     Chaque vue ne compte que les dossiers de son type. Indicateurs et tableau : issues #6 à #11.
+     À VALIDER : aucun dossier de transit dans le jeu de démonstration (type absent du CDC) — à ajouter avec l'issue #11. -->
+<div class="c-app">
+  <header class="c-topbar" id="topbar"></header>
+  <nav class="c-sidebar" id="sidebar" aria-label="Navigation principale"></nav>
+
+  <main class="c-main">
+    <div class="c-page-head">
+      <div class="c-page-head__title"><h1 id="titre"></h1><span class="c-page-head__meta" id="sous-titre"></span></div>
+    </div>
+
+    <section class="c-card">
+      <div class="c-empty">
+        <svg class="c-icon" aria-hidden="true"><use href="#i-dossiers" id="vide-icone"></use></svg>
+        <p class="c-empty__title" id="vide-titre"></p>
+        <p class="c-empty__text" id="vide-texte"></p>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script>
+(function () {
+  var D = window.DOUALOG;
+  function $(id) { return document.getElementById(id); }
+
+  /* Une entrée par dashboard : titre, sous-titre, type des dossiers dans data.js */
+  var VUES = {
+    import:  { titre: 'Dashboard Import',  sousTitre: 'Pilotage des opérations d\'importation', type: 'Import',  nom: 'import',  icone: 'import' },
+    export:  { titre: 'Dashboard Export',  sousTitre: 'Pilotage des opérations d\'exportation', type: 'Export',  nom: 'export',  icone: 'export' },
+    transit: { titre: 'Dashboard Transit', sousTitre: 'Pilotage des opérations de transit',    type: 'Transit', nom: 'transit', icone: 'transit' }
+  };
+  function lireType() { var t = new URLSearchParams(location.search).get('type'); return VUES[t] ? t : 'import'; }
+
+  function render(c) {
+    var v = VUES[c], n = D.tableauDeBord().filter(function (d) { return d.type === v.type; }).length;
+    document.title = v.titre + ' — DOUALOG Control Tower';
+    $('titre').textContent = v.titre;
+    $('sous-titre').textContent = v.sousTitre;
+    $('vide-icone').setAttribute('href', '#i-' + v.icone);
+    $('vide-titre').textContent = n ? n + ' dossier' + (n > 1 ? 's' : '') + ' ' + v.nom : 'Aucun dossier ' + v.nom;
+    $('vide-texte').textContent = 'Les indicateurs et la liste des dossiers ' + v.nom + ' s\'afficheront ici.';
+  }
+
+  var type = lireType();
+  window.DOUALOG_SHELL.init({ actif: type, contexte: type, onContexte: render });
+  render(type);
+})();
+</script>
+</body>
+</html>

@@ -3,7 +3,9 @@
    Remplit <header id="topbar"> et <nav id="sidebar"> à partir de data.js.
    Le rôle se choisit sous le nom de l'utilisateur (maquette), il est mémorisé (localStorage)
    pour tous les écrans et filtre les entrées du menu selon DOUALOG.acces (CDC §02).
-   Usage : DOUALOG_SHELL.init({ actif: 'tableau', onSearch: function (texte) {} })
+   Usage : DOUALOG_SHELL.init({ actif: 'tableau', contexte: 'import', onContexte: function (c) {}, onSearch: function (texte) {} })
+           onContexte : la page gère elle-même les dashboards (E15) → Import / Export / Transit changent la vue sans rechargement
+           DOUALOG_SHELL.setContexte('export')   // change le titre du header sur place (null = accueil)
    ══════════════════════════════════════════════════════════════ */
 (function () {
   var D = window.DOUALOG, KEY = 'doualog-role', KEY_MENU = 'doualog-menu';
@@ -35,7 +37,7 @@
           '<img class="c-brand__mono" src="../assets/img/logo-monogramme-blanc-menu.png" alt="">' +
           '<span class="c-brand__texte"><img class="c-brand__logo" src="../assets/img/logo-blanc-menu.png" alt="DOUALOG"><span class="c-brand__sub">Douane &amp; Logistique</span></span></a>' +
       '</div>' +
-      '<div class="c-topbar__title"><span class="c-topbar__name">Trade &amp; Customs Dashboard</span><span class="c-topbar__sub">Douane &amp; Logistique</span></div>' +
+      '<div class="c-topbar__title"><span class="c-topbar__name" id="shell-titre"></span><span class="c-topbar__sub">Douane &amp; Logistique</span></div>' +
       '<div class="c-topbar__right">' +
         '<div class="c-topbar__search c-input-icon">' + icon('search') +
           '<input class="c-input" id="shell-search" type="search" placeholder="Dossier, BL, conteneur, client…" aria-label="Rechercher un dossier, un BL, un conteneur, un client"></div>' +
@@ -52,6 +54,22 @@
       '</div>';
   }
 
+  /* Titre du header selon le dashboard actif (issue #2) : « Trade & Customs Dashboard » sur l'accueil,
+     suffixé « - Import » / « - Export » / « - Transit » sur les dashboards métier ; changé sur place, sans rechargement */
+  var TITRE = 'Trade & Customs Dashboard', CONTEXTES = { import: 'Import', export: 'Export', transit: 'Transit' };
+  function setContexte(c) {
+    var el = $('shell-titre');
+    if (el) el.textContent = TITRE + (CONTEXTES[c] ? ' - ' + CONTEXTES[c] : '');
+  }
+
+  /* Menu de data.js à plat (groupes et leurs entrées), pour retrouver une entrée par son id */
+  function entrees() {
+    var out = [];
+    D.navigation.forEach(function (e) { out.push(e); (e.enfants || []).forEach(function (x) { out.push(x); }); });
+    return out;
+  }
+  function entree(id) { return entrees().filter(function (x) { return x.id === id; })[0]; }
+
   function item(e, n) {
     if (e.horsV1) {
       return '<li data-nav="' + e.id + '"><span class="c-nav__item is-disabled" aria-disabled="true" title="Prévu après la V1">' + icon(e.icone) + '<span class="c-nav__label">' + e.label + '</span></span></li>';
@@ -61,11 +79,26 @@
       '<span class="c-count"' + (e.id === 'notifications' ? ' id="shell-nav-notif"' : e.id === 'messagerie' ? ' id="shell-nav-mail"' : e.id === 'mandats' ? ' id="shell-nav-mandats" title="Mandats à traiter"' : e.id === 'documents' ? ' id="shell-nav-documents" title="Documents manquants ou à classer"' : '') + (n ? '' : ' data-zero') + '>' + (n || '') + '</span></a></li>';
   }
 
-  /* Menu bleu nuit sous le header (le logo est dans le header) */
+  /* Groupe repliable (Référentiels) : ouvert s'il contient l'entrée active, sinon dans l'état laissé par l'utilisateur.
+     Menu fermé : le titre du groupe disparaît, ses entrées restent visibles en icônes */
+  function groupeOuvert(id) { try { return localStorage.getItem(KEY_MENU + '-' + id) === 'ouvert'; } catch (e) { return false; } }
+  function groupe(e, n) {
+    var ouvert = groupeOuvert(e.id);
+    return '<li class="c-nav__groupe" data-groupe="' + e.id + '">' +
+      '<button class="c-nav__item c-nav__item--btn c-nav__toggle" type="button" aria-expanded="' + ouvert + '" aria-controls="nav-' + e.id + '">' +
+        icon(e.icone) + '<span class="c-nav__label">' + e.label + '</span>' + icon('chevron-down', 'c-nav__chevron') + '</button>' +
+      '<ul class="c-nav__sub" id="nav-' + e.id + '">' + e.enfants.map(function (x) { return item(x, n[x.id]); }).join('') + '</ul></li>';
+  }
+  function ouvrirGroupe(li, ouvert, memoriser) {
+    li.querySelector('.c-nav__toggle').setAttribute('aria-expanded', String(ouvert));
+    if (memoriser) try { localStorage.setItem(KEY_MENU + '-' + li.dataset.groupe, ouvert ? 'ouvert' : 'ferme'); } catch (e) {}
+  }
+
+  /* Menu bleu nuit sous le header (le logo est dans le header) ; entrées dans data.js > navigation */
   function renderSidebar() {
     var n = { notifications: nonLues(), messagerie: D.emailsNonLus().length, mandats: D.mandatsATraiter().length, documents: D.documentsATraiter().length };
     $('sidebar').innerHTML =
-      '<ul class="c-nav">' + D.navigation.map(function (e) { return item(e, n[e.id]); }).join('') + '</ul>' +
+      '<ul class="c-nav">' + D.navigation.map(function (e) { return e.enfants ? groupe(e, n) : item(e, n[e.id]); }).join('') + '</ul>' +
       '<ul class="c-nav c-nav--bottom">' +
         '<li><button class="c-nav__item c-nav__item--btn" type="button" id="shell-menu" aria-controls="sidebar">' + icon('sidebar') + '<span class="c-nav__label" id="shell-menu-label">Réduire le menu</span></button></li>' +
         '<li><a class="c-nav__item" href="E00-connexion.html">' + icon('logout') + '<span class="c-nav__label">Déconnexion</span></a></li></ul>';
@@ -75,7 +108,7 @@
     var a = D.acces[role], u = D.equipe[a.utilisateur];
     /* Le menu complet de l'image reste visible ; ce que le profil ne peut pas ouvrir est grisé (CDC §02) */
     document.querySelectorAll('[data-nav]').forEach(function (li) {
-      var el = li.firstChild, e = D.navigation.filter(function (x) { return x.id === li.dataset.nav; })[0];
+      var el = li.firstChild, e = entree(li.dataset.nav);
       if (e.horsV1) return;
       var ok = a.nav.indexOf(e.id) >= 0;
       el.classList.toggle('is-disabled', !ok);
@@ -113,17 +146,50 @@
       el.classList.toggle('is-active', on);
       if (on) el.setAttribute('aria-current', 'page'); else el.removeAttribute('aria-current');
     });
+    document.querySelectorAll('[data-groupe]').forEach(function (li) {
+      var dedans = !!li.querySelector('[data-nav="' + id + '"]');
+      li.querySelector('.c-nav__toggle').classList.toggle('has-active', dedans);
+      if (dedans) ouvrirGroupe(li, true, false);
+    });
+  }
+
+  /* Dashboards métier (E15) : au clic sur Import / Export / Transit, la vue change sur place (sans rechargement) :
+     adresse (history), entrée active, titre du header, puis opts.onContexte(contexte) redessine le contenu */
+  function afficherContexte(c) {
+    var e = entrees().filter(function (x) { return x.contexte === c; })[0];
+    if (!e) return;
+    setActive(e.id);
+    setContexte(c);
+    opts.onContexte(c);
+  }
+  function suivreContextes() {
+    history.replaceState({ contexte: opts.contexte }, '');
+    $('sidebar').addEventListener('click', function (ev) {
+      var a = ev.target.closest('a.c-nav__item'), e = a && entree(a.parentNode.dataset.nav);
+      if (!e || !e.contexte || a.classList.contains('is-disabled') || ev.button || ev.metaKey || ev.ctrlKey || ev.shiftKey) return;
+      ev.preventDefault();
+      /* Navigateur qui refuse de réécrire l'adresse (ex. fichier local d'un autre nom) : navigation classique */
+      try { if (e.contexte !== (history.state && history.state.contexte)) history.pushState({ contexte: e.contexte }, '', e.href); }
+      catch (err) { location.href = e.href; return; }
+      afficherContexte(e.contexte);
+    });
+    window.addEventListener('popstate', function (ev) { if (ev.state && ev.state.contexte) afficherContexte(ev.state.contexte); });
   }
 
   function init(o) {
     opts = o || {};
     var role = lireRole();
     renderTopbar(role);
+    setContexte(opts.contexte);
     renderSidebar();
     setActive(opts.actif);
     appliquerRole(role);
     majMenu();
     $('shell-menu').addEventListener('click', basculerMenu);
+    document.querySelectorAll('[data-groupe]').forEach(function (li) {
+      li.querySelector('.c-nav__toggle').addEventListener('click', function () { ouvrirGroupe(li, this.getAttribute('aria-expanded') !== 'true', true); });
+    });
+    if (opts.onContexte) suivreContextes();
 
     $('shell-role').addEventListener('change', function () {
       ecrireRole(this.value);
@@ -175,5 +241,5 @@
   document.addEventListener('DOMContentLoaded', suivreDefilement);
   window.addEventListener('load', suivreDefilement);
 
-  window.DOUALOG_SHELL = { init: init, setActive: setActive, role: lireRole, icon: icon, accueil: accueil, majCompteurs: majCompteurs, suivreDefilement: suivreDefilement };
+  window.DOUALOG_SHELL = { init: init, setActive: setActive, setContexte: setContexte, role: lireRole, icon: icon, accueil: accueil, majCompteurs: majCompteurs, suivreDefilement: suivreDefilement };
 })();

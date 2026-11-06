@@ -661,18 +661,28 @@
      Accueil : E09 (tableau de bord graphique) pour tous les profils ; Dossiers = liste E01 ; Clients = E10 ; Mandats = E12 ; Documents = E13 ; Paramètres = E14 ; Messagerie = E11 (boîte centrale, À VALIDER) ; Rapports = E07 (Manager, Direction).
      À VALIDER : pas de matrice des droits détaillée (US-45), répartition déduite du tableau §02.
      Direction = mêmes entrées que le Manager, en lecture seule. */
+  /* Menu métier (retour client du 06/11/2026, issue #4) : « Dossiers » remplacé par trois dashboards (E15, une vue par type,
+     `contexte` = vue changée sur place + suffixe du titre du header). `enfants` = groupe repliable (Référentiels).
+     Version groupée envisagée par le client : remplacer les trois entrées par
+       { id: 'operations', label: 'Opérations', icone: 'dossiers', enfants: [ …import, export, transit… ] } et placer Messagerie juste après le Tableau de bord.
+     À VALIDER : Documents (E13), Notifications (E08, toujours ouvertes par la cloche du header) et Rapports (E07) ne figurent plus dans le menu du client ;
+     la liste globale E01 reste ouverte par les liens des autres écrans (« Voir tous les dossiers ») ; Contacts et Archives : pas d'écran en V1 (entrées inactives). */
   var navigation = [
-    { id: 'tableau',       label: 'Tableau de bord', icone: 'dashboard', href: 'E09-tableau-de-bord.html' },
-    { id: 'dossiers',      label: 'Dossiers',        icone: 'dossiers',  href: 'E01-dossiers.html' },
-    { id: 'transport',     label: 'Transport',       icone: 'transport', href: 'E05-annuaire-transporteurs.html' },
-    { id: 'mandats',       label: 'Mandats',         icone: 'mandat',    href: 'E12-mandats.html' },
-    { id: 'clients',       label: 'Clients',         icone: 'clients',   href: 'E10-clients.html' },
-    { id: 'documents',     label: 'Documents',       icone: 'document',  href: 'E13-documents.html' },
-    { id: 'facturation',   label: 'Facturation',     icone: 'facture',   href: 'E06-facturation.html' },
-    { id: 'messagerie',    label: 'Messagerie',      icone: 'mail',      href: 'E11-messagerie.html' },
-    { id: 'notifications', label: 'Notifications',   icone: 'bell',      href: 'E08-notifications.html' },
-    { id: 'rapports',      label: 'Rapports',        icone: 'rapport',   href: 'E07-dashboard-manager.html' },
-    { id: 'parametres',    label: 'Paramètres',      icone: 'settings',  href: 'E14-parametres.html' }
+    { id: 'tableau',       label: 'Tableau de bord',  icone: 'dashboard', href: 'E09-tableau-de-bord.html' },
+    { id: 'import',        label: 'Dashboard Import',  icone: 'import',    href: 'E15-operations.html?type=import',  contexte: 'import' },
+    { id: 'export',        label: 'Dashboard Export',  icone: 'export',    href: 'E15-operations.html?type=export',  contexte: 'export' },
+    { id: 'transit',       label: 'Dashboard Transit', icone: 'transit',   href: 'E15-operations.html?type=transit', contexte: 'transit' },
+    { id: 'messagerie',    label: 'Messagerie',       icone: 'mail',      href: 'E11-messagerie.html' },
+    { id: 'transport',     label: 'Transport',        icone: 'transport', href: 'E05-annuaire-transporteurs.html' },
+    { id: 'facturation',   label: 'Facturation',      icone: 'facture',   href: 'E06-facturation.html' },
+    { id: 'referentiels',  label: 'Référentiels',     icone: 'referentiel', enfants: [
+      { id: 'clients',       label: 'Clients',                             icone: 'clients',  href: 'E10-clients.html' },
+      { id: 'mandats',       label: 'Importateurs / Exportateurs mandatés', icone: 'mandat',   href: 'E12-mandats.html' },
+      { id: 'transporteurs', label: 'Transporteurs',                       icone: 'package',  href: 'E05-annuaire-transporteurs.html#annuaire' },
+      { id: 'contacts',      label: 'Contacts',                            icone: 'contacts', horsV1: true }
+    ] },
+    { id: 'archives',      label: 'Archives',         icone: 'archive',   horsV1: true },
+    { id: 'parametres',    label: 'Paramètres',       icone: 'settings',  href: 'E14-parametres.html' }
   ];
   /* ── Historique fictif des semaines passées (tableau de bord E09, toutes les périodes) ──
      Une ligne par semaine : lundi, dossiers reçus import / export, délai moyen réception → BAS en jours.
@@ -714,13 +724,15 @@
   var horsV1 = ['parametres'];   // Paramètres (E14) : ouvert à tous (Mon profil), le reste réservé au Manager et à la Direction
   /* Clients (E10) et Messagerie (E11) ouverts à tous les profils — À VALIDER (droits, QUESTIONS-ONCLE.md §1) */
   var communs = ['clients', 'messagerie', 'mandats', 'documents'];   // Mandats (E12), Documents (E13) : À VALIDER, comme Clients
+  /* Les trois dashboards remplacent « Dossiers » : mêmes droits que l'ancienne liste ; Transporteurs suit Transport */
+  var navDossiers = ['dossiers', 'import', 'export', 'transit'];
   var acces = {
-    declarant:   { nav: ['tableau', 'dossiers', 'notifications'].concat(communs, horsV1), utilisateur: 'u1' },
-    operateur:   { nav: ['tableau', 'dossiers', 'transport', 'notifications'].concat(communs, horsV1), utilisateur: 'u3' },
-    transport:   { nav: ['tableau', 'dossiers', 'transport', 'notifications'].concat(communs, horsV1), utilisateur: 'u4' },
-    facturation: { nav: ['tableau', 'dossiers', 'facturation', 'notifications'].concat(communs, horsV1), utilisateur: 'u5' },
-    manager:     { nav: ['tableau', 'dossiers', 'transport', 'facturation', 'notifications', 'rapports'].concat(communs, horsV1), utilisateur: 'u6' },
-    direction:   { nav: ['tableau', 'dossiers', 'transport', 'facturation', 'notifications', 'rapports'].concat(communs, horsV1), utilisateur: 'u7', lectureSeule: true }
+    declarant:   { nav: ['tableau', 'notifications'].concat(navDossiers, communs, horsV1), utilisateur: 'u1' },
+    operateur:   { nav: ['tableau', 'transport', 'transporteurs', 'notifications'].concat(navDossiers, communs, horsV1), utilisateur: 'u3' },
+    transport:   { nav: ['tableau', 'transport', 'transporteurs', 'notifications'].concat(navDossiers, communs, horsV1), utilisateur: 'u4' },
+    facturation: { nav: ['tableau', 'facturation', 'notifications'].concat(navDossiers, communs, horsV1), utilisateur: 'u5' },
+    manager:     { nav: ['tableau', 'transport', 'transporteurs', 'facturation', 'notifications', 'rapports'].concat(navDossiers, communs, horsV1), utilisateur: 'u6' },
+    direction:   { nav: ['tableau', 'transport', 'transporteurs', 'facturation', 'notifications', 'rapports'].concat(navDossiers, communs, horsV1), utilisateur: 'u7', lectureSeule: true }
   };
 
 

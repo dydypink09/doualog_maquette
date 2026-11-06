@@ -209,7 +209,7 @@
   <!-- ══ SHELL ══ -->
   <section class="ds-sec" id="shell">
     <h2>Shell applicatif</h2>
-    <p class="ds-intro">Header bleu marine pleine largeur en dégradé, souligné d'une fine ligne orange (couleur du logo) — retour client du 06/11/2026. À gauche : logo blanc DOUALOG (monogramme DL agrandi) et « Douane &amp; Logistique » ; au centre : titre « Trade &amp; Customs Dashboard » ; à droite : recherche (champ translucide, blanc au focus), notifications (compteur rouge), emails, utilisateur. Sous 1360 px le titre se masque. Menu bleu nuit sous le header : « Réduire le menu », en bas au-dessus de Déconnexion, le ferme (64 px : icônes seules, libellé en infobulle, compteur en pastille orange), l'état est gardé d'un écran à l'autre. Entrée active : fond discret et repère orange arrondi à gauche ; entrées hors V1 ou hors droits du profil grisées ; Déconnexion en bas. Rendu par <code>shell.js</code>.</p>
+    <p class="ds-intro">Header bleu marine pleine largeur en dégradé, souligné d'une fine ligne orange (couleur du logo) — retour client du 06/11/2026. À gauche : logo blanc DOUALOG (monogramme DL agrandi) et « Douane &amp; Logistique » ; au centre : titre « Trade &amp; Customs Dashboard », suffixé « - Import », « - Export » ou « - Transit » sur les dashboards métier (<code>DOUALOG_SHELL.setContexte()</code>, sans rechargement) ; à droite : recherche (champ translucide, blanc au focus), notifications (compteur rouge), emails, utilisateur. Sous 1400 px le titre se masque. Menu bleu nuit sous le header, défini une seule fois dans <code>data.js &gt; navigation</code> (menu métier : Tableau de bord, Dashboard Import / Export / Transit, Messagerie, Transport, Facturation, Référentiels, Archives, Paramètres) ; un groupe (<code>enfants</code>) se replie avec son chevron et s'ouvre seul sur l'entrée active. « Réduire le menu », en bas au-dessus de Déconnexion, le ferme (64 px : icônes seules, libellé en infobulle, compteur en pastille orange), l'état est gardé d'un écran à l'autre. Entrée active : fond discret et repère orange arrondi à gauche ; entrées hors V1 ou hors droits du profil grisées ; Déconnexion en bas. Rendu par <code>shell.js</code>.</p>
     <div class="ds-shell">
       <div class="c-app">
         <header class="c-topbar">
@@ -226,10 +226,14 @@
         </header>
         <nav class="c-sidebar" aria-label="Navigation (exemple)">
           <ul class="c-nav">
-            <li><a class="c-nav__item is-active" href="#"><svg class="c-icon" aria-hidden="true"><use href="#i-dashboard"></use></svg>Tableau de bord</a></li>
-            <li><a class="c-nav__item" href="#"><svg class="c-icon" aria-hidden="true"><use href="#i-dossiers"></use></svg>Dossiers</a></li>
-            <li><span class="c-nav__item is-disabled" aria-disabled="true"><svg class="c-icon" aria-hidden="true"><use href="#i-mandat"></use></svg>Mandats</span></li>
-            <li><a class="c-nav__item" href="#"><svg class="c-icon" aria-hidden="true"><use href="#i-bell"></use></svg>Notifications<span class="c-count" id="nav-count-notif"></span></a></li>
+            <li><a class="c-nav__item" href="#"><svg class="c-icon" aria-hidden="true"><use href="#i-dashboard"></use></svg><span class="c-nav__label">Tableau de bord</span></a></li>
+            <li><a class="c-nav__item is-active" href="#"><svg class="c-icon" aria-hidden="true"><use href="#i-import"></use></svg><span class="c-nav__label">Dashboard Import</span></a></li>
+            <li><a class="c-nav__item" href="#"><svg class="c-icon" aria-hidden="true"><use href="#i-mail"></use></svg><span class="c-nav__label">Messagerie</span><span class="c-count" id="nav-count-notif"></span></a></li>
+            <li class="c-nav__groupe"><button class="c-nav__item c-nav__item--btn c-nav__toggle" type="button" aria-expanded="true"><svg class="c-icon" aria-hidden="true"><use href="#i-referentiel"></use></svg><span class="c-nav__label">Référentiels</span><svg class="c-icon c-nav__chevron" aria-hidden="true"><use href="#i-chevron-down"></use></svg></button>
+              <ul class="c-nav__sub">
+                <li><a class="c-nav__item" href="#"><svg class="c-icon" aria-hidden="true"><use href="#i-clients"></use></svg><span class="c-nav__label">Clients</span></a></li>
+                <li><span class="c-nav__item is-disabled" aria-disabled="true"><svg class="c-icon" aria-hidden="true"><use href="#i-contacts"></use></svg><span class="c-nav__label">Contacts</span></span></li>
+              </ul></li>
           </ul>
           <ul class="c-nav c-nav--bottom"><li><button class="c-nav__item c-nav__item--btn" type="button"><svg class="c-icon" aria-hidden="true"><use href="#i-sidebar"></use></svg><span class="c-nav__label">Réduire le menu</span></button></li></ul>
         </nav>

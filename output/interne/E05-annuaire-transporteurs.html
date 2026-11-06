@@ -215,6 +215,7 @@
     });
     $('ajouter').hidden = id !== 'annuaire';
     history.replaceState(null, '', location.pathname + location.search + (id === 'annuaire' ? '#annuaire' : ''));
+    window.DOUALOG_SHELL.setActive(id === 'annuaire' ? 'transporteurs' : 'transport');   // Référentiels > Transporteurs = l'onglet Annuaire
     if (id === 'annuaire') render(); else renderOT();
   }
 
@@ -262,6 +263,8 @@
   $('search-ot').addEventListener('input', function () { qOT = this.value; renderOT(); });
   render(); renderOT();
   ouvrirOnglet(location.hash === '#annuaire' ? 'annuaire' : 'ots');
+  /* Menu « Transporteurs » cliqué depuis cet écran : seule l'ancre change, pas de rechargement */
+  window.addEventListener('hashchange', function () { ouvrirOnglet(location.hash === '#annuaire' ? 'annuaire' : 'ots'); });
 })();
 </script>
 </body>
