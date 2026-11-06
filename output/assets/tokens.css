@@ -70,7 +70,9 @@
   --bg-subtle:      var(--neutral-50);
   --bg-muted:       var(--neutral-100);
   --bg-chrome:      var(--night-950);
-  --bg-topbar:      rgba(255, 255, 255, .82);   /* matière translucide : le contenu défile dessous */
+  --bg-topbar:      rgba(255, 255, 255, .82);   /* matière translucide (sommaire, présentation) */
+  /* Header des écrans internes (retour client 06/11/2026) : bandeau bleu marine foncé en dégradé, ligne orange fine dessous */
+  --bg-header:      linear-gradient(100deg, #0A2147 0%, var(--night-950) 55%, var(--night-800) 100%);
   --bg-nav:         var(--night-950);
   --bg-nav-hover:   rgba(255, 255, 255, .06);
   --bg-nav-active:  rgba(255, 255, 255, .11);
@@ -146,8 +148,9 @@
   /* — Layout — */
   --sidebar-w: 216px;
   --sidebar-w-ferme: 64px;    /* menu fermé : icônes seules */
-  --topbar-h: 60px;
+  --topbar-h: 64px;           /* header des écrans internes, ligne orange comprise */
   --topbar-line: 1px;
+  --header-line: 2px;         /* ligne orange sous le header des écrans internes */
   --row-h: 40px;
   --control-h: 36px;
   --control-h-sm: 30px;
