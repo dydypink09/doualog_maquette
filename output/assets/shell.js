@@ -1,5 +1,5 @@
 /* ══════════════════════════════════════════════════════════════
-   DOUALOG Control Tower — Shell des écrans internes (structure de references/vision-client.jpeg)
+   DOUALOG Control Tower — Shell des écrans internes (header : retour client du 06/11/2026)
    Remplit <header id="topbar"> et <nav id="sidebar"> à partir de data.js.
    Le rôle se choisit sous le nom de l'utilisateur (maquette), il est mémorisé (localStorage)
    pour tous les écrans et filtre les entrées du menu selon DOUALOG.acces (CDC §02).
@@ -28,11 +28,17 @@
 
   function renderTopbar(role) {
     var notif = nonLues(), mails = D.emailsNonLus().length;
+    /* Header (retour client 06/11/2026) : logo à gauche, titre centré, recherche · notifications · emails · utilisateur à droite */
     $('topbar').innerHTML =
-      '<button class="c-btn c-btn--icon c-btn--ghost c-topbar__icon" type="button" id="shell-menu" aria-controls="sidebar">' + icon('sidebar', 'c-icon--lg') + '</button>' +
-      '<div class="c-topbar__search c-input-icon">' + icon('search') +
-        '<input class="c-input" id="shell-search" type="search" placeholder="Rechercher un dossier, un BL, un conteneur, un client…" aria-label="Recherche globale"></div>' +
+      '<div class="c-topbar__left">' +
+        '<a class="c-brand c-brand--blanc" id="shell-accueil" href="' + accueil(role) + '" aria-label="DOUALOG — Accueil">' +
+          '<img class="c-brand__mono" src="../assets/img/logo-monogramme-blanc-menu.png" alt="">' +
+          '<span class="c-brand__texte"><img class="c-brand__logo" src="../assets/img/logo-blanc-menu.png" alt="DOUALOG"><span class="c-brand__sub">Douane &amp; Logistique</span></span></a>' +
+      '</div>' +
+      '<div class="c-topbar__title"><span class="c-topbar__name">Trade &amp; Customs Dashboard</span><span class="c-topbar__sub">Douane &amp; Logistique</span></div>' +
       '<div class="c-topbar__right">' +
+        '<div class="c-topbar__search c-input-icon">' + icon('search') +
+          '<input class="c-input" id="shell-search" type="search" placeholder="Dossier, BL, conteneur, client…" aria-label="Rechercher un dossier, un BL, un conteneur, un client"></div>' +
         '<a class="c-btn c-btn--icon c-btn--ghost c-topbar__icon" href="E08-notifications.html" aria-label="Notifications, ' + notif + ' non lues">' +
           icon('bell', 'c-icon--lg') + '<span class="c-count c-count--accent" id="shell-notif">' + (notif || '') + '</span></a>' +
         /* Boîte de réception centrale (E11) : emails entrants non lus, rattachés ou non */
@@ -55,15 +61,14 @@
       '<span class="c-count"' + (e.id === 'notifications' ? ' id="shell-nav-notif"' : e.id === 'messagerie' ? ' id="shell-nav-mail"' : e.id === 'mandats' ? ' id="shell-nav-mandats" title="Mandats à traiter"' : e.id === 'documents' ? ' id="shell-nav-documents" title="Documents manquants ou à classer"' : '') + (n ? '' : ' data-zero') + '>' + (n || '') + '</span></a></li>';
   }
 
-  /* Le logo est en tête du menu (menu bleu nuit pleine hauteur, header blanc) : nom DOUALOG blanc, monogramme blanc quand le menu est fermé */
-  function renderSidebar(role) {
+  /* Menu bleu nuit sous le header (le logo est dans le header) */
+  function renderSidebar() {
     var n = { notifications: nonLues(), messagerie: D.emailsNonLus().length, mandats: D.mandatsATraiter().length, documents: D.documentsATraiter().length };
     $('sidebar').innerHTML =
-      '<div class="c-sidebar__brand"><a class="c-brand" id="shell-accueil" href="' + accueil(role) + '" aria-label="DOUALOG — Accueil">' +
-        '<img class="c-brand__logo" src="../assets/img/logo-blanc-menu.png" alt="DOUALOG">' +
-        '<img class="c-brand__logo c-brand__logo--mono" src="../assets/img/logo-monogramme-blanc-menu.png" alt=""></a></div>' +
       '<ul class="c-nav">' + D.navigation.map(function (e) { return item(e, n[e.id]); }).join('') + '</ul>' +
-      '<ul class="c-nav c-nav--bottom"><li><a class="c-nav__item" href="E00-connexion.html">' + icon('logout') + '<span class="c-nav__label">Déconnexion</span></a></li></ul>';
+      '<ul class="c-nav c-nav--bottom">' +
+        '<li><button class="c-nav__item c-nav__item--btn" type="button" id="shell-menu" aria-controls="sidebar">' + icon('sidebar') + '<span class="c-nav__label" id="shell-menu-label">Réduire le menu</span></button></li>' +
+        '<li><a class="c-nav__item" href="E00-connexion.html">' + icon('logout') + '<span class="c-nav__label">Déconnexion</span></a></li></ul>';
   }
 
   function appliquerRole(role) {
@@ -88,6 +93,7 @@
     b.setAttribute('aria-expanded', String(!ferme));
     b.setAttribute('aria-label', ferme ? 'Ouvrir le menu' : 'Fermer le menu');
     b.title = ferme ? 'Ouvrir le menu' : 'Fermer le menu';
+    $('shell-menu-label').textContent = ferme ? 'Ouvrir le menu' : 'Réduire le menu';
     document.querySelectorAll('#sidebar .c-nav__item').forEach(function (el) {
       var l = el.querySelector('.c-nav__label').textContent;
       if (ferme && !el.title) { el.title = l; el.dataset.titreMenu = ''; }
@@ -113,7 +119,7 @@
     opts = o || {};
     var role = lireRole();
     renderTopbar(role);
-    renderSidebar(role);
+    renderSidebar();
     setActive(opts.actif);
     appliquerRole(role);
     majMenu();

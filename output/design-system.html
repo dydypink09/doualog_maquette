@@ -209,25 +209,29 @@
   <!-- ══ SHELL ══ -->
   <section class="ds-sec" id="shell">
     <h2>Shell applicatif</h2>
-    <p class="ds-intro">Menu bleu nuit pleine hauteur avec le logo blanc DOUALOG en tête, aligné sur les icônes des entrées. Le bouton à gauche du header ferme le menu (64 px : icônes seules, libellé en infobulle, compteur en pastille orange, monogramme blanc) ; l'état est gardé d'un écran à l'autre ; header blanc translucide à filet gris : recherche (champ gris sans contour, blanc au focus), notifications (compteur rouge), emails, utilisateur. Entrée active du menu : fond discret et repère orange arrondi à gauche ; entrées hors V1 ou hors droits du profil grisées ; Déconnexion en bas. Rendu par <code>shell.js</code> (<code>.c-sidebar__brand</code>).</p>
+    <p class="ds-intro">Header bleu marine pleine largeur en dégradé, souligné d'une fine ligne orange (couleur du logo) — retour client du 06/11/2026. À gauche : logo blanc DOUALOG (monogramme DL agrandi) et « Douane &amp; Logistique » ; au centre : titre « Trade &amp; Customs Dashboard » ; à droite : recherche (champ translucide, blanc au focus), notifications (compteur rouge), emails, utilisateur. Sous 1360 px le titre se masque. Menu bleu nuit sous le header : « Réduire le menu », en bas au-dessus de Déconnexion, le ferme (64 px : icônes seules, libellé en infobulle, compteur en pastille orange), l'état est gardé d'un écran à l'autre. Entrée active : fond discret et repère orange arrondi à gauche ; entrées hors V1 ou hors droits du profil grisées ; Déconnexion en bas. Rendu par <code>shell.js</code>.</p>
     <div class="ds-shell">
       <div class="c-app">
         <header class="c-topbar">
-          <div class="c-topbar__search c-input-icon"><svg class="c-icon" aria-hidden="true"><use href="#i-search"></use></svg><input class="c-input" placeholder="Rechercher un dossier, un BL, un conteneur, un client…"></div>
+          <div class="c-topbar__left">
+            <a class="c-brand c-brand--blanc" href="#"><img class="c-brand__mono" src="assets/img/logo-monogramme-blanc-menu.png" alt=""><span class="c-brand__texte"><img class="c-brand__logo" src="assets/img/logo-blanc-menu.png" alt="DOUALOG"><span class="c-brand__sub">Douane &amp; Logistique</span></span></a>
+          </div>
+          <div class="c-topbar__title"><span class="c-topbar__name">Trade &amp; Customs Dashboard</span><span class="c-topbar__sub">Douane &amp; Logistique</span></div>
           <div class="c-topbar__right">
+            <div class="c-topbar__search c-input-icon"><svg class="c-icon" aria-hidden="true"><use href="#i-search"></use></svg><input class="c-input" placeholder="Dossier, BL, conteneur, client…"></div>
             <a class="c-btn c-btn--icon c-btn--ghost c-topbar__icon" href="#" aria-label="Notifications"><svg class="c-icon c-icon--lg" aria-hidden="true"><use href="#i-bell"></use></svg><span class="c-count c-count--accent" id="bell-count"></span></a>
             <a class="c-btn c-btn--icon c-btn--ghost c-topbar__icon" href="#" aria-label="Emails"><svg class="c-icon c-icon--lg" aria-hidden="true"><use href="#i-mail"></use></svg><span class="c-count c-count--accent" id="mail-count"></span></a>
             <div class="c-user"><span class="c-user__initials">AN</span><span><span class="c-user__name">Awa Ndiaye</span><select class="c-user__role" id="role-select" aria-label="Profil"></select></span></div>
           </div>
         </header>
         <nav class="c-sidebar" aria-label="Navigation (exemple)">
-          <div class="c-sidebar__brand"><a class="c-brand" href="#"><img class="c-brand__logo" src="assets/img/logo-blanc-menu.png" alt="DOUALOG"></a></div>
           <ul class="c-nav">
             <li><a class="c-nav__item is-active" href="#"><svg class="c-icon" aria-hidden="true"><use href="#i-dashboard"></use></svg>Tableau de bord</a></li>
             <li><a class="c-nav__item" href="#"><svg class="c-icon" aria-hidden="true"><use href="#i-dossiers"></use></svg>Dossiers</a></li>
             <li><span class="c-nav__item is-disabled" aria-disabled="true"><svg class="c-icon" aria-hidden="true"><use href="#i-mandat"></use></svg>Mandats</span></li>
             <li><a class="c-nav__item" href="#"><svg class="c-icon" aria-hidden="true"><use href="#i-bell"></use></svg>Notifications<span class="c-count" id="nav-count-notif"></span></a></li>
           </ul>
+          <ul class="c-nav c-nav--bottom"><li><button class="c-nav__item c-nav__item--btn" type="button"><svg class="c-icon" aria-hidden="true"><use href="#i-sidebar"></use></svg><span class="c-nav__label">Réduire le menu</span></button></li></ul>
         </nav>
         <main class="c-main"><p class="u-muted">Zone de travail gris très clair — cartes blanches posées dessus.</p></main>
       </div>

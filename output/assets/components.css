@@ -162,25 +162,36 @@ a.c-ref:hover { text-decoration: underline; }
 .c-count--accent { background: var(--navy-500); color: var(--neutral-0); }
 .c-count:empty, .c-count[data-zero] { visibility: hidden; }
 
-/* ── Shell applicatif (menu bleu nuit pleine hauteur avec le logo ; header blanc : recherche · notifications + utilisateur) ── */
+/* ── Shell applicatif (retour client 06/11/2026) : header bleu marine pleine largeur à ligne orange
+   (logo · titre centré · recherche, notifications, emails, utilisateur), menu bleu nuit dessous ── */
 .c-app {
   display: grid; min-height: 100vh;
   grid-template-columns: var(--sidebar-w) 1fr;
   grid-template-rows: var(--topbar-h) 1fr;
-  grid-template-areas: "nav top" "nav main";
+  grid-template-areas: "top top" "nav main";
   background: var(--bg-app);
   transition: grid-template-columns var(--dur-enter) var(--ease-out);
 }
 /* Menu fermé (bouton du header, mémorisé) : la largeur suit --sidebar-w, le panneau du dossier aussi */
 :root.is-nav-ferme { --sidebar-w: var(--sidebar-w-ferme); }
-/* Header : matière translucide (le contenu défile dessous), filet fin */
+/* Header : bandeau bleu marine en dégradé, ligne orange fine (couleur du logo) ; trois zones, titre centré sur la page */
 .c-topbar {
   grid-area: top; position: sticky; top: 0; z-index: var(--z-sticky);
-  display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: var(--sp-3);
-  padding: 0 var(--sp-6) 0 var(--sp-3); background: var(--bg-topbar); color: var(--text-primary);
-  -webkit-backdrop-filter: var(--blur-chrome); backdrop-filter: var(--blur-chrome);
-  border-bottom: var(--border-w) solid var(--border);
+  display: grid; grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr); align-items: center; gap: var(--sp-4);
+  padding: 0 var(--sp-6) 0 var(--sp-3); background: var(--bg-header); color: var(--on-dark);
+  border-bottom: var(--header-line) solid var(--action-accent);
 }
+.c-topbar__left { display: flex; align-items: center; gap: var(--sp-3); min-width: 0; padding-left: var(--sp-3); }
+.c-topbar .c-brand--blanc { gap: var(--sp-3); }
+.c-topbar .c-brand__mono { width: 76px; }
+.c-topbar .c-brand--blanc .c-brand__logo { width: 104px; }
+.c-topbar .c-brand__texte { gap: 4px; }
+.c-topbar__title { text-align: center; white-space: nowrap; }
+.c-topbar__name { display: block; font-size: var(--fs-xl); font-weight: var(--fw-semibold); letter-spacing: var(--ls-heading); color: var(--neutral-0); line-height: var(--lh-tight); }
+/* Écrans étroits : le titre centré cède la place à la recherche, puis le nom de l'utilisateur */
+@media (max-width: 1360px) { .c-topbar__title { display: none; } .c-topbar { grid-template-columns: auto minmax(0, 1fr); } }
+@media (max-width: 760px) { .c-topbar .c-brand__texte, .c-user > span:last-child { display: none; } }
+.c-topbar__sub { display: block; margin-top: 3px; font-size: var(--fs-2xs); font-weight: var(--fw-medium); letter-spacing: .12em; text-transform: uppercase; color: var(--on-dark-muted); }
 /* Logo : version blanche dans le menu ; ailleurs (pages externes, sommaire) monogramme sur pastille + nom en texte */
 .c-brand { display: flex; align-items: center; gap: var(--sp-2); text-decoration: none; color: var(--on-dark); justify-self: start; }
 .c-brand__mark {
@@ -192,23 +203,28 @@ a.c-ref:hover { text-decoration: underline; }
 .c-brand__name em { font-style: normal; color: var(--action-accent); }
 .c-brand__sub  { display: block; margin-top: 4px; font-size: var(--fs-2xs); font-weight: var(--fw-medium); letter-spacing: .12em; text-transform: uppercase; color: var(--on-dark-muted); }
 .c-topbar__right { justify-self: end; display: flex; align-items: center; gap: var(--sp-2); min-width: 0; }
-.c-topbar__search { width: 100%; max-width: 480px; }
-.c-topbar__search .c-input { min-height: 34px; font-size: var(--fs-md); background: var(--bg-muted); border-color: transparent; box-shadow: none; }
-.c-topbar__search .c-input:hover { border-color: var(--border); }
-.c-topbar__search .c-input:focus { background: var(--bg-surface); }
-.c-topbar__icon { position: relative; color: var(--text-secondary); }
+/* Recherche sur fond sombre : champ translucide clair, blanc au focus */
+.c-topbar__search { flex: 1 1 auto; min-width: 250px; max-width: 320px; }
+.c-topbar__search .c-input { min-height: 34px; font-size: var(--fs-md); background: var(--on-dark-fill); border-color: var(--on-dark-border); color: var(--on-dark); box-shadow: none; }
+.c-topbar__search .c-input::placeholder { color: var(--on-dark-muted); }
+.c-topbar__search > .c-icon { color: var(--on-dark-muted); }
+.c-topbar__search .c-input:hover { border-color: var(--on-dark-muted); }
+.c-topbar__search .c-input:focus { background: var(--bg-surface); color: var(--text-strong); }
+.c-topbar__search .c-input:focus::placeholder { color: var(--text-muted); }
+.c-topbar__search:focus-within > .c-icon { color: var(--text-secondary); }
+.c-topbar__icon { position: relative; color: var(--on-dark-muted); flex-shrink: 0; }
 .c-topbar__icon .c-count { position: absolute; top: 2px; right: 2px; transform: translate(30%, -20%); min-width: 16px; height: 16px; padding: 0 4px; font-size: var(--fs-2xs); background: var(--tone-danger); }
-.c-topbar__icon:hover { background: var(--bg-muted); color: var(--text-strong); }
+.c-topbar__icon:hover { background: var(--on-dark-fill-hover); color: var(--neutral-0); }
 /* Utilisateur : initiales, nom, rôle (le rôle sert de sélecteur de vue en maquette) */
-.c-user { display: flex; align-items: center; gap: var(--sp-2); margin-left: var(--sp-2); padding-left: var(--sp-4); border-left: var(--border-w) solid var(--border); }
+.c-user { display: flex; align-items: center; gap: var(--sp-2); margin-left: var(--sp-2); padding-left: var(--sp-4); border-left: var(--border-w) solid var(--on-dark-border); flex-shrink: 0; }
 .c-user__initials {
-  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; background: var(--navy-500); color: var(--neutral-0);
+  width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0; background: var(--action-accent); color: var(--navy-500);
   display: flex; align-items: center; justify-content: center; font-size: var(--fs-xs); font-weight: var(--fw-semibold);
 }
-.c-user__name { display: block; font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--text-strong); line-height: 1.2; white-space: nowrap; }
+.c-user__name { display: block; font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--neutral-0); line-height: 1.2; white-space: nowrap; }
 .c-user__role {
   appearance: none; border: 0; padding: 0 16px 0 0; margin: 0; cursor: pointer; max-width: 150px;
-  font-size: var(--fs-xs); color: var(--text-secondary); background-color: transparent;
+  font-size: var(--fs-xs); color: var(--on-dark-muted); background-color: transparent;
   background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
   background-position: calc(100% - 7px) 55%, calc(100% - 3px) 55%; background-size: 4px 4px; background-repeat: no-repeat;
 }
@@ -216,22 +232,16 @@ a.c-ref:hover { text-decoration: underline; }
 
 .c-sidebar {
   grid-area: nav; background: var(--bg-nav); color: var(--on-dark);
-  display: flex; flex-direction: column; padding: 0 0 var(--sp-4); z-index: 5;
-  position: sticky; top: 0; height: 100vh; overflow-y: auto; overflow-x: hidden;
+  display: flex; flex-direction: column; padding: var(--sp-4) 0; z-index: 5;
+  position: sticky; top: var(--topbar-h); height: calc(100vh - var(--topbar-h)); overflow-y: auto; overflow-x: hidden;
   scrollbar-width: thin; scrollbar-color: var(--night-800) transparent;
 }
-/* Logo en tête du menu, à la hauteur du header : nom DOUALOG blanc aligné sur les icônes des entrées (12 + 12 px) ;
-   menu fermé : monogramme blanc centré */
-.c-sidebar__brand { display: flex; align-items: center; flex-shrink: 0; height: var(--topbar-h); padding: 0 var(--sp-6); margin-bottom: var(--sp-2); }
+/* Le logo est dans le header (retour client 06/11/2026), plus en tête du menu */
 .c-brand__logo { display: block; width: 128px; height: auto; }
-.c-brand__logo--mono { display: none; width: 38px; }
-.is-nav-ferme .c-sidebar__brand { justify-content: center; padding: 0; }
-.is-nav-ferme .c-sidebar__brand .c-brand__logo { display: none; }
-.is-nav-ferme .c-sidebar__brand .c-brand__logo--mono { display: block; }
-.c-sidebar__brand .c-brand__mark { width: 32px; height: 32px; padding: 4px; border-radius: var(--radius-md); }
-.c-sidebar__brand .c-brand__name { font-size: var(--fs-base); letter-spacing: .01em; }
 .c-nav { list-style: none; margin: 0; padding: 0 var(--sp-3); display: flex; flex-direction: column; gap: 2px; }
 .c-nav--bottom { margin-top: auto; padding-top: var(--sp-4); }
+/* Bouton « Réduire le menu » en bas du menu (au-dessus de Déconnexion) : même rendu qu'une entrée */
+.c-nav__item--btn { width: 100%; border: 0; background: transparent; font: inherit; font-size: var(--fs-md); cursor: pointer; text-align: left; }
 .c-nav__item {
   position: relative; display: flex; align-items: center; gap: var(--sp-3);
   height: 34px; padding: 0 var(--sp-3); border-radius: var(--radius-md);
@@ -545,7 +555,7 @@ a.c-ref:hover { text-decoration: underline; }
 
 /* Panneau latéral (édition d'une fiche annuaire, détail secondaire) */
 .c-drawer {
-  position: fixed; top: calc(var(--topbar-h) + var(--topbar-line)); right: 0; bottom: 0; z-index: var(--z-panel);
+  position: fixed; top: var(--topbar-h); right: 0; bottom: 0; z-index: var(--z-panel);
   width: 440px; max-width: 100%; display: flex; flex-direction: column;
   background: var(--bg-surface); border-left: var(--border-w) solid var(--border); box-shadow: var(--shadow-lg);
   transform: translateX(100%); visibility: hidden;
