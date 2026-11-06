@@ -862,6 +862,20 @@ a.c-ref:hover { text-decoration: underline; }
   .c-stat:nth-child(4n + 1) { border-left: 0; }
   .c-stat:nth-child(n + 5) { border-top: var(--border-w) solid var(--border); }
 }
+/* Bandeau d'accueil à 9 indicateurs (issue #5) : toujours sur une ligne ; écran étroit : défilement horizontal, libellés abrégés */
+.c-stats__group--9 { grid-template-columns: repeat(9, minmax(118px, 1fr)); overflow-x: auto; scrollbar-width: thin; }
+.c-stats__group--9 > .c-stat { border-top: 0; border-left: var(--border-w) solid var(--border); }
+.c-stats__group--9 > .c-stat:first-child { border-left: 0; }
+.c-stats__group--9 .c-stat { padding: var(--sp-3) var(--sp-3) var(--sp-3) var(--sp-4); }
+.c-stats__group--9 .c-stat__in { grid-template-columns: 30px minmax(0, 1fr); column-gap: var(--sp-2); }
+.c-stats__group--9 .c-stat__icon { width: 30px; height: 30px; }
+.c-stats__group--9 .c-stat__icon .c-icon { width: 16px; height: 16px; }
+/* Icône et chiffre en haut, libellé dessous sur toute la largeur (abrégé si la carte est étroite) */
+.c-stats__group--9 .c-stat__in { grid-template-areas: "icon value" "label label"; row-gap: var(--sp-2); }
+@container (max-width: 200px) {
+  .c-stats__group--9 .c-stat__label .is-long:has(+ .is-short) { display: none; }
+  .c-stats__group--9 .c-stat__label .is-short { display: inline; }
+}
 /* Indicateur étroit : libellé abrégé */
 @container (max-width: 150px) {
   .c-stat__label .is-long:has(+ .is-short) { display: none; }

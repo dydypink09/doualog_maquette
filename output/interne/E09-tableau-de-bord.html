@@ -32,7 +32,7 @@
     </div>
 
     <div class="c-stats">
-      <div class="c-stats__group" id="stats" role="group" aria-label="Indicateurs du jour — un clic ouvre les dossiers concernés"></div>
+      <div class="c-stats__group c-stats__group--9" id="stats" role="group" aria-label="Indicateurs du jour — un clic ouvre les dossiers concernés"></div>
     </div>
 
     <div class="c-dash">
@@ -120,22 +120,12 @@
 
   var liste = D.tableauDeBord(), actifs = liste.filter(function (d) { return d.statut !== 'Clôturé'; });
 
-  /* ── 1. Indicateurs du jour (mêmes définitions que la liste E01 : un clic l'ouvre filtrée) ── */
-  var EN_COURS_TRANSPORT = ['Confirmé', 'Camion affecté', 'Chargement', 'En route'];
-  var KPIS = [
-    { id: 'actifs',     label: 'Dossiers actifs',         icone: 'dossiers',  ton: 'blue',    f: function (d) { return d.statut !== 'Clôturé'; } },
-    { id: 'stockees',   label: 'Déclarations stockées',   icone: 'document',  ton: 'blue',    f: function (d) { return d.statut === 'Déclaration stockée'; } },
-    { id: 'anticipees', label: 'Déclarations anticipées', icone: 'clock',     ton: 'violet',  f: function (d) { return d.statut === 'Déclaration anticipée'; } },
-    { id: 'controles',  label: 'Contrôles en cours',      icone: 'controle',  ton: 'magenta', f: function (d) { return d.statut.indexOf('Contrôle') === 0; } },
-    { id: 'bae',        label: 'BAE obtenus',             icone: 'valide',    ton: 'green',   f: function (d) { return d.statut === 'BAE obtenu'; } },
-    { id: 'bas',        label: 'BAS obtenus',             icone: 'package',   ton: 'orange',  f: function (d) { return d.statut === 'BAS obtenu'; } },
-    { id: 'transport',  label: 'Transport en cours',      icone: 'transport', ton: 'red',     f: function (d) { return d.transport && EN_COURS_TRANSPORT.indexOf(d.transport.statut) >= 0; } },
-    { id: 'livres',     label: 'Livrés',                  icone: 'check',     ton: 'green',   f: function (d) { return d.transport && d.transport.statut === 'Livré'; } }
-  ];
+  /* ── 1. Bandeau de 9 indicateurs (retour client du 06/11/2026, issue #5) — définis dans data.js, comme pour la liste E01 : un clic l'ouvre filtrée ── */
+  var KPIS = D.indicateurs;
   $('stats').innerHTML = KPIS.map(function (k) {
     return '<a class="c-stat c-stat--' + k.ton + '" href="E01-dossiers.html?kpi=' + k.id + '" title="' + k.label + ' — ouvrir la liste">' +
       '<span class="c-stat__in"><span class="c-stat__icon">' + icon(k.icone) + '</span><span class="c-stat__value">' + liste.filter(k.f).length + '</span>' +
-      '<span class="c-stat__label">' + k.label + '</span></span></a>';
+      '<span class="c-stat__label"><span class="is-long">' + k.label + '</span><span class="is-short" aria-hidden="true">' + k.court + '</span></span></span></a>';
   }).join('');
 
   /* ── 2. Activité : semaines connues, regroupement, période choisie ── */

@@ -791,6 +791,22 @@
   }
   function tableauDeBord() { return dossiers.filter(function (d) { return !enSalleAttente(d); }); }
   function salleAttente() { return dossiers.filter(enSalleAttente); }
+  /* Bandeau d'accueil : 9 indicateurs (retour client du 06/11/2026, issue #5), partagés par E09 (cartes) et E01 (filtre ?kpi=).
+     Un dossier n'a encore qu'un statut : correspondance provisoire avec les statuts « dossier » et « douane » de l'issue #7.
+     À VALIDER : « à traiter » = dossier complet, pris en charge, rien de saisi ; « à stocker » = déclaration prête à saisir en douane
+     (aucun dossier de démo à ce stade) ; « stockés » = « Dossiers à stocké » du retour client ; BAS = statut « BAS obtenu » seulement. */
+  var indicateurs = [
+    { id: 'a-traiter',   label: 'Dossiers à traiter',              court: 'À traiter',     icone: 'inbox',    ton: 'blue',    statuts: ['En cours de traitement'] },
+    { id: 'infos',       label: 'Dossiers manque infos',           court: 'Manque infos',  icone: 'alert',    ton: 'red',     statuts: ['Info manquante'] },
+    { id: 'a-stocker',   label: 'Dossiers à stocker',              court: 'À stocker',     icone: 'edit',     ton: 'orange',  statuts: [] },
+    { id: 'stockes',     label: 'Dossiers stockés',                court: 'Stockés',       icone: 'document', ton: 'blue',    statuts: ['Déclaration stockée'] },
+    { id: 'anticipes',   label: 'Dossiers anticipés',              court: 'Anticipés',     icone: 'clock',    ton: 'violet',  statuts: ['Déclaration anticipée'] },
+    { id: 'controle',    label: 'Dossiers sous contrôle douanes',  court: 'Sous contrôle', icone: 'controle', ton: 'magenta', statuts: ['Contrôle documentaire en cours', 'Contrôle physique en cours'] },
+    { id: 'bae',         label: 'Dossiers BAE',                    court: 'BAE',           icone: 'valide',   ton: 'green',   statuts: ['BAE obtenu'] },
+    { id: 'bas',         label: 'Dossiers BAS',                    court: 'BAS',           icone: 'package',  ton: 'orange',  statuts: ['BAS obtenu'] },
+    { id: 'clotures',    label: 'Dossiers clôturés',               court: 'Clôturés',      icone: 'check',    ton: 'neutral', statuts: ['Clôturé'] }
+  ].map(function (k) { k.f = function (d) { return k.statuts.indexOf(d.statut) >= 0; }; return k; });
+
   /* Volume d'activité par type (KPI globaux du header, issue #3, et dashboards E15) : mêmes dossiers que la liste, salle d'attente exclue */
   function volumes() {
     var v = { import: 0, export: 0, transit: 0 };
@@ -1352,6 +1368,6 @@
     fmt: { date: fmtDate, dateCourte: fmtDateCourte, heure: fmtHeure, dateHeure: fmtDateHeure, nombre: fmtNombre, montant: fmtMontant, poids: fmtPoids },
     esc: esc, badge: badge, dossier: dossier, client: client, responsable: responsable, refTransport: refTransport,
     enSalleAttente: enSalleAttente, alertes: alertes, documentsManquants: documentsManquants,
-    tableauDeBord: tableauDeBord, volumes: volumes, salleAttente: salleAttente, relances: relances, totaux: totaux, workflow: workflow
+    tableauDeBord: tableauDeBord, volumes: volumes, indicateurs: indicateurs, salleAttente: salleAttente, relances: relances, totaux: totaux, workflow: workflow
   };
 })();
