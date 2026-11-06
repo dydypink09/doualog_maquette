@@ -42,16 +42,16 @@
   var D = window.DOUALOG;
   function $(id) { return document.getElementById(id); }
 
-  /* Une entrée par dashboard : titre, sous-titre, type des dossiers dans data.js */
+  /* Une entrée par dashboard : titre, sous-titre (le compte vient de DOUALOG.volumes(), comme les KPI du header) */
   var VUES = {
-    import:  { titre: 'Dashboard Import',  sousTitre: 'Pilotage des opérations d\'importation', type: 'Import',  nom: 'import',  icone: 'import' },
-    export:  { titre: 'Dashboard Export',  sousTitre: 'Pilotage des opérations d\'exportation', type: 'Export',  nom: 'export',  icone: 'export' },
-    transit: { titre: 'Dashboard Transit', sousTitre: 'Pilotage des opérations de transit',    type: 'Transit', nom: 'transit', icone: 'transit' }
+    import:  { titre: 'Dashboard Import',  sousTitre: 'Pilotage des opérations d\'importation', nom: 'import',  icone: 'import' },
+    export:  { titre: 'Dashboard Export',  sousTitre: 'Pilotage des opérations d\'exportation', nom: 'export',  icone: 'export' },
+    transit: { titre: 'Dashboard Transit', sousTitre: 'Pilotage des opérations de transit',    nom: 'transit', icone: 'transit' }
   };
   function lireType() { var t = new URLSearchParams(location.search).get('type'); return VUES[t] ? t : 'import'; }
 
   function render(c) {
-    var v = VUES[c], n = D.tableauDeBord().filter(function (d) { return d.type === v.type; }).length;
+    var v = VUES[c], n = D.volumes()[c];
     document.title = v.titre + ' — DOUALOG Control Tower';
     $('titre').textContent = v.titre;
     $('sous-titre').textContent = v.sousTitre;

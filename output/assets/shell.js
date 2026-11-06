@@ -37,7 +37,7 @@
           '<img class="c-brand__mono" src="../assets/img/logo-monogramme-blanc-menu.png" alt="">' +
           '<span class="c-brand__texte"><img class="c-brand__logo" src="../assets/img/logo-blanc-menu.png" alt="DOUALOG"><span class="c-brand__sub">Douane &amp; Logistique</span></span></a>' +
       '</div>' +
-      '<div class="c-topbar__title"><span class="c-topbar__name" id="shell-titre"></span><span class="c-topbar__sub">Douane &amp; Logistique</span></div>' +
+      '<div class="c-topbar__title"><span class="c-topbar__name" id="shell-titre"></span>' + renderKpis() + '</div>' +
       '<div class="c-topbar__right">' +
         '<div class="c-topbar__search c-input-icon">' + icon('search') +
           '<input class="c-input" id="shell-search" type="search" placeholder="Dossier, BL, conteneur, client…" aria-label="Rechercher un dossier, un BL, un conteneur, un client"></div>' +
@@ -60,6 +60,20 @@
   function setContexte(c) {
     var el = $('shell-titre');
     if (el) el.textContent = TITRE + (CONTEXTES[c] ? ' - ' + CONTEXTES[c] : '');
+    document.querySelectorAll('.c-topbar__kpi').forEach(function (k) {
+      if (k.dataset.contexte === c) k.setAttribute('aria-current', 'page'); else k.removeAttribute('aria-current');
+    });
+  }
+
+  /* KPI globaux sous le titre (issue #3) : volume d'activité consolidé, même compte que les dashboards (DOUALOG.volumes()) ;
+     un clic ouvre le dashboard du type (sur place depuis E15) */
+  var KPIS = [['import', 'Imports'], ['export', 'Exports'], ['transit', 'Transits']];
+  function renderKpis() {
+    var v = D.volumes();
+    return '<span class="c-topbar__kpis" role="group" aria-label="Volume d\'activité">' + KPIS.map(function (k) {
+      return '<a class="c-topbar__kpi" href="E15-operations.html?type=' + k[0] + '" data-contexte="' + k[0] + '" title="Ouvrir le Dashboard ' + CONTEXTES[k[0]] + '">' +
+        icon(k[0]) + '<span>' + k[1] + '</span><b class="u-num">' + v[k[0]] + '</b></a>';
+    }).join('') + '</span>';
   }
 
   /* Menu de data.js à plat (groupes et leurs entrées), pour retrouver une entrée par son id */
@@ -75,7 +89,7 @@
       return '<li data-nav="' + e.id + '"><span class="c-nav__item is-disabled" aria-disabled="true" title="Prévu après la V1">' + icon(e.icone) + '<span class="c-nav__label">' + e.label + '</span></span></li>';
     }
     /* Entrée hors droits du profil : rendue grisée par appliquerRole (le menu reste celui de l'image) */
-    return '<li data-nav="' + e.id + '"><a class="c-nav__item" href="' + e.href + '">' + icon(e.icone) + '<span class="c-nav__label">' + e.label + '</span>' +
+    return '<li data-nav="' + e.id + '"><a class="c-nav__item" href="' + e.href + '"' + (e.contexte ? ' data-contexte="' + e.contexte + '"' : '') + '>' + icon(e.icone) + '<span class="c-nav__label">' + e.label + '</span>' +
       '<span class="c-count"' + (e.id === 'notifications' ? ' id="shell-nav-notif"' : e.id === 'messagerie' ? ' id="shell-nav-mail"' : e.id === 'mandats' ? ' id="shell-nav-mandats" title="Mandats à traiter"' : e.id === 'documents' ? ' id="shell-nav-documents" title="Documents manquants ou à classer"' : '') + (n ? '' : ' data-zero') + '>' + (n || '') + '</span></a></li>';
   }
 
@@ -164,14 +178,15 @@
   }
   function suivreContextes() {
     history.replaceState({ contexte: opts.contexte }, '');
-    $('sidebar').addEventListener('click', function (ev) {
-      var a = ev.target.closest('a.c-nav__item'), e = a && entree(a.parentNode.dataset.nav);
-      if (!e || !e.contexte || a.classList.contains('is-disabled') || ev.button || ev.metaKey || ev.ctrlKey || ev.shiftKey) return;
+    /* Liens vers un dashboard : entrées du menu et KPI du header (attribut data-contexte) */
+    document.addEventListener('click', function (ev) {
+      var a = ev.target.closest('a[data-contexte]'), c = a && a.dataset.contexte, href = a && a.getAttribute('href');
+      if (!c || !href || a.classList.contains('is-disabled') || ev.button || ev.metaKey || ev.ctrlKey || ev.shiftKey) return;
       ev.preventDefault();
       /* Navigateur qui refuse de réécrire l'adresse (ex. fichier local d'un autre nom) : navigation classique */
-      try { if (e.contexte !== (history.state && history.state.contexte)) history.pushState({ contexte: e.contexte }, '', e.href); }
-      catch (err) { location.href = e.href; return; }
-      afficherContexte(e.contexte);
+      try { if (c !== (history.state && history.state.contexte)) history.pushState({ contexte: c }, '', href); }
+      catch (err) { location.href = href; return; }
+      afficherContexte(c);
     });
     window.addEventListener('popstate', function (ev) { if (ev.state && ev.state.contexte) afficherContexte(ev.state.contexte); });
   }

@@ -791,6 +791,12 @@
   }
   function tableauDeBord() { return dossiers.filter(function (d) { return !enSalleAttente(d); }); }
   function salleAttente() { return dossiers.filter(enSalleAttente); }
+  /* Volume d'activité par type (KPI globaux du header, issue #3, et dashboards E15) : mêmes dossiers que la liste, salle d'attente exclue */
+  function volumes() {
+    var v = { import: 0, export: 0, transit: 0 };
+    tableauDeBord().forEach(function (d) { var t = String(d.type).toLowerCase(); if (t in v) v[t]++; });
+    return v;
+  }
   /* Relances d'un dossier en salle d'attente : nombre, dernier envoi, prochaine */
   function relances(d) {
     var e = d.salleAttente ? d.salleAttente.envois : [];
@@ -1346,6 +1352,6 @@
     fmt: { date: fmtDate, dateCourte: fmtDateCourte, heure: fmtHeure, dateHeure: fmtDateHeure, nombre: fmtNombre, montant: fmtMontant, poids: fmtPoids },
     esc: esc, badge: badge, dossier: dossier, client: client, responsable: responsable, refTransport: refTransport,
     enSalleAttente: enSalleAttente, alertes: alertes, documentsManquants: documentsManquants,
-    tableauDeBord: tableauDeBord, salleAttente: salleAttente, relances: relances, totaux: totaux, workflow: workflow
+    tableauDeBord: tableauDeBord, volumes: volumes, salleAttente: salleAttente, relances: relances, totaux: totaux, workflow: workflow
   };
 })();

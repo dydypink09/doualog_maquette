@@ -189,9 +189,21 @@ a.c-ref:hover { text-decoration: underline; }
 .c-topbar__title { text-align: center; white-space: nowrap; }
 .c-topbar__name { display: block; font-size: var(--fs-xl); font-weight: var(--fw-semibold); letter-spacing: var(--ls-heading); color: var(--neutral-0); line-height: var(--lh-tight); }
 /* Écrans étroits : le titre centré cède la place à la recherche, puis le nom de l'utilisateur */
-@media (max-width: 1400px) { .c-topbar__title { display: none; } .c-topbar { grid-template-columns: auto minmax(0, 1fr); } }
+/* Sous 1400 px : titre masqué, KPI seuls, centrés dans l'espace libre entre le logo et la recherche ; sous 1240 px : KPI masqués */
+@media (max-width: 1400px) { .c-topbar__name { display: none; } .c-topbar { grid-template-columns: auto minmax(0, 1fr) auto; } .c-topbar__kpis { margin-top: 0; } }
+@media (max-width: 1240px) { .c-topbar__title { display: none; } .c-topbar { grid-template-columns: auto minmax(0, 1fr); } }
 @media (max-width: 760px) { .c-topbar .c-brand__texte, .c-user > span:last-child { display: none; } }
-.c-topbar__sub { display: block; margin-top: 3px; font-size: var(--fs-2xs); font-weight: var(--fw-medium); letter-spacing: .12em; text-transform: uppercase; color: var(--on-dark-muted); }
+/* KPI globaux (issue #3) : Imports · Exports · Transits sous le titre, chacun ouvre son dashboard ; restent seuls au centre sous 1400 px */
+.c-topbar__kpis { display: flex; justify-content: center; gap: var(--sp-1); margin-top: 3px; }
+.c-topbar__kpi {
+  display: inline-flex; align-items: center; gap: 6px; padding: 2px var(--sp-2); border-radius: var(--radius-pill);
+  font-size: var(--fs-xs); color: var(--on-dark-muted); text-decoration: none;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+.c-topbar__kpi .c-icon { width: var(--icon-sm); height: var(--icon-sm); }
+.c-topbar__kpi b { font-size: var(--fs-sm); font-weight: var(--fw-semibold); color: var(--neutral-0); }
+.c-topbar__kpi:hover { background: var(--on-dark-fill-hover); color: var(--on-dark); }
+.c-topbar__kpi[aria-current] { background: var(--on-dark-fill-hover); color: var(--on-dark); box-shadow: inset 0 0 0 1px var(--on-dark-border); }
 /* Logo : version blanche dans le menu ; ailleurs (pages externes, sommaire) monogramme sur pastille + nom en texte */
 .c-brand { display: flex; align-items: center; gap: var(--sp-2); text-decoration: none; color: var(--on-dark); justify-self: start; }
 .c-brand__mark {
