@@ -60,8 +60,9 @@
       d.mode === 'Aérien' ? ['Vol', d.vol] : ['Conteneur', d.conteneur],
       ['Déclarant', r.nom], ['Incoterm', d.incoterm], ['Poids brut', F.poids(d.poids)], ['Colis', d.colis === null ? null : F.nombre(d.colis) + ' ' + d.unite]];
     var ot = d.transport && d.transport.ot;
-    var otTitre = ot ? 'Ordre de transport déjà créé (' + ot + ')' : (!d.bae ? 'Disponible après le BAE' : '');
-    var otOk = !ot && d.bae;
+    var libre = d.type === 'Transit' ? d.bas : d.bae;   // transit : pas de BAE, l'enlèvement suit le BAS (issue #11)
+    var otTitre = ot ? 'Ordre de transport déjà créé (' + ot + ')' : (!libre ? 'Disponible après le ' + (d.type === 'Transit' ? 'BAS' : 'BAE') : '');
+    var otOk = !ot && libre;
     return '<div class="c-banner">' +
       '<span class="c-banner__icon">' + icon('rapport') + '</span>' +
       '<div class="c-banner__main"><div class="c-banner__top"><h2 class="c-banner__ref" id="dossier-titre">Dossier ' + d.id + '</h2>' + B('dossier', d.statut) + '</div>' +
@@ -98,7 +99,7 @@
     var c = D.client(d), k = D.compagnies[d.compagnie] || {};
     var lien = d.lienClient ? 'Actif jusqu\'au ' + F.date(d.lienClient.expire) + ' · ' + d.lienClient.consultations + ' consultations' : null;
     return carte('Informations générales', kv([
-      [d.type === 'Import' ? 'Importateur' : 'Exportateur', esc(c.nom)],
+      [d.type === 'Import' ? 'Importateur' : d.type === 'Export' ? 'Exportateur' : 'Client (transit)', esc(c.nom)],
       ['N° EORI', c.eori],   // À VALIDER : EORI (douane) à la place du « N° IFU » du CDC ; le SIRET figure sur la fiche client et la facture
       d.bl ? ['BL', d.bl] : d.lta ? ['LTA', d.lta] : d.booking ? ['Booking', d.booking] : [d.mode === 'Aérien' ? 'LTA' : 'BL', null],
       d.mode === 'Aérien' ? ['Vol', d.vol] : ['Conteneur', d.conteneur],
@@ -184,10 +185,11 @@
       corps += '<div class="c-alert c-alert--warning u-mt-3">' + icon('facture') +
         '<div><div class="c-alert__title">Le BAS déclenche la facturation</div><div>Le service facturation a été notifié ; le dossier passe en facturation.</div></div></div>';
     } else if (!d.bas) {
-      if (d.bae) corps += '<div class="c-alert c-alert--warning u-mt-3">' + icon('facture') +
+      var pret = d.type === 'Transit' ? d.declStockee && ctrlTermine(d) : d.bae;   // transit : pas de BAE, le BAS suit le contrôle
+      if (pret) corps += '<div class="c-alert c-alert--warning u-mt-3">' + icon('facture') +
         '<div><div class="c-alert__title">Valider le BAS déclenche la facturation</div></div></div>';
-      pied = '<button class="c-btn c-btn--primary c-btn--sm" type="button" data-d="bas"' + (d.bae ? '' : ' disabled') + '>' + icon('check', 'c-icon--sm') + 'BAS obtenu</button>';
-      if (!d.bae) corps += '<p class="c-field__help u-mt-3">Disponible après le BAE.</p>';
+      pied = '<button class="c-btn c-btn--primary c-btn--sm" type="button" data-d="bas"' + (pret ? '' : ' disabled') + '>' + icon('check', 'c-icon--sm') + 'BAS obtenu</button>';
+      if (!pret) corps += '<p class="c-field__help u-mt-3">' + (d.type === 'Transit' ? 'Disponible quand le contrôle douane est terminé.' : 'Disponible après le BAE.') + '</p>';
     }
     return carte('BAS', corps, '', pied);
   }
@@ -390,7 +392,7 @@
       '<div class="c-panel__body">' +
         '<div class="c-alert c-alert--info" id="dossier-msg" role="status" hidden>' + icon('info') + '<div id="dossier-msg-texte"></div></div>' +
         encartAttente(d) + workflow(d) +
-        '<div class="c-dgrid c-dgrid--row1">' + infos(d) + documents(d) + controle(d) + '<div class="c-dgrid__stack">' + bae(d) + bas(d) + '</div>' + messagerie(d) + '</div>' +
+        '<div class="c-dgrid c-dgrid--row1">' + infos(d) + documents(d) + controle(d) + '<div class="c-dgrid__stack">' + (d.type === 'Transit' ? '' : bae(d)) + bas(d) + '</div>' + messagerie(d) + '</div>' +
         '<div class="c-dgrid c-dgrid--row2">' + transport(d) + suiviTransport(d) + notifications(d) + '</div>' +
         '<div class="c-panel__foot"><button class="c-btn c-btn--ghost c-btn--sm" type="button" data-d="historique">' + icon('clock', 'c-icon--sm') +
           'Historique du dossier (' + journal(d).length + ' événements)</button></div>' +

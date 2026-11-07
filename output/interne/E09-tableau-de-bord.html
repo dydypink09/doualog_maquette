@@ -249,7 +249,8 @@
     C.anneau([{ label: 'Maritime', n: compte(function (d) { return d.mode === 'Maritime'; }), cls: 'is-s-navy' },
               { label: 'Aérien', n: compte(function (d) { return d.mode === 'Aérien'; }), cls: 'is-s-blue' }], actifs.length, 'par mode') +
     C.anneau([{ label: 'Import', n: compte(function (d) { return d.type === 'Import'; }), cls: 'is-s-blue' },
-              { label: 'Export', n: compte(function (d) { return d.type === 'Export'; }), cls: 'is-s-orange' }], actifs.length, 'par sens');
+              { label: 'Export', n: compte(function (d) { return d.type === 'Export'; }), cls: 'is-s-orange' },
+              { label: 'Transit', n: compte(function (d) { return d.type === 'Transit'; }), cls: 'is-s-violet' }], actifs.length, 'par sens');
 
   /* ── 4. Où en sont les dossiers (barres horizontales cliquables) ── */
   var ETAPES = [

@@ -178,7 +178,7 @@
     controle: { 'Aucun': 'neutral', 'Physique': 'warning', 'Documentaire': 'warning' },
     resultat: { 'En cours': 'warning', 'Conforme': 'success', 'Non conforme': 'danger', 'Info manquante': 'danger' },
     bon:      { 'En attente': 'warning', 'Obtenu': 'success' },
-    type:     { 'Import': 'info', 'Export': 'warning' }
+    type:     { 'Import': 'info', 'Export': 'warning', 'Transit': 'special' }
   };
 
   var ordreTransport = ['Demande de transport envoyée', 'À confirmer', 'Confirmé', 'Camion affecté', 'Chargement', 'En route', 'Livré'];
@@ -201,7 +201,8 @@
   };
   var documentsRequis = {
     Import: ['facture', 'packing', 'instruction', 'bl', 'bonLivraison'],
-    Export: ['facture', 'packing', 'instruction']
+    Export: ['facture', 'packing', 'instruction'],
+    Transit: ['facture', 'packing', 'instruction', 'bl']   // issue #11 — À VALIDER : pièces d'un transit (document T1 ?) absentes du CDC
   };
 
   /* Raccourci : tous les documents présents */
@@ -459,6 +460,49 @@
       docs: docs({ packing: false }),
       salleAttente: { envois: ['2026-10-16T08:32'], prochaineRelance: '2026-10-18T08:32' },
       declStockee: null, declAnticipee: null, controle: null, bae: null, bas: null, transport: null, livraison: null, facture: null
+    },
+    /* ── Transit (retour client du 06/11/2026, issue #11) — fictifs, À VALIDER : type absent du CDC.
+       Marchandise débarquée au Havre ou à Roissy, acheminée sous douane jusqu'à un destinataire hors de France ;
+       pas d'anticipation ni de BAE : contrôle éventuel, puis « Libéré » ou BAS. Destination et date de livraison prévue : colonnes du dashboard Transit. */
+    {
+      id: 'DLG-2026-0429', type: 'Transit', mode: 'Maritime', client: 'c12', statut: 'Contrôle documentaire en cours',
+      reception: '2026-10-06T10:20', responsable: 'u2',
+      bl: 'MEDULH487310', conteneur: 'MSCU 6612078-1', navire: 'MSC Bianca', compagnie: 'k1', eta: '2026-10-12',
+      incoterm: 'DAP', poids: 12400, colis: 18, unite: 'caisses', marchandise: 'Machines-outils (centres d’usinage)',
+      docs: docs({ bonLivraison: false, certificatOrigine: false }),
+      declStockee: '2026-10-09T11:15', declAnticipee: null,
+      controle: { type: 'Documentaire', notification: '2026-10-14', date: '2026-10-15', fin: null, inspecteur: 'A. Leroy', resultat: 'En cours', commentaire: '' },
+      bae: null, bas: null, transport: null, livraison: null, facture: null,
+      destinataire: 'Rhenus Logistics AG', destination: 'Bâle, Suisse', livraisonPrevue: '2026-10-22'
+    },
+    {
+      id: 'DLG-2026-0430', type: 'Transit', mode: 'Maritime', client: 'c12', statut: 'BAS obtenu',
+      reception: '2026-09-29T09:05', responsable: 'u1',
+      bl: 'CMDULHR2209915', conteneur: 'CMAU 7340218-5', navire: 'CMA CGM Okapi', compagnie: 'k3', eta: '2026-10-03',
+      incoterm: 'DAP', poids: 16800, colis: 640, unite: 'pneus', marchandise: 'Pneumatiques pour poids lourds',
+      docs: docs({ certificatOrigine: false }),
+      declStockee: '2026-10-01T09:40', declAnticipee: null, controle: { type: 'Aucun' },
+      bae: null, bas: { num: '2026-BAS-052233', date: '2026-10-10' }, transport: null, livraison: null, facture: null,
+      destinataire: 'Brucargo Distribution NV', destination: 'Bruxelles, Belgique', livraisonPrevue: '2026-10-14'
+    },
+    {
+      id: 'DLG-2026-0431', type: 'Transit', mode: 'Aérien', client: 'c06', statut: 'Déclaration stockée', statutDouane: 'Libéré',
+      reception: '2026-10-13T15:40', responsable: 'u1',
+      lta: '057-48240518', vol: 'AF 6724', compagnie: 'k5', eta: '2026-10-15',
+      incoterm: 'CPT', poids: 540, colis: 22, unite: 'colis', marchandise: 'Composants électroniques (cartes mères)',
+      docs: docs({ bonLivraison: false, certificatOrigine: false }),
+      declStockee: '2026-10-14T10:05', declAnticipee: null, controle: { type: 'Aucun' },
+      bae: null, bas: null, transport: null, livraison: null, facture: null,
+      destinataire: 'Cargolux Handling S.A.', destination: 'Luxembourg', livraisonPrevue: '2026-10-18'
+    },
+    {
+      id: 'DLG-2026-0432', type: 'Transit', mode: 'Maritime', client: 'c03', statut: 'En cours de traitement',
+      reception: '2026-10-12T08:30', responsable: 'u2',
+      bl: 'MAEU238611470', conteneur: 'MRKU 5521903-7', navire: 'Maersk Kalmar', compagnie: 'k2', eta: '2026-10-17',
+      incoterm: 'DAP', poids: 24600, colis: 9, unite: 'blocs', marchandise: 'Granit en blocs bruts',
+      docs: docs({ bonLivraison: false, certificatOrigine: false }),
+      declStockee: null, declAnticipee: null, controle: null, bae: null, bas: null, transport: null, livraison: null, facture: null,
+      destinataire: 'Duisport Logistik GmbH', destination: 'Duisbourg, Allemagne', livraisonPrevue: '2026-10-25'
     }
   ];
 
@@ -919,6 +963,7 @@
     var ctrl = d.controle, t = d.transport ? d.transport.statut : null;
     var ctrlFini = ctrl && (ctrl.type === 'Aucun' || ctrl.resultat === 'Conforme');
     var tIdx = t ? ordreTransport.indexOf(t) : -1;
+    var transit = d.type === 'Transit';   // transit (issue #11) : ni anticipation ni BAE, le BAS suit le contrôle
     var steps = [];
 
     steps.push({ label: 'Réception', etat: enSalleAttente(d) ? 'warning' : 'done', date: fmtDateCourte(d.reception),
@@ -930,7 +975,7 @@
       tip: d.declStockee ? 'Stockée le ' + fmtDateHeure(d.declStockee) : null });
 
     var etaLib = d.mode === 'Aérien' ? 'ETA vol ' + (d.vol || '') + ' · LTA ' + (d.lta || '') : 'ETA navire ' + (d.navire || '') + ' : ' + fmtDate(d.eta);
-    steps.push({ label: 'Anticipé',
+    if (!transit) steps.push({ label: 'Anticipé',
       etat: d.declAnticipee ? 'special' : (d.declStockee ? 'current' : 'todo'),
       date: fmtDateCourte(d.declAnticipee),
       tip: d.declAnticipee ? 'Anticipée le ' + fmtDateHeure(d.declAnticipee) + ' — ' + etaLib : null });
@@ -941,13 +986,13 @@
       else if (ctrl.resultat === 'Conforme') ce = 'done';
       else if (ctrl.resultat === 'Info manquante' || ctrl.resultat === 'Non conforme') ce = 'danger';
       else ce = 'warning';
-    } else if (d.declAnticipee) ce = 'current';
+    } else if (transit ? d.declStockee : d.declAnticipee) ce = 'current';
     steps.push({ label: 'Contrôle douane', etat: ce,
       date: ctrl && ctrl.type !== 'Aucun' ? fmtDateCourte(ctrl.fin || ctrl.date) : (ctrl ? 'Aucun' : ''),
       tip: ctrl && ctrl.type !== 'Aucun' ? 'Contrôle ' + ctrl.type.toLowerCase() + ' — ' + ctrl.resultat : null });
 
-    steps.push({ label: 'BAE', etat: d.bae ? 'done' : (ctrlFini ? 'current' : 'todo'), date: d.bae ? fmtDateCourte(d.bae.date) : '' });
-    steps.push({ label: 'BAS', etat: d.bas ? 'done' : (d.bae ? 'current' : 'todo'), date: d.bas ? fmtDateCourte(d.bas.date) : '' });
+    if (!transit) steps.push({ label: 'BAE', etat: d.bae ? 'done' : (ctrlFini ? 'current' : 'todo'), date: d.bae ? fmtDateCourte(d.bae.date) : '' });
+    steps.push({ label: 'BAS', etat: d.bas ? 'done' : ((transit ? ctrlFini : d.bae) ? 'current' : 'todo'), date: d.bas ? fmtDateCourte(d.bas.date) : '' });
 
     var te = 'todo';
     if (t === 'Pas de livraison') te = 'skipped';

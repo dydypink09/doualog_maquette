@@ -18,11 +18,11 @@
      titre de la page, titre du header (« Trade & Customs Dashboard - Import »…), entrée active, adresse.
      Chaque vue ne compte que les dossiers de son type. Indicateurs (issues #6, #8, #10) : data.js > indicateursDe(type),
      un clic ouvre la liste E01 filtrée sur l'indicateur et le type.
-     Tableau des dossiers (Import : issue #7 ; Export : issue #9, avec Déclarant et Actions ; Transit #11 à venir) : colonnes par type (COLONNES),
+     Tableau des dossiers (Import : issue #7 ; Export : issue #9 et Transit : issue #11, avec Déclarant et Actions) : colonnes par type (COLONNES),
      édition dans la ligne de l'ETA (import), du statut douane, du statut dossier et du commentaire (data.js > modifierSuivi, mémoire de démo) ; chaque modification
      recalcule les indicateurs. Profil Direction : lecture seule. -->
 <!-- À VALIDER : fournisseur et pays de provenance fictifs (absents du CDC) ; un statut modifié ici ne change pas la frise du dossier (E02).
-     À VALIDER : aucun dossier de transit dans le jeu de démonstration (type absent du CDC) — à ajouter avec l'issue #11. -->
+     À VALIDER : dossiers de transit fictifs (type absent du CDC, data.js). -->
 <div class="c-app">
   <header class="c-topbar" id="topbar"></header>
   <nav class="c-sidebar" id="sidebar" aria-label="Navigation principale"></nav>
@@ -111,6 +111,12 @@
       { titre: 'Destinataire', v: function (d) { return texte(d.destinataire); } },
       { titre: 'Pays destination', v: function (d) { return texte(d.destination); } },
       { titre: 'Date clôture', cls: 'is-num', v: function (d) { return d.cloture ? F.date(d.cloture) : texte(''); } },
+      COL.douane, COL.dossier, COL.commentaire, COL.declarant, COL.actions],
+    /* Transit (issue #11) : statut douane sans Anticipé ni BAE, avec Libéré (data.js > statutsDouane('Transit')) */
+    transit: [COL.reception, COL.numero, COL.client,
+      { titre: 'Destinataire', v: function (d) { return texte(d.destinataire); } },
+      { titre: 'Destination', v: function (d) { return texte(d.destination); } },
+      { titre: 'Date livraison', cls: 'is-num', v: function (d) { return d.livraisonPrevue ? F.date(d.livraisonPrevue) : texte(''); } },
       COL.douane, COL.dossier, COL.commentaire, COL.declarant, COL.actions]
   };
   function renderListe(c) {
