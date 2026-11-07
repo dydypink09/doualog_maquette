@@ -146,6 +146,37 @@ a.c-ref:hover { text-decoration: underline; }
 .c-badge--special { --b-bg: var(--status-special-bg); --b-fg: var(--status-special-fg); }
 .c-badge--neutral { --b-bg: var(--status-neutral-bg); --b-fg: var(--status-neutral-fg); }
 /* Variante contour : type de flux (Import / Export), info d'appoint qui ne doit pas concurrencer le statut */
+/* ── Cellules éditables dans la ligne d'un tableau (dashboards métier, issues #7, #9, #11) ──
+   Liste déroulante en forme de badge (couleur = statut choisi, via les classes .c-badge--*), champ date et champ texte
+   discrets : sans bordure au repos, cadre au survol, anneau orange au focus. Enregistrés au changement. */
+.c-cell-select {
+  appearance: none; border: 0; margin: 0; cursor: pointer; max-width: 100%;
+  padding: 1px 24px 1px 10px; border-radius: var(--radius-pill);
+  font: inherit; font-size: var(--fs-sm); font-weight: var(--fw-medium); line-height: 1.65; letter-spacing: normal;
+  background-color: var(--b-bg, var(--status-neutral-bg)); color: var(--b-fg, var(--status-neutral-fg));
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%), linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position: calc(100% - 13px) 55%, calc(100% - 9px) 55%; background-size: 4px 4px; background-repeat: no-repeat;
+  transition: box-shadow var(--dur-fast) var(--ease);
+}
+.c-cell-select:hover { box-shadow: inset 0 0 0 1px currentColor; }
+.c-cell-select:focus-visible { outline: none; box-shadow: 0 0 0 3px var(--focus-halo), inset 0 0 0 1px var(--focus-ring); }
+.c-cell-select option { color: var(--text-strong); background: var(--bg-surface); }
+.c-cell-input {
+  height: 28px; padding: 0 var(--sp-2); margin: 0 calc(var(--sp-2) * -1); border: var(--border-w) solid transparent; border-radius: var(--radius-sm);
+  background: transparent; font: inherit; font-size: var(--fs-sm); color: var(--text-primary);
+  transition: border-color var(--dur-fast) var(--ease), background var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+.c-cell-input:hover { border-color: var(--border-strong); background: var(--bg-surface); }
+.c-cell-input:focus { outline: none; border-color: var(--focus-ring); background: var(--bg-surface); box-shadow: 0 0 0 3px var(--focus-halo); }
+.c-cell-input::placeholder { color: var(--text-muted); }
+.c-cell-input[type="date"] { width: 132px; font-variant-numeric: tabular-nums; }
+.c-cell-input--texte { width: calc(100% + var(--sp-4)); min-width: 220px; }
+.c-cell-select:disabled, .c-cell-input:disabled { cursor: default; box-shadow: none; border-color: transparent; background-image: none; padding-right: 10px; }
+.c-cell-input:disabled { background: transparent; color: var(--text-primary); }
+/* Valeur enregistrée : bref halo vert sur la cellule */
+@keyframes c-cell-ok { from { box-shadow: inset 0 0 0 2px var(--tone-success); } }
+.c-table td.is-saved { animation: c-cell-ok 900ms var(--ease-out); }
+@media (prefers-reduced-motion: reduce) { .c-table td.is-saved { animation: none; } }
 .c-badge--outline { background: transparent; padding: 0; color: var(--text-primary); font-weight: var(--fw-regular); }
 .c-badge--outline::before { display: none; }
 /* Badge sur fond sombre (bandeau dossier) : même pilule, fond plein clair */

@@ -791,24 +791,87 @@
   }
   function tableauDeBord() { return dossiers.filter(function (d) { return !enSalleAttente(d); }); }
   function salleAttente() { return dossiers.filter(enSalleAttente); }
+  /* ── Suivi des dossiers dans les dashboards métier (retour client du 06/11/2026, issues #7, #9, #11) ──
+     Deux statuts éditables dans la ligne du tableau, en plus du statut d'avancement du dossier (d.statut, utilisé par E01, E02…) :
+     · statut douane  : Anticipé / Contrôle documentaire / Contrôle physique / BAE / BAS (transit : Libéré au lieu d'Anticipé et BAE) ;
+     · statut dossier : À traiter / Infos manquantes / En cours / À stocker / Stocké / Clôturé.
+     Tant qu'ils n'ont pas été modifiés, ils se déduisent de d.statut (correspondance ci-dessous). Modifiés : gardés dans la mémoire de démo.
+     À VALIDER : un statut modifié dans le tableau ne change pas le statut d'avancement du dossier (frise E02) ; « À stocker » n'a pas
+     d'équivalent dans d.statut (aucun dossier de démo) ; après le BAS (facturation, livraison, clôture), le statut douane reste « BAS ». */
+  var STATUTS_DOUANE = [
+    { nom: 'Anticipé',              ton: 'special' },
+    { nom: 'Contrôle documentaire', ton: 'warning' },
+    { nom: 'Contrôle physique',     ton: 'danger' },
+    { nom: 'BAE',                   ton: 'info' },
+    { nom: 'Libéré',                ton: 'success' },
+    { nom: 'BAS',                   ton: 'success' }
+  ];
+  var DOUANE_PAR_TYPE = {
+    Import:  ['Anticipé', 'Contrôle documentaire', 'Contrôle physique', 'BAE', 'BAS'],
+    Export:  ['Anticipé', 'Contrôle documentaire', 'Contrôle physique', 'BAE', 'BAS'],
+    Transit: ['Contrôle documentaire', 'Contrôle physique', 'Libéré', 'BAS']
+  };
+  var STATUTS_DOSSIER = [
+    { nom: 'À traiter',        ton: 'info' },
+    { nom: 'Infos manquantes', ton: 'danger' },
+    { nom: 'En cours',         ton: 'neutral' },
+    { nom: 'À stocker',        ton: 'warning' },
+    { nom: 'Stocké',           ton: 'special' },
+    { nom: 'Clôturé',          ton: 'success' }
+  ];
+  var DOUANE_DEPUIS_STATUT = {
+    'Déclaration anticipée': 'Anticipé', 'Contrôle documentaire en cours': 'Contrôle documentaire', 'Contrôle physique en cours': 'Contrôle physique',
+    'BAE obtenu': 'BAE', 'BAS obtenu': 'BAS', 'En facturation': 'BAS', 'Livré': 'BAS', 'Facturé': 'BAS', 'Clôturé': 'BAS'
+  };
+  var DOSSIER_DEPUIS_STATUT = { 'En cours de traitement': 'À traiter', 'Info manquante': 'Infos manquantes', 'Déclaration stockée': 'Stocké', 'Clôturé': 'Clôturé' };
+  function statutDouane(d) { return d.statutDouane !== undefined ? d.statutDouane : (DOUANE_DEPUIS_STATUT[d.statut] || ''); }   // '' = pas encore en douane
+  function statutDossier(d) { return d.statutDossier !== undefined ? d.statutDossier : (DOSSIER_DEPUIS_STATUT[d.statut] || 'En cours'); }
+  function statutsDouane(type) { return STATUTS_DOUANE.filter(function (s) { return (DOUANE_PAR_TYPE[type] || DOUANE_PAR_TYPE.Import).indexOf(s.nom) >= 0; }); }
+  function tonSuivi(nom) { var s = STATUTS_DOUANE.concat(STATUTS_DOSSIER).filter(function (x) { return x.nom === nom; })[0]; return s ? s.ton : 'neutral'; }
+  /* Édition dans la ligne : ETA, statut douane, statut dossier, commentaire — gardés dans la mémoire de démo */
+  var CHAMPS_SUIVI = ['eta', 'statutDouane', 'statutDossier', 'commentaire'];
+  function modifierSuivi(id, champ, valeur) {
+    var d = dossier(id);
+    if (!d || CHAMPS_SUIVI.indexOf(champ) < 0) return null;
+    d[champ] = valeur;
+    sauverDossier(d);
+    return d;
+  }
+  /* Fournisseur et pays de provenance des imports (colonnes du dashboard Import) — fictifs, À VALIDER : absents du CDC */
+  var FOURNISSEURS = {
+    'DLG-2026-0389': ['Yara International ASA', 'Norvège'],      'DLG-2026-0398': ['Vidrala S.A.', 'Espagne'],
+    'DLG-2026-0401': ['Celsa Group', 'Espagne'],                  'DLG-2026-0405': ['Gulf Lab Instruments LLC', 'Émirats arabes unis'],
+    'DLG-2026-0407': ['Gree Electric Appliances', 'Chine'],       'DLG-2026-0410': ['Aurobindo Pharma', 'Inde'],
+    'DLG-2026-0412': ['OCP Group', 'Maroc'],                      'DLG-2026-0415': ['Hyundai Mobis', 'Corée du Sud'],
+    'DLG-2026-0416': ['Kale Seramik', 'Turquie'],                 'DLG-2026-0419': ['TCL Electronics', 'Chine'],
+    'DLG-2026-0420': ['KRBL Limited', 'Inde'],                    'DLG-2026-0423': ['Medline Industries', 'États-Unis'],
+    'DLG-2026-0424': ['Sementes Agroceres', 'Brésil'],            'DLG-2026-0426': ['Pelliconi & C. S.p.A.', 'Italie'],
+    'DLG-2026-0428': ['Haver Middle East', 'Émirats arabes unis']
+  };
+  dossiers.forEach(function (d) { var f = FOURNISSEURS[d.id]; if (f) { d.fournisseur = f[0]; d.provenance = f[1]; } });
+
   /* Indicateurs de dossiers (retour client du 06/11/2026) : un catalogue, puis la sélection de chaque écran —
      accueil E09 (9, issue #5), dashboards E15 Import / Export / Transit (issues #6, #8, #10) ; E01 filtre sur tout le catalogue (?kpi=).
-     Un dossier n'a encore qu'un statut : correspondance provisoire avec les statuts « dossier » et « douane » de l'issue #7.
-     À VALIDER : « à traiter » = dossier complet, pris en charge, rien de saisi ; « à stocker » = déclaration prête à saisir en douane
-     (aucun dossier de démo à ce stade) ; « stockés » = « Dossiers à stocké » du retour client ; BAS = statut « BAS obtenu » seulement. */
+     Chaque indicateur compte un statut dossier ou un statut douane (ci-dessus) : modifier un statut dans le tableau met les chiffres à jour.
+     Indicateurs douane : dossiers non clôturés seulement. « Stockés » = « Dossiers à stocké » du retour client. */
   var catalogueIndicateurs = [
-    { id: 'a-traiter',   label: 'Dossiers à traiter',              court: 'À traiter',     icone: 'inbox',    ton: 'blue',    statuts: ['En cours de traitement'] },
-    { id: 'infos',       label: 'Dossiers manque infos',           court: 'Manque infos',  icone: 'alert',    ton: 'red',     statuts: ['Info manquante'] },
-    { id: 'a-stocker',   label: 'Dossiers à stocker',              court: 'À stocker',     icone: 'edit',     ton: 'orange',  statuts: [] },
-    { id: 'stockes',     label: 'Dossiers stockés',                court: 'Stockés',       icone: 'document', ton: 'blue',    statuts: ['Déclaration stockée'] },
-    { id: 'anticipes',   label: 'Dossiers anticipés',              court: 'Anticipés',     icone: 'clock',    ton: 'violet',  statuts: ['Déclaration anticipée'] },
-    { id: 'controle',    label: 'Dossiers sous contrôle douanes',  court: 'Sous contrôle', icone: 'controle', ton: 'magenta', statuts: ['Contrôle documentaire en cours', 'Contrôle physique en cours'] },
-    { id: 'bae',         label: 'Dossiers BAE',                    court: 'BAE',           icone: 'valide',   ton: 'green',   statuts: ['BAE obtenu'] },
-    { id: 'bas',         label: 'Dossiers BAS',                    court: 'BAS',           icone: 'package',  ton: 'orange',  statuts: ['BAS obtenu'] },
-    { id: 'clotures',    label: 'Dossiers clôturés',               court: 'Clôturés',      icone: 'check',    ton: 'neutral', statuts: ['Clôturé'] },
+    { id: 'a-traiter',   label: 'Dossiers à traiter',              court: 'À traiter',     icone: 'inbox',    ton: 'blue',    dossier: ['À traiter'] },
+    { id: 'infos',       label: 'Dossiers manque infos',           court: 'Manque infos',  icone: 'alert',    ton: 'red',     dossier: ['Infos manquantes'] },
+    { id: 'a-stocker',   label: 'Dossiers à stocker',              court: 'À stocker',     icone: 'edit',     ton: 'orange',  dossier: ['À stocker'] },
+    { id: 'stockes',     label: 'Dossiers stockés',                court: 'Stockés',       icone: 'document', ton: 'blue',    dossier: ['Stocké'] },
+    { id: 'anticipes',   label: 'Dossiers anticipés',              court: 'Anticipés',     icone: 'clock',    ton: 'violet',  douane: ['Anticipé'] },
+    { id: 'controle',    label: 'Dossiers sous contrôle douanes',  court: 'Sous contrôle', icone: 'controle', ton: 'magenta', douane: ['Contrôle documentaire', 'Contrôle physique'] },
+    { id: 'bae',         label: 'Dossiers BAE',                    court: 'BAE',           icone: 'valide',   ton: 'green',   douane: ['BAE'] },
+    { id: 'bas',         label: 'Dossiers BAS',                    court: 'BAS',           icone: 'package',  ton: 'orange',  douane: ['BAS'] },
+    { id: 'clotures',    label: 'Dossiers clôturés',               court: 'Clôturés',      icone: 'check',    ton: 'neutral', dossier: ['Clôturé'] },
     /* Transit : « Libéré » remplace Anticipé et BAE (issue #10) — À VALIDER : statut absent du CDC et du jeu de démo */
-    { id: 'libere',      label: 'Dossiers libérés',                court: 'Libérés',       icone: 'arrow-right', ton: 'green', statuts: ['Libéré'] }
-  ].map(function (k) { k.f = function (d) { return k.statuts.indexOf(d.statut) >= 0; }; return k; });
+    { id: 'libere',      label: 'Dossiers libérés',                court: 'Libérés',       icone: 'arrow-right', ton: 'green', douane: ['Libéré'] }
+  ].map(function (k) {
+    k.f = k.dossier
+      ? function (d) { return k.dossier.indexOf(statutDossier(d)) >= 0; }
+      : function (d) { return statutDossier(d) !== 'Clôturé' && k.douane.indexOf(statutDouane(d)) >= 0; };
+    return k;
+  });
   var SELECTION_INDICATEURS = {
     accueil: ['a-traiter', 'infos', 'a-stocker', 'stockes', 'anticipes', 'controle', 'bae', 'bas', 'clotures'],
     import:  ['a-traiter', 'infos', 'a-stocker', 'anticipes', 'controle', 'bae', 'bas'],
@@ -923,7 +986,7 @@
     if (p.compteurs) { if (p.compteurs.ot) prochainNumeroOT = p.compteurs.ot; if (p.compteurs.fac) prochainNumeroFacture = p.compteurs.fac; }
     if (p.notifications) notifications.forEach(function (n) { if (p.notifications[n.id]) n.lue = true; });
   })();
-  var CHAMPS_SAUVES = ['statut', 'docs', 'docsInfo', 'bae', 'bas', 'facture', 'transport', 'livraison', 'salleAttente', 'responsable'];
+  var CHAMPS_SAUVES = ['statut', 'docs', 'docsInfo', 'bae', 'bas', 'facture', 'transport', 'livraison', 'salleAttente', 'responsable', 'eta', 'statutDouane', 'statutDossier', 'commentaire'];
   function sauverDossier(d) { var o = {}; CHAMPS_SAUVES.forEach(function (c) { o[c] = d[c]; }); ecrireDemo('dossiers', d.id, o); }
   /* Création manuelle d'un dossier (E01 « Nouveau dossier ») — À VALIDER : le CDC ne prévoit que la création automatique à la réception
      d'un email ; la création à la main sert aux demandes reçues par téléphone ou remises en main propre (QUESTIONS-ONCLE.md).
@@ -1382,6 +1445,7 @@
     fmt: { date: fmtDate, dateCourte: fmtDateCourte, heure: fmtHeure, dateHeure: fmtDateHeure, nombre: fmtNombre, montant: fmtMontant, poids: fmtPoids },
     esc: esc, badge: badge, dossier: dossier, client: client, responsable: responsable, refTransport: refTransport,
     enSalleAttente: enSalleAttente, alertes: alertes, documentsManquants: documentsManquants,
-    tableauDeBord: tableauDeBord, volumes: volumes, indicateurs: indicateurs, indicateursDe: indicateursDe, catalogueIndicateurs: catalogueIndicateurs, salleAttente: salleAttente, relances: relances, totaux: totaux, workflow: workflow
+    tableauDeBord: tableauDeBord, volumes: volumes, indicateurs: indicateurs, indicateursDe: indicateursDe, catalogueIndicateurs: catalogueIndicateurs,
+    statutDouane: statutDouane, statutDossier: statutDossier, statutsDouane: statutsDouane, statutsDossier: STATUTS_DOSSIER, tonSuivi: tonSuivi, modifierSuivi: modifierSuivi, salleAttente: salleAttente, relances: relances, totaux: totaux, workflow: workflow
   };
 })();
