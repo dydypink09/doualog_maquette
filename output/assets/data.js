@@ -849,6 +849,15 @@
     'DLG-2026-0428': ['Haver Middle East', 'Émirats arabes unis']
   };
   dossiers.forEach(function (d) { var f = FOURNISSEURS[d.id]; if (f) { d.fournisseur = f[0]; d.provenance = f[1]; } });
+  /* Destinataire, pays de destination et date de clôture des exports (colonnes du dashboard Export, issue #9) — fictifs, À VALIDER.
+     Date de clôture lue comme la date limite de remise de la marchandise et des documents avant le départ (cut-off), avant l'ETA. */
+  var DESTINATAIRES = {
+    'DLG-2026-0384': ['Kyoto Fabrics Co.', 'Japon', '2026-08-27'],                       'DLG-2026-0402': ['Agro Mediterraneo S.r.l.', 'Italie', '2026-09-28'],
+    'DLG-2026-0403': ['Seoul Silk Trading', 'Corée du Sud', '2026-09-28'],               'DLG-2026-0413': ['West Africa Breweries Ltd', 'Nigeria', '2026-10-17'],
+    'DLG-2026-0417': ['Gulf Pharma Distribution LLC', 'Émirats arabes unis', '2026-10-18'], 'DLG-2026-0421': ['Linificio Biellese', 'Italie', '2026-10-17'],
+    'DLG-2026-0427': ['Quebec Spirits Import Inc.', 'Canada', '2026-10-24']
+  };
+  dossiers.forEach(function (d) { var x = DESTINATAIRES[d.id]; if (x) { d.destinataire = x[0]; d.destination = x[1]; d.cloture = x[2]; } });
 
   /* Indicateurs de dossiers (retour client du 06/11/2026) : un catalogue, puis la sélection de chaque écran —
      accueil E09 (9, issue #5), dashboards E15 Import / Export / Transit (issues #6, #8, #10) ; E01 filtre sur tout le catalogue (?kpi=).

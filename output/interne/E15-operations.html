@@ -18,8 +18,8 @@
      titre de la page, titre du header (« Trade & Customs Dashboard - Import »…), entrée active, adresse.
      Chaque vue ne compte que les dossiers de son type. Indicateurs (issues #6, #8, #10) : data.js > indicateursDe(type),
      un clic ouvre la liste E01 filtrée sur l'indicateur et le type.
-     Tableau des dossiers (Import : issue #7 ; Export #9, Transit #11 à venir) : colonnes par type (COLONNES), édition dans la ligne
-     de l'ETA, du statut douane, du statut dossier et du commentaire (data.js > modifierSuivi, mémoire de démo) ; chaque modification
+     Tableau des dossiers (Import : issue #7 ; Export : issue #9, avec Déclarant et Actions ; Transit #11 à venir) : colonnes par type (COLONNES),
+     édition dans la ligne de l'ETA (import), du statut douane, du statut dossier et du commentaire (data.js > modifierSuivi, mémoire de démo) ; chaque modification
      recalcule les indicateurs. Profil Direction : lecture seule. -->
 <!-- À VALIDER : fournisseur et pays de provenance fictifs (absents du CDC) ; un statut modifié ici ne change pas la frise du dossier (E02).
      À VALIDER : aucun dossier de transit dans le jeu de démonstration (type absent du CDC) — à ajouter avec l'issue #11. -->
@@ -39,7 +39,7 @@
     <section class="c-card">
       <div class="c-card__head"><h3 id="liste-titre"></h3><span class="c-card__note" id="liste-note"></span></div>
       <div class="c-table-wrap" id="liste-wrap">
-        <table class="c-table">
+        <table class="c-table" id="table">
           <thead><tr id="thead"></tr></thead>
           <tbody id="tbody"></tbody>
         </table>
@@ -58,7 +58,7 @@
 (function () {
   var D = window.DOUALOG, F = D.fmt, esc = D.esc;
   function $(id) { return document.getElementById(id); }
-  function icon(n) { return '<svg class="c-icon" aria-hidden="true"><use href="#i-' + n + '"></use></svg>'; }
+  function icon(n, cls) { return '<svg class="c-icon' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#i-' + n + '"></use></svg>'; }
 
   /* Une entrée par dashboard : titre, sous-titre, type des dossiers (le compte total vient de DOUALOG.volumes(), comme les KPI du header) */
   var VUES = {
@@ -87,20 +87,31 @@
       options.map(function (o) { return '<option' + (o.nom === valeur ? ' selected' : '') + '>' + o.nom + '</option>'; }).join('') + '</select>';
   }
   function texte(x) { return x ? esc(x) : '<span class="u-muted">—</span>'; }
-  /* Colonnes par dashboard (issue #7 pour l'Import ; Export et Transit : issues #9 et #11) */
+  /* Colonnes communes aux dashboards */
+  var COL = {
+    reception: { titre: 'Date réception', cls: 'is-num', v: function (d) { return F.date(d.reception); } },
+    numero: { titre: 'N° dossier', v: function (d) { return '<a href="E01-dossiers.html?id=' + d.id + '" title="Ouvrir le dossier">' + d.id + '</a>'; } },
+    client: { titre: 'Client', v: function (d) { return esc(D.clients[d.client].nom); } },
+    douane: { titre: 'Statut douane', v: function (d) { return selectStatut(d, 'statutDouane', D.statutsDouane(d.type), D.statutDouane(d), 'Statut douane'); } },
+    dossier: { titre: 'Statut dossier', v: function (d) { return selectStatut(d, 'statutDossier', D.statutsDossier, D.statutDossier(d), 'Statut dossier'); } },
+    commentaire: { titre: 'Commentaires', v: function (d) { return '<input class="c-cell-input c-cell-input--texte" type="text" data-champ="commentaire" value="' + esc(d.commentaire || '') + '" placeholder="' + (lectureSeule ? '' : 'Ajouter un commentaire') + '" aria-label="Commentaire du dossier ' + d.id + '"' + dis() + '>'; } },
+    declarant: { titre: 'Déclarant', v: function (d) { return texte(D.equipe[d.responsable] && D.equipe[d.responsable].nom); } },
+    /* Actions (issue #9) : voir le détail du dossier (panneau E02, dans la liste E01) — colonne figée à droite */
+    actions: { titre: 'Actions', cls: 'is-center', actions: true, v: function (d) { return '<a class="c-btn c-btn--icon c-btn--sm" href="E01-dossiers.html?id=' + d.id + '" aria-label="Voir le détail du dossier ' + d.id + '" title="Voir le détail du dossier">' + icon('eye', 'c-icon--sm') + '</a>'; } }
+  };
+  /* Colonnes par dashboard (Import : issue #7 ; Export : issue #9 ; Transit : issue #11) */
   var COLONNES = {
-    import: [
-      { titre: 'Date réception', cls: 'is-num', v: function (d) { return F.date(d.reception); } },
-      { titre: 'N° dossier', v: function (d) { return '<a href="E01-dossiers.html?id=' + d.id + '" title="Ouvrir le dossier">' + d.id + '</a>'; } },
-      { titre: 'Client', v: function (d) { return esc(D.clients[d.client].nom); } },
+    import: [COL.reception, COL.numero, COL.client,
       { titre: 'Fournisseur', v: function (d) { return texte(d.fournisseur); } },
       { titre: 'Pays de provenance', v: function (d) { return texte(d.provenance); } },
       { titre: 'Navire', v: function (d) { return d.navire ? esc(d.navire) : d.vol ? 'Vol ' + esc(d.vol) : texte(''); } },
       { titre: 'ETA', v: function (d) { return '<input class="c-cell-input" type="date" data-champ="eta" value="' + (d.eta || '') + '" aria-label="ETA du dossier ' + d.id + '"' + dis() + '>'; } },
-      { titre: 'Statut douane', v: function (d) { return selectStatut(d, 'statutDouane', D.statutsDouane(d.type), D.statutDouane(d), 'Statut douane'); } },
-      { titre: 'Statut dossier', v: function (d) { return selectStatut(d, 'statutDossier', D.statutsDossier, D.statutDossier(d), 'Statut dossier'); } },
-      { titre: 'Commentaires', v: function (d) { return '<input class="c-cell-input c-cell-input--texte" type="text" data-champ="commentaire" value="' + esc(d.commentaire || '') + '" placeholder="' + (lectureSeule ? '' : 'Ajouter un commentaire') + '" aria-label="Commentaire du dossier ' + d.id + '"' + dis() + '>'; } }
-    ]
+      COL.douane, COL.dossier, COL.commentaire],
+    export: [COL.reception, COL.numero, COL.client,
+      { titre: 'Destinataire', v: function (d) { return texte(d.destinataire); } },
+      { titre: 'Pays destination', v: function (d) { return texte(d.destination); } },
+      { titre: 'Date clôture', cls: 'is-num', v: function (d) { return d.cloture ? F.date(d.cloture) : texte(''); } },
+      COL.douane, COL.dossier, COL.commentaire, COL.declarant, COL.actions]
   };
   function renderListe(c) {
     var v = VUES[c], cols = COLONNES[c], dossiers = D.tableauDeBord().filter(function (d) { return d.type === v.type; })
@@ -115,6 +126,7 @@
       $('vide-texte').textContent = cols ? 'Aucun dossier de ce type pour le moment.' : 'La liste des dossiers ' + v.nom + ' s\'affichera ici.';
       return;
     }
+    $('table').classList.toggle('c-table--sticky', cols[cols.length - 1].actions === true);   // Actions figée à droite pendant le défilement
     $('thead').innerHTML = cols.map(function (k) { return '<th' + (k.cls ? ' class="' + k.cls + '"' : '') + '>' + k.titre + '</th>'; }).join('');
     $('tbody').innerHTML = dossiers.map(function (d) {
       return '<tr data-id="' + d.id + '">' + cols.map(function (k) { return '<td' + (k.cls ? ' class="' + k.cls + '"' : '') + '>' + k.v(d) + '</td>'; }).join('') + '</tr>';
