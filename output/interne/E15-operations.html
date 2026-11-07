@@ -16,7 +16,8 @@
 <!-- E15 · Dashboards métier Import / Export / Transit (retour client du 06/11/2026, issue #4) — remplacent l'entrée « Dossiers » du menu.
      Une page, trois vues : ?type=import|export|transit. Au clic dans le menu, la vue change sur place (shell.js > onContexte) :
      titre de la page, titre du header (« Trade & Customs Dashboard - Import »…), entrée active, adresse.
-     Chaque vue ne compte que les dossiers de son type. Indicateurs et tableau : issues #6 à #11.
+     Chaque vue ne compte que les dossiers de son type. Indicateurs (issues #6, #8, #10) : data.js > indicateursDe(type),
+     un clic ouvre la liste E01 filtrée sur l'indicateur et le type. Tableau des dossiers : issues #7, #9, #11.
      À VALIDER : aucun dossier de transit dans le jeu de démonstration (type absent du CDC) — à ajouter avec l'issue #11. -->
 <div class="c-app">
   <header class="c-topbar" id="topbar"></header>
@@ -25,6 +26,10 @@
   <main class="c-main">
     <div class="c-page-head">
       <div class="c-page-head__title"><h1 id="titre"></h1><span class="c-page-head__meta" id="sous-titre"></span></div>
+    </div>
+
+    <div class="c-stats">
+      <div class="c-stats__group c-stats__group--ligne" id="stats" role="group" aria-label="Indicateurs — un clic ouvre les dossiers concernés"></div>
     </div>
 
     <section class="c-card">
@@ -41,23 +46,35 @@
 (function () {
   var D = window.DOUALOG;
   function $(id) { return document.getElementById(id); }
+  function icon(n) { return '<svg class="c-icon" aria-hidden="true"><use href="#i-' + n + '"></use></svg>'; }
 
-  /* Une entrée par dashboard : titre, sous-titre (le compte vient de DOUALOG.volumes(), comme les KPI du header) */
+  /* Une entrée par dashboard : titre, sous-titre, type des dossiers (le compte total vient de DOUALOG.volumes(), comme les KPI du header) */
   var VUES = {
-    import:  { titre: 'Dashboard Import',  sousTitre: 'Pilotage des opérations d\'importation', nom: 'import',  icone: 'import' },
-    export:  { titre: 'Dashboard Export',  sousTitre: 'Pilotage des opérations d\'exportation', nom: 'export',  icone: 'export' },
-    transit: { titre: 'Dashboard Transit', sousTitre: 'Pilotage des opérations de transit',    nom: 'transit', icone: 'transit' }
+    import:  { titre: 'Dashboard Import',  sousTitre: 'Pilotage des opérations d\'importation', nom: 'import',  icone: 'import',  type: 'Import' },
+    export:  { titre: 'Dashboard Export',  sousTitre: 'Pilotage des opérations d\'exportation', nom: 'export',  icone: 'export',  type: 'Export' },
+    transit: { titre: 'Dashboard Transit', sousTitre: 'Pilotage des opérations de transit',    nom: 'transit', icone: 'transit', type: 'Transit' }
   };
   function lireType() { var t = new URLSearchParams(location.search).get('type'); return VUES[t] ? t : 'import'; }
 
+  /* Indicateurs calculés sur les seuls dossiers du type (critère des issues #6, #8, #10) ; un clic ouvre la liste E01 filtrée */
+  function renderStats(c) {
+    var v = VUES[c], dossiers = D.tableauDeBord().filter(function (d) { return d.type === v.type; });
+    $('stats').innerHTML = D.indicateursDe(c).map(function (k) {
+      return '<a class="c-stat c-stat--' + k.ton + '" href="E01-dossiers.html?kpi=' + k.id + '&amp;type=' + v.type + '" title="' + k.label + ' (' + v.nom + ') — ouvrir la liste">' +
+        '<span class="c-stat__in"><span class="c-stat__icon">' + icon(k.icone) + '</span><span class="c-stat__value">' + dossiers.filter(k.f).length + '</span>' +
+        '<span class="c-stat__label"><span class="is-long">' + k.label + '</span><span class="is-short" aria-hidden="true">' + k.court + '</span></span></span></a>';
+    }).join('');
+  }
+
   function render(c) {
     var v = VUES[c], n = D.volumes()[c];
+    renderStats(c);
     document.title = v.titre + ' — DOUALOG Control Tower';
     $('titre').textContent = v.titre;
     $('sous-titre').textContent = v.sousTitre;
     $('vide-icone').setAttribute('href', '#i-' + v.icone);
     $('vide-titre').textContent = n ? n + ' dossier' + (n > 1 ? 's' : '') + ' ' + v.nom : 'Aucun dossier ' + v.nom;
-    $('vide-texte').textContent = 'Les indicateurs et la liste des dossiers ' + v.nom + ' s\'afficheront ici.';
+    $('vide-texte').textContent = 'La liste des dossiers ' + v.nom + ' s\'affichera ici.';
   }
 
   var type = lireType();

@@ -791,11 +791,12 @@
   }
   function tableauDeBord() { return dossiers.filter(function (d) { return !enSalleAttente(d); }); }
   function salleAttente() { return dossiers.filter(enSalleAttente); }
-  /* Bandeau d'accueil : 9 indicateurs (retour client du 06/11/2026, issue #5), partagés par E09 (cartes) et E01 (filtre ?kpi=).
+  /* Indicateurs de dossiers (retour client du 06/11/2026) : un catalogue, puis la sélection de chaque écran —
+     accueil E09 (9, issue #5), dashboards E15 Import / Export / Transit (issues #6, #8, #10) ; E01 filtre sur tout le catalogue (?kpi=).
      Un dossier n'a encore qu'un statut : correspondance provisoire avec les statuts « dossier » et « douane » de l'issue #7.
      À VALIDER : « à traiter » = dossier complet, pris en charge, rien de saisi ; « à stocker » = déclaration prête à saisir en douane
      (aucun dossier de démo à ce stade) ; « stockés » = « Dossiers à stocké » du retour client ; BAS = statut « BAS obtenu » seulement. */
-  var indicateurs = [
+  var catalogueIndicateurs = [
     { id: 'a-traiter',   label: 'Dossiers à traiter',              court: 'À traiter',     icone: 'inbox',    ton: 'blue',    statuts: ['En cours de traitement'] },
     { id: 'infos',       label: 'Dossiers manque infos',           court: 'Manque infos',  icone: 'alert',    ton: 'red',     statuts: ['Info manquante'] },
     { id: 'a-stocker',   label: 'Dossiers à stocker',              court: 'À stocker',     icone: 'edit',     ton: 'orange',  statuts: [] },
@@ -804,8 +805,21 @@
     { id: 'controle',    label: 'Dossiers sous contrôle douanes',  court: 'Sous contrôle', icone: 'controle', ton: 'magenta', statuts: ['Contrôle documentaire en cours', 'Contrôle physique en cours'] },
     { id: 'bae',         label: 'Dossiers BAE',                    court: 'BAE',           icone: 'valide',   ton: 'green',   statuts: ['BAE obtenu'] },
     { id: 'bas',         label: 'Dossiers BAS',                    court: 'BAS',           icone: 'package',  ton: 'orange',  statuts: ['BAS obtenu'] },
-    { id: 'clotures',    label: 'Dossiers clôturés',               court: 'Clôturés',      icone: 'check',    ton: 'neutral', statuts: ['Clôturé'] }
+    { id: 'clotures',    label: 'Dossiers clôturés',               court: 'Clôturés',      icone: 'check',    ton: 'neutral', statuts: ['Clôturé'] },
+    /* Transit : « Libéré » remplace Anticipé et BAE (issue #10) — À VALIDER : statut absent du CDC et du jeu de démo */
+    { id: 'libere',      label: 'Dossiers libérés',                court: 'Libérés',       icone: 'arrow-right', ton: 'green', statuts: ['Libéré'] }
   ].map(function (k) { k.f = function (d) { return k.statuts.indexOf(d.statut) >= 0; }; return k; });
+  var SELECTION_INDICATEURS = {
+    accueil: ['a-traiter', 'infos', 'a-stocker', 'stockes', 'anticipes', 'controle', 'bae', 'bas', 'clotures'],
+    import:  ['a-traiter', 'infos', 'a-stocker', 'anticipes', 'controle', 'bae', 'bas'],
+    export:  ['a-traiter', 'infos', 'a-stocker', 'stockes', 'anticipes', 'controle', 'bae', 'bas'],
+    transit: ['a-traiter', 'infos', 'a-stocker', 'stockes', 'controle', 'libere', 'bas']
+  };
+  /* Indicateurs d'un écran : 'accueil', 'import', 'export' ou 'transit' */
+  function indicateursDe(ecran) {
+    return SELECTION_INDICATEURS[ecran].map(function (id) { return catalogueIndicateurs.filter(function (k) { return k.id === id; })[0]; });
+  }
+  var indicateurs = indicateursDe('accueil');
 
   /* Volume d'activité par type (KPI globaux du header, issue #3, et dashboards E15) : mêmes dossiers que la liste, salle d'attente exclue */
   function volumes() {
@@ -1368,6 +1382,6 @@
     fmt: { date: fmtDate, dateCourte: fmtDateCourte, heure: fmtHeure, dateHeure: fmtDateHeure, nombre: fmtNombre, montant: fmtMontant, poids: fmtPoids },
     esc: esc, badge: badge, dossier: dossier, client: client, responsable: responsable, refTransport: refTransport,
     enSalleAttente: enSalleAttente, alertes: alertes, documentsManquants: documentsManquants,
-    tableauDeBord: tableauDeBord, volumes: volumes, indicateurs: indicateurs, salleAttente: salleAttente, relances: relances, totaux: totaux, workflow: workflow
+    tableauDeBord: tableauDeBord, volumes: volumes, indicateurs: indicateurs, indicateursDe: indicateursDe, catalogueIndicateurs: catalogueIndicateurs, salleAttente: salleAttente, relances: relances, totaux: totaux, workflow: workflow
   };
 })();

@@ -15,7 +15,8 @@
 </head>
 <body>
 <!-- E01 · Dossiers — liste des dossiers (les indicateurs et graphiques sont dans E09, Tableau de bord) · US-10, 11, 16
-     ?kpi=a-traiter|infos|a-stocker|stockes|anticipes|controle|bae|bas|clotures : liste filtrée depuis un indicateur du tableau de bord (data.js > indicateurs)
+     ?kpi=a-traiter|infos|a-stocker|stockes|anticipes|controle|bae|bas|clotures|libere : liste filtrée depuis un indicateur (data.js > catalogueIndicateurs)
+     ?type=Import|Export|Transit : filtre Type posé (indicateur d'un dashboard métier E15)
      E03 · onglet Salle d'attente (#salle-attente) · US-04, 05, 06, 08 — E03-salle-attente.html ouvre directement cet onglet
      E02 · l'œil ou le N° de dossier ouvre le dossier en panneau bas de page (assets/dossier.js) ; ?id=DLG-… l'ouvre au chargement
      Structure : references/vision-client.jpeg -->
@@ -161,8 +162,8 @@
   var liste = D.tableauDeBord();   // recalculée quand un dossier quitte la salle d'attente
   var etat = { q: '', rapide: 'tous', kpi: null, filtres: {}, tri: null, sens: 1, utilisateur: null, ids: null, idsTitre: '' };
 
-  /* ── Indicateurs : les 9 du bandeau d'accueil (data.js > indicateurs, issue #5) — filtre ?kpi= venu du tableau de bord ── */
-  var KPIS = D.indicateurs;
+  /* ── Indicateurs : catalogue de data.js (accueil E09 et dashboards E15) — filtre ?kpi= venu d'un indicateur cliqué ── */
+  var KPIS = D.catalogueIndicateurs;
 
   /* ── Tri par défaut : urgence — À VALIDER (QUESTIONS-ONCLE.md §2.3) ─
      Info manquante → contrôles en cours → douane en cours → bons obtenus → facturation → terminés.
@@ -214,7 +215,7 @@
 
   /* ── Filtres multicritères (panneau) ─────────────────────── */
   var FILTRES = [
-    { k: 'type',        label: 'Type',        options: ['Import', 'Export'], val: function (d) { return d.type; } },
+    { k: 'type',        label: 'Type',        options: ['Import', 'Export', 'Transit'], val: function (d) { return d.type; } },
     { k: 'mode',        label: 'Mode',        options: ['Maritime', 'Aérien'], val: function (d) { return d.mode; } },
     { k: 'statut',      label: 'Statut',      options: ORDRE_STATUT.filter(function (s) { return s !== 'En attente de documents'; }), val: function (d) { return d.statut; } },
     { k: 'controle',    label: 'Contrôle',    options: ['Aucun', 'Physique', 'Documentaire', 'Non renseigné'], val: function (d) { return d.controle ? d.controle.type : 'Non renseigné'; } },
@@ -568,6 +569,7 @@
   if (params.get('ids') !== null) { etat.ids = params.get('ids') ? params.get('ids').split(',') : []; etat.idsTitre = params.get('titre') || 'sélection'; }
   if (params.get('rapide')) etat.rapide = params.get('rapide');
   if (params.get('kpi') && kpi(params.get('kpi'))) etat.kpi = params.get('kpi');   // chiffre cliqué dans le tableau de bord
+  if (FILTRES[0].options.indexOf(params.get('type')) >= 0) etat.filtres.type = params.get('type');   // indicateur d'un dashboard métier (E15)
 
   window.DOUALOG_SHELL.init({
     actif: 'dossiers',
