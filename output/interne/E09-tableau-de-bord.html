@@ -11,6 +11,7 @@
 <script src="../assets/data.js"></script>
 <script src="../assets/charts.js"></script>
 <script src="../assets/shell.js"></script>
+<script src="../assets/composants.js"></script>
 <script src="../assets/demo.js"></script>
 </head>
 <body>
@@ -121,12 +122,7 @@
   var liste = D.tableauDeBord(), actifs = liste.filter(function (d) { return d.statut !== 'Clôturé'; });
 
   /* ── 1. Bandeau de 9 indicateurs (retour client du 06/11/2026, issue #5) — définis dans data.js, comme pour la liste E01 : un clic l'ouvre filtrée ── */
-  var KPIS = D.indicateurs;
-  $('stats').innerHTML = KPIS.map(function (k) {
-    return '<a class="c-stat c-stat--' + k.ton + '" href="E01-dossiers.html?kpi=' + k.id + '" title="' + k.label + ' — ouvrir la liste">' +
-      '<span class="c-stat__in"><span class="c-stat__icon">' + icon(k.icone) + '</span><span class="c-stat__value">' + liste.filter(k.f).length + '</span>' +
-      '<span class="c-stat__label"><span class="is-long">' + k.label + '</span><span class="is-short" aria-hidden="true">' + k.court + '</span></span></span></a>';
-  }).join('');
+  $('stats').innerHTML = window.DOUALOG_UI.bandeauIndicateurs(D.indicateurs, liste, function (k) { return 'E01-dossiers.html?kpi=' + k.id; });   // assets/composants.js (issue #12)
 
   /* ── 2. Activité : semaines connues, regroupement, période choisie ── */
   function plusJours(iso, n) { var t = new Date(Date.UTC(+iso.slice(0, 4), +iso.slice(5, 7) - 1, +iso.slice(8, 10) + n)); return t.toISOString().slice(0, 10); }   // sans décalage de fuseau

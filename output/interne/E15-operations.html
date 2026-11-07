@@ -10,6 +10,7 @@
 <script src="../assets/icons.js"></script>
 <script src="../assets/data.js"></script>
 <script src="../assets/shell.js"></script>
+<script src="../assets/composants.js"></script>
 <script src="../assets/demo.js"></script>
 </head>
 <body>
@@ -39,10 +40,7 @@
     <section class="c-card">
       <div class="c-card__head"><h3 id="liste-titre"></h3><span class="c-card__note" id="liste-note"></span></div>
       <div class="c-table-wrap" id="liste-wrap">
-        <table class="c-table" id="table">
-          <thead><tr id="thead"></tr></thead>
-          <tbody id="tbody"></tbody>
-        </table>
+        <table class="c-table" id="table"></table>
       </div>
       <div class="c-empty" id="vide" hidden>
         <svg class="c-icon" aria-hidden="true"><use href="#i-dossiers" id="vide-icone"></use></svg>
@@ -56,9 +54,8 @@
 
 <script>
 (function () {
-  var D = window.DOUALOG, F = D.fmt, esc = D.esc;
+  var D = window.DOUALOG, F = D.fmt, esc = D.esc, UI = window.DOUALOG_UI;   // composants partagés : assets/composants.js (issue #12)
   function $(id) { return document.getElementById(id); }
-  function icon(n, cls) { return '<svg class="c-icon' + (cls ? ' ' + cls : '') + '" aria-hidden="true"><use href="#i-' + n + '"></use></svg>'; }
 
   /* Une entrée par dashboard : titre, sous-titre, type des dossiers (le compte total vient de DOUALOG.volumes(), comme les KPI du header) */
   var VUES = {
@@ -71,33 +68,24 @@
   /* Indicateurs calculés sur les seuls dossiers du type (critère des issues #6, #8, #10) ; un clic ouvre la liste E01 filtrée */
   function renderStats(c) {
     var v = VUES[c], dossiers = D.tableauDeBord().filter(function (d) { return d.type === v.type; });
-    $('stats').innerHTML = D.indicateursDe(c).map(function (k) {
-      return '<a class="c-stat c-stat--' + k.ton + '" href="E01-dossiers.html?kpi=' + k.id + '&amp;type=' + v.type + '" title="' + k.label + ' (' + v.nom + ') — ouvrir la liste">' +
-        '<span class="c-stat__in"><span class="c-stat__icon">' + icon(k.icone) + '</span><span class="c-stat__value">' + dossiers.filter(k.f).length + '</span>' +
-        '<span class="c-stat__label"><span class="is-long">' + k.label + '</span><span class="is-short" aria-hidden="true">' + k.court + '</span></span></span></a>';
-    }).join('');
+    $('stats').innerHTML = UI.bandeauIndicateurs(D.indicateursDe(c), dossiers, function (k) { return 'E01-dossiers.html?kpi=' + k.id + '&amp;type=' + v.type; }, v.nom);
   }
 
-  /* ── Tableau des dossiers : cellules éditables (ETA, statuts, commentaire) ── */
+  /* ── Tableau des dossiers : tableau générique et cellules éditables partagés (ETA, statuts, commentaire) ── */
   var lectureSeule = false, courant = null;
-  function dis() { return lectureSeule ? ' disabled' : ''; }
-  function selectStatut(d, champ, options, valeur, libelle) {
-    return '<select class="c-cell-select c-badge--' + D.tonSuivi(valeur) + '" data-champ="' + champ + '" aria-label="' + libelle + ' du dossier ' + d.id + '"' + dis() + '>' +
-      (valeur ? '' : '<option value="" selected>—</option>') +
-      options.map(function (o) { return '<option' + (o.nom === valeur ? ' selected' : '') + '>' + o.nom + '</option>'; }).join('') + '</select>';
-  }
   function texte(x) { return x ? esc(x) : '<span class="u-muted">—</span>'; }
+  function noms(liste) { return liste.map(function (s) { return s.nom; }); }
   /* Colonnes communes aux dashboards */
   var COL = {
     reception: { titre: 'Date réception', cls: 'is-num', v: function (d) { return F.date(d.reception); } },
     numero: { titre: 'N° dossier', v: function (d) { return '<a href="E01-dossiers.html?id=' + d.id + '" title="Ouvrir le dossier">' + d.id + '</a>'; } },
     client: { titre: 'Client', v: function (d) { return esc(D.clients[d.client].nom); } },
-    douane: { titre: 'Statut douane', v: function (d) { return selectStatut(d, 'statutDouane', D.statutsDouane(d.type), D.statutDouane(d), 'Statut douane'); } },
-    dossier: { titre: 'Statut dossier', v: function (d) { return selectStatut(d, 'statutDossier', D.statutsDossier, D.statutDossier(d), 'Statut dossier'); } },
-    commentaire: { titre: 'Commentaires', v: function (d) { return '<input class="c-cell-input c-cell-input--texte" type="text" data-champ="commentaire" value="' + esc(d.commentaire || '') + '" placeholder="' + (lectureSeule ? '' : 'Ajouter un commentaire') + '" aria-label="Commentaire du dossier ' + d.id + '"' + dis() + '>'; } },
+    douane: { titre: 'Statut douane', v: function (d) { return UI.celluleSelect({ champ: 'statutDouane', options: noms(D.statutsDouane(d.type)), valeur: D.statutDouane(d), libelle: 'Statut douane du dossier ' + d.id, lectureSeule: lectureSeule }); } },
+    dossier: { titre: 'Statut dossier', v: function (d) { return UI.celluleSelect({ champ: 'statutDossier', options: noms(D.statutsDossier), valeur: D.statutDossier(d), libelle: 'Statut dossier du dossier ' + d.id, lectureSeule: lectureSeule }); } },
+    commentaire: { titre: 'Commentaires', v: function (d) { return UI.celluleTexte({ champ: 'commentaire', valeur: d.commentaire, placeholder: 'Ajouter un commentaire', libelle: 'Commentaire du dossier ' + d.id, lectureSeule: lectureSeule }); } },
     declarant: { titre: 'Déclarant', v: function (d) { return texte(D.equipe[d.responsable] && D.equipe[d.responsable].nom); } },
     /* Actions (issue #9) : voir le détail du dossier (panneau E02, dans la liste E01) — colonne figée à droite */
-    actions: { titre: 'Actions', cls: 'is-center', actions: true, v: function (d) { return '<a class="c-btn c-btn--icon c-btn--sm" href="E01-dossiers.html?id=' + d.id + '" aria-label="Voir le détail du dossier ' + d.id + '" title="Voir le détail du dossier">' + icon('eye', 'c-icon--sm') + '</a>'; } }
+    actions: { titre: 'Actions', cls: 'is-center', actions: true, v: function (d) { return '<a class="c-btn c-btn--icon c-btn--sm" href="E01-dossiers.html?id=' + d.id + '" aria-label="Voir le détail du dossier ' + d.id + '" title="Voir le détail du dossier">' + UI.icon('eye', 'c-icon--sm') + '</a>'; } }
   };
   /* Colonnes par dashboard (Import : issue #7 ; Export : issue #9 ; Transit : issue #11) */
   var COLONNES = {
@@ -105,7 +93,7 @@
       { titre: 'Fournisseur', v: function (d) { return texte(d.fournisseur); } },
       { titre: 'Pays de provenance', v: function (d) { return texte(d.provenance); } },
       { titre: 'Navire', v: function (d) { return d.navire ? esc(d.navire) : d.vol ? 'Vol ' + esc(d.vol) : texte(''); } },
-      { titre: 'ETA', v: function (d) { return '<input class="c-cell-input" type="date" data-champ="eta" value="' + (d.eta || '') + '" aria-label="ETA du dossier ' + d.id + '"' + dis() + '>'; } },
+      { titre: 'ETA', v: function (d) { return UI.celluleDate({ champ: 'eta', valeur: d.eta, libelle: 'ETA du dossier ' + d.id, lectureSeule: lectureSeule }); } },
       COL.douane, COL.dossier, COL.commentaire],
     export: [COL.reception, COL.numero, COL.client,
       { titre: 'Destinataire', v: function (d) { return texte(d.destinataire); } },
@@ -132,26 +120,14 @@
       $('vide-texte').textContent = cols ? 'Aucun dossier de ce type pour le moment.' : 'La liste des dossiers ' + v.nom + ' s\'affichera ici.';
       return;
     }
-    $('table').classList.toggle('c-table--sticky', cols[cols.length - 1].actions === true);   // Actions figée à droite pendant le défilement
-    $('thead').innerHTML = cols.map(function (k) { return '<th' + (k.cls ? ' class="' + k.cls + '"' : '') + '>' + k.titre + '</th>'; }).join('');
-    $('tbody').innerHTML = dossiers.map(function (d) {
-      return '<tr data-id="' + d.id + '">' + cols.map(function (k) { return '<td' + (k.cls ? ' class="' + k.cls + '"' : '') + '>' + k.v(d) + '</td>'; }).join('') + '</tr>';
-    }).join('');
-    window.DOUALOG_SHELL.suivreDefilement();
+    UI.tableau($('table'), cols, dossiers, function (d) { return d.id; });
   }
 
-  /* Enregistrement au changement : statut → couleur du badge, indicateurs recalculés, bref halo vert sur la cellule */
+  /* Enregistrement au changement (data.js > modifierSuivi, mémoire de démo) puis indicateurs recalculés */
   var NOMS = { eta: 'ETA', statutDouane: 'statut douane', statutDossier: 'statut dossier', commentaire: 'commentaire' };
-  $('tbody').addEventListener('change', function (e) {
-    var el = e.target, champ = el.dataset.champ;
-    if (!champ || lectureSeule) return;
-    var id = el.closest('tr').dataset.id, valeur = champ === 'commentaire' ? el.value.trim() : el.value;
+  UI.suivreEdition($('table'), function (id, champ, valeur) {
+    if (lectureSeule) return;
     D.modifierSuivi(id, champ, valeur);
-    if (el.tagName === 'SELECT') {
-      el.className = 'c-cell-select c-badge--' + D.tonSuivi(valeur);
-      var vide = el.querySelector('option[value=""]'); if (vide && valeur) vide.remove();
-    }
-    var td = el.closest('td'); td.classList.remove('is-saved'); void td.offsetWidth; td.classList.add('is-saved');
     renderStats(courant);
     $('annonce').textContent = 'Dossier ' + id + ' : ' + NOMS[champ] + ' enregistré.';
   });

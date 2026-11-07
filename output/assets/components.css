@@ -171,8 +171,6 @@ a.c-ref:hover { text-decoration: underline; }
 .c-cell-input::placeholder { color: var(--text-muted); }
 .c-cell-input[type="date"] { width: 132px; font-variant-numeric: tabular-nums; }
 .c-cell-input--texte { width: calc(100% + var(--sp-4)); min-width: 220px; }
-.c-cell-select:disabled, .c-cell-input:disabled { cursor: default; box-shadow: none; border-color: transparent; background-image: none; padding-right: 10px; }
-.c-cell-input:disabled { background: transparent; color: var(--text-primary); }
 /* Valeur enregistrée : bref halo vert sur la cellule */
 @keyframes c-cell-ok { from { box-shadow: inset 0 0 0 2px var(--tone-success); } }
 .c-table td.is-saved { animation: c-cell-ok 900ms var(--ease-out); }
