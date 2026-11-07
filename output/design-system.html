@@ -66,7 +66,7 @@
   <nav class="ds-toc" aria-label="Sommaire">
     <a href="#couleurs">Couleurs</a><a href="#typo">Typographie</a><a href="#espaces">Espacements</a><a href="#icones">Icônes</a>
     <a href="#statuts">Statuts</a><a href="#boutons">Boutons</a><a href="#champs">Champs</a><a href="#shell">Shell</a><a href="#indicateurs">Indicateurs</a><a href="#graphiques">Graphiques</a>
-    <a href="#tableau">Tableau</a><a href="#onglets">Onglets</a><a href="#workflow">Workflow</a><a href="#bandeau">Bandeau</a>
+    <a href="#tableau">Tableau</a><a href="#edition">Édition</a><a href="#onglets">Onglets</a><a href="#workflow">Workflow</a><a href="#bandeau">Bandeau</a>
     <a href="#panneau">Panneau &amp; modale</a><a href="#blocs">Blocs du dossier</a><a href="#timeline">Timeline</a><a href="#documents">Documents</a>
     <a href="#alertes">Alertes</a><a href="#vide">État vide</a><a href="#depot">Dépôt</a><a href="#connexion">Connexion</a><a href="#externe">Pages externes</a><a href="#fiche-client">Fiche client</a><a href="#messagerie">Messagerie</a><a href="#presentation">Présentation</a><a href="#facture">Facture</a>
   </nav>
@@ -358,6 +358,24 @@
   </section>
 
   <!-- ══ ONGLETS ══ -->
+  <!-- ══ ÉDITION DANS LA LIGNE ══ -->
+  <section class="ds-sec" id="edition">
+    <h2>Cellules éditables (dashboards métier)</h2>
+    <p class="ds-intro">Tableaux des dashboards Import / Export / Transit (retour client du 06/11/2026) : on modifie dans la ligne, sans ouvrir le dossier.
+      <code>.c-cell-select</code> : liste déroulante en forme de badge, couleur du statut choisi (classes <code>.c-badge--*</code>, données dans <code>data.js &gt; tonSuivi()</code>).
+      <code>.c-cell-input</code> : champ date ou texte (<code>--texte</code>) discret, cadre au survol, anneau orange au focus. Enregistré au changement, bref halo vert sur la cellule (<code>td.is-saved</code>), indicateurs recalculés. Désactivés en lecture seule (profil Direction).</p>
+    <div class="c-table-wrap c-table-wrap--solo">
+      <table class="c-table">
+        <thead><tr><th>N° dossier</th><th>ETA</th><th>Statut douane</th><th>Statut dossier</th><th>Commentaires</th></tr></thead>
+        <tbody>
+          <tr><td>DLG-2026-0420</td><td><input class="c-cell-input" type="date" value="2026-10-19" aria-label="ETA (exemple)"></td><td><select class="c-cell-select c-badge--special" aria-label="Statut (exemple)"><option selected>Anticipé</option><option>Contrôle documentaire</option><option>Contrôle physique</option><option>BAE</option><option>BAS</option></select></td><td><select class="c-cell-select c-badge--neutral" aria-label="Statut (exemple)"><option>À traiter</option><option>Infos manquantes</option><option selected>En cours</option><option>À stocker</option><option>Stocké</option><option>Clôturé</option></select></td><td><input class="c-cell-input c-cell-input--texte" type="text" placeholder="Ajouter un commentaire" aria-label="Commentaire (exemple)"></td></tr>
+          <tr><td>DLG-2026-0415</td><td><input class="c-cell-input" type="date" value="2026-10-09" aria-label="ETA (exemple)"></td><td><select class="c-cell-select c-badge--danger" aria-label="Statut (exemple)"><option>Anticipé</option><option>Contrôle documentaire</option><option selected>Contrôle physique</option><option>BAE</option><option>BAS</option></select></td><td><select class="c-cell-select c-badge--danger" aria-label="Statut (exemple)"><option>À traiter</option><option selected>Infos manquantes</option><option>En cours</option><option>À stocker</option><option>Stocké</option><option>Clôturé</option></select></td><td class="is-saved"><input class="c-cell-input c-cell-input--texte" type="text" value="Inspection prévue lundi" aria-label="Commentaire (exemple)"></td></tr>
+          <tr><td>DLG-2026-0389</td><td><input class="c-cell-input" type="date" value="2026-09-09" aria-label="ETA (exemple)" disabled></td><td><select disabled class="c-cell-select c-badge--success" aria-label="Statut (exemple)"><option>Anticipé</option><option>Contrôle documentaire</option><option>Contrôle physique</option><option>BAE</option><option selected>BAS</option></select></td><td><select disabled class="c-cell-select c-badge--success" aria-label="Statut (exemple)"><option>À traiter</option><option>Infos manquantes</option><option>En cours</option><option>À stocker</option><option>Stocké</option><option selected>Clôturé</option></select></td><td><input class="c-cell-input c-cell-input--texte" type="text" value="Lecture seule" aria-label="Commentaire (exemple)" disabled></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
   <section class="ds-sec" id="onglets">
     <h2>Onglets</h2>
     <div class="ds-box">
